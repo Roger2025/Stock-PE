@@ -2,7 +2,7 @@ flask
 gunicorn
 pandas
 matplotlib
-openai
+openai>=1.0.0
 pymysql
 python-dotenv
 markdown

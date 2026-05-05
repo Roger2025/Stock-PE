@@ -25,7 +25,10 @@ logger = logging.getLogger(__name__)
 # ==========================================
 load_dotenv()
 app = Flask(__name__)
-client = OpenAI()
+
+# 確保從環境變數正確抓取 API Key
+api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=api_key)
 
 # 使用現代化 Pathlib 建立與管理靜態目錄
 STATIC_IMG_DIR = Path(app.root_path) / "static" / "images"
@@ -57,6 +60,8 @@ def generate_ai_report(stock_id: str, df: pd.DataFrame) -> str:
 
         # 呼叫 GPT 進行分析
         logger.info(f"[{stock_id}] 正在發送請求至 OpenAI API...")
+        
+        # 增加 timeout 到 45 秒，避免 Render 連線過慢超時
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -69,7 +74,7 @@ def generate_ai_report(stock_id: str, df: pd.DataFrame) -> str:
                     "content": f"這是代號 {stock_id} 最新 20 天的數據：\n{report_data}\n請給出分析報告。"
                 }
             ],
-            timeout=20
+            timeout=45 
         )
         
         logger.info(f"[{stock_id}] OpenAI 報告生成完畢。")
@@ -78,7 +83,7 @@ def generate_ai_report(stock_id: str, df: pd.DataFrame) -> str:
 
     except OpenAIError as api_err:
         logger.error(f"[{stock_id}] OpenAI API 發生錯誤：{api_err}")
-        return f"<p style='color:#E63946;'><strong>⚠️ AI 服務暫時無法使用。</strong></p>"
+        return f"<p style='color:#E63946;'><strong>⚠️ AI 服務暫時無法使用，請檢查 API Key 或餘額。</strong></p>"
     except Exception as e:
         logger.exception(f"[{stock_id}] 報告生成發生錯誤")
         return f"<p style='color:#E63946;'><strong>⚠️ 系統分析出錯：{str(e)}</strong></p>"
@@ -102,13 +107,13 @@ def analyze():
     try:
         logger.info(f"========== 開始處理股票分析：{stock_id} ==========")
 
-        # --- 步驟 A：產出河流圖 ---
+        # --- 步驟 A：產出河流圖 (DPI 調低至 100 以節省記憶體) ---
         logger.info(f"[{stock_id}] 正在生成河流圖...")
         stock_PE.plot_stock_pe_trend(
             stock_id=stock_id, 
-            start_date='2015-01-01', 
+            start_date='2006-01-01', 
             smooth_days=5, 
-            dpi=200
+            dpi=100
         )
 
         # --- 步驟 B：靜態資源歸檔 (搬移圖片) ---
@@ -116,6 +121,9 @@ def analyze():
         target_image_path = STATIC_IMG_DIR / original_image.name
         
         if original_image.exists():
+            # 先移除舊圖，再移動新圖，避免 replace 在某些系統報錯
+            if target_image_path.exists():
+                target_image_path.unlink()
             original_image.replace(target_image_path)
             logger.info(f"[{stock_id}] 圖片已歸檔。")
         else:
@@ -141,5 +149,6 @@ def analyze():
 
 
 if __name__ == "__main__":
+    # 本地開發時使用，部署到 Render 時會由 Gunicorn 接管
     logger.info("啟動 Flask 伺服器...")
-    app.run(debug=True, port=5000)
+    app.run(host='0.0.0.0', port=5000)
