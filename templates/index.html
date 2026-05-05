@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>專業五階段河流圖分析系統</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      } /* 確保 padding 不會把寬度撐破 */
+      body {
+        font-family: "Microsoft JhengHei", sans-serif;
+        text-align: center;
+        padding: 20px 10px;
+        background-color: #f4f7f6;
+        margin: 0;
+      }
+      .container {
+        max-width: 500px;
+        width: 100%;
+        margin: 5vh auto;
+        background: white;
+        padding: 40px 30px;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      }
+      h2 {
+        color: #1d3557;
+        margin-top: 0;
+      }
+      p {
+        color: #666;
+        margin-bottom: 25px;
+      }
+      input[type="text"] {
+        padding: 15px;
+        width: 100%;
+        font-size: 16px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        transition: border-color 0.3s;
+      }
+      input[type="text"]:focus {
+        border-color: #457b9d;
+        outline: none;
+      }
+      button {
+        width: 100%;
+        padding: 15px;
+        font-size: 18px;
+        font-weight: bold;
+        background-color: #1d3557;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.3s;
+        box-shadow: 0 4px 6px rgba(29, 53, 87, 0.2);
+      }
+      button:hover {
+        background-color: #457b9d;
+        transform: translateY(-2px);
+      }
+
+      /* 手機版專屬微調 */
+      @media (max-width: 600px) {
+        .container {
+          padding: 30px 20px;
+          margin: 2vh auto;
+        }
+        h2 {
+          font-size: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>📊 台股估值河流圖分析</h2>
+      <p>請輸入股票代號（例如：2330, 2454）</p>
+      <form action="/analyze" method="POST">
+        <input
+          type="text"
+          name="stock_id"
+          placeholder="輸入股票代號..."
+          required
+          autocomplete="off"
+        />
+        <button type="submit">生成專業分析報告</button>
+      </form>
+    </div>
+  </body>
+</html>

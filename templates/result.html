@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>{{ stock_id }} 價值分析報告</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Microsoft JhengHei", sans-serif;
+        background-color: #f4f7f6;
+        margin: 0;
+        padding: 20px 10px; /* 電腦版留白，手機版靠邊界近一點 */
+        color: #333;
+      }
+      .container {
+        max-width: 900px;
+        width: 100%;
+        margin: auto;
+        background: white;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        text-align: center;
+        color: #1d3557;
+        border-bottom: 3px solid #457b9d;
+        padding-bottom: 15px;
+        margin-bottom: 30px;
+        font-size: 2rem;
+      }
+      .chart-section {
+        text-align: center;
+        margin-bottom: 40px;
+        width: 100%;
+      }
+      .chart-section img {
+        max-width: 100%; /* 靈魂設定：圖片永遠不會超出螢幕寬度 */
+        height: auto;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      }
+      .ai-section {
+        background-color: #f1faee;
+        padding: 25px;
+        border-radius: 8px;
+        border-left: 6px solid #a8dadc;
+        line-height: 1.8;
+        font-size: 1.1em;
+        overflow-wrap: break-word; /* 避免過長的英文或網址撐破畫面 */
+      }
+      .ai-section h2 {
+        color: #1d3557;
+        margin-top: 0;
+        display: flex;
+        align-items: center;
+        font-size: 1.6rem;
+      }
+      .ai-section h2::before {
+        content: "🤖";
+        margin-right: 10px;
+      }
+      /* 如果 AI 生成了 Markdown 表格，讓它可以左右滑動 */
+      .ai-section table {
+        width: 100%;
+        display: block;
+        overflow-x: auto;
+        border-collapse: collapse;
+        white-space: nowrap;
+      }
+      .ai-section th,
+      .ai-section td {
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+      }
+      .btn-group {
+        text-align: center;
+        margin-top: 40px;
+      }
+      .back-btn {
+        display: inline-block;
+        width: 100%; /* 手機上變滿版大按鈕 */
+        max-width: 300px; /* 電腦上維持適中大小 */
+        background-color: #e63946;
+        color: white;
+        padding: 15px 20px;
+        text-decoration: none;
+        border-radius: 25px;
+        font-weight: bold;
+        font-size: 1.1rem;
+        transition: background 0.3s;
+      }
+      .back-btn:hover {
+        background-color: #c1121f;
+      }
+
+      /* ================================ */
+      /* 手機版 (寬度小於 600px) 自動切換設定 */
+      /* ================================ */
+      @media (max-width: 600px) {
+        body {
+          padding: 10px 5px;
+        }
+        .container {
+          padding: 20px 15px;
+        }
+        h1 {
+          font-size: 1.5rem;
+        }
+        .ai-section {
+          padding: 15px;
+          font-size: 1rem;
+          line-height: 1.6;
+        }
+        .ai-section h2 {
+          font-size: 1.3rem;
+        }
+        .ai-section ul {
+          padding-left: 15px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>📊 {{ stock_id }} 專業價值河流圖報告</h1>
+
+      <div class="chart-section">
+        <img src="{{ image_url }}" alt="五階段本益比河流圖" />
+      </div>
+
+      <div class="ai-section">
+        <h2>AI 投資診斷建議</h2>
+        {{ ai_report | safe }}
+      </div>
+
+      <div class="btn-group">
+        <a href="/" class="back-btn">← 返回重新查詢</a>
+      </div>
+    </div>
+  </body>
+</html>
