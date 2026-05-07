@@ -23,36 +23,30 @@ load_dotenv()
 
 # --- 終極字體解決方案 (本地打包 + 自動保底) ---
 def set_mpl_fonts():
-    import platform
     import os
+    import platform
     import matplotlib.font_manager as fm
-    
-    # 1. 定義字體路徑 (與 stock_PE.py 同目錄下的 myfont.ttf)
-    # 使用 __file__ 可以精準定位檔案，不受執行位置影響
+
+    # --- 關鍵：路徑要加上 static/ ---
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    local_font_path = os.path.join(current_dir, "myfont.ttf")
-    
+    # 這裡多加一個 "static"
+    local_font_path = os.path.join(current_dir, "static", "myfont.ttf") 
+    print(f"--- 偵測字體路徑: {os.path.abspath(local_font_path)} ---")
+    print(f"--- 檔案是否存在: {os.path.exists(local_font_path)} ---")
     if platform.system() == 'Windows':
-        # Windows 本地端開發依然使用微軟正黑體
         plt.rcParams['font.sans-serif'] = ['Microsoft JhengHei', 'Arial']
     else:
-        # Render / Linux 雲端環境
         if os.path.exists(local_font_path):
             try:
-                # 強制加入字體到 Matplotlib 快取
                 fm.fontManager.addfont(local_font_path)
                 prop = fm.FontProperties(fname=local_font_path)
-                plt.rcParams['font.sans-serif'] = [prop.get_name(), 'DejaVu Sans', 'sans-serif']
-                print(f"✅ 成功載入粉圓體: {prop.get_name()}")
-            except Exception as e:
-                print(f"❌ 載入本地字體失敗，改用保底字體: {e}")
-                plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'sans-serif']
+                plt.rcParams['font.sans-serif'] = [prop.get_name(), 'sans-serif']
+                print(f"✅ 成功從 static 載入字體: {prop.get_name()}")
+            except:
+                plt.rcParams['font.sans-serif'] = ['DejaVu Sans']
         else:
-            # 如果檔案沒推成功，保底使用 Linux 內建字體 (雖然可能會有亂碼，但保證不崩潰)
-            plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'sans-serif']
-            print("⚠️ 找不到 myfont.ttf，請檢查檔案是否已推送到 GitHub 根目錄")
-
-    plt.rcParams['axes.unicode_minus'] = False
+            print(f"⚠️ 找不到字體，路徑檢查: {local_font_path}")
+            plt.rcParams['font.sans-serif'] = ['DejaVu Sans']
 
 # 執行設定
 set_mpl_fonts()
@@ -298,3 +292,4 @@ if __name__ == "__main__":
     if cursor:
         plot_stock_pe_trend(TARGET_ID, dpi=IMAGE_DPI)
         close_db()
+

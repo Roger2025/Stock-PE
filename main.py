@@ -149,6 +149,12 @@ def analyze():
 
 
 if __name__ == "__main__":
-    # 本地開發時使用，部署到 Render 時會由 Gunicorn 接管
-    logger.info("啟動 Flask 伺服器...")
-    app.run(host='0.0.0.0', port=5000)
+    # 1. 取得 Render 分配的門牌號碼，沒分配就用 10000
+    port = int(os.environ.get("PORT", 10000))
+    
+    # 2. 啟動日誌，讓你在 Render Log 裡能看到現在用哪個 Port
+    logger.info(f"🚀 伺服器啟動中... 目標 Port: {port}")
+    
+    # 3. 啟動服務
+    # host='0.0.0.0' 是必須的，代表允許外部連線進來
+    app.run(host='0.0.0.0', port=port)
