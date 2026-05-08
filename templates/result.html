@@ -9,7 +9,27 @@
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/script@0.1.4/index.min.js"></script>
     <title>{{ stock_id }} 價值分析報告</title>
+  
     <style>
+      .cheat-sheet {
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 15px 20px;
+        margin-top: -20px;
+        margin-bottom: 30px;
+        display: flex;
+        justify-content: space-around;
+        font-size: 0.95rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      }
+      .cheat-item span {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 8px;
+      }
       * {
         box-sizing: border-box;
       }
@@ -157,65 +177,102 @@
       </div>
     </div>
   </body>
-  <script type="text/javascript">
-    // 1. 初始化圖表
+  <div class="card-body">
+            <div id="river_chart" style="width: 100%; height: 500px"></div>
+            
+            <div class="cheat-sheet">
+                <div class="cheat-item"><span style="background: #FF595E;"></span><b>危險區</b>：極高估值，建議獲利了結</div>
+                <div class="cheat-item"><span style="background: #FFCA3A;"></span><b>昂貴區</b>：估值偏高，停止追高</div>
+                <div class="cheat-item"><span style="background: #8AC926;"></span><b>平均價</b>：合理估值，持股續抱</div>
+                <div class="cheat-item"><span style="background: #1982C4;"></span><b>便宜區</b>：估值偏低，分批佈局</div>
+                <div class="cheat-item"><span style="background: #4267B2;"></span><b>超跌區</b>：極低估值，價值浮現</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+<script type="text/javascript">
     var chartDom = document.getElementById('river_chart');
     var myChart = echarts.init(chartDom);
-
-    // 2. 接住數據
     var serverData = {{ chart_data | tojson | safe }};
 
     if (serverData) {
         var option = {
-            title: { text: serverData.stock_name + ' (' + serverData.stock_id + ') 河流圖', left: 'center' },
-            tooltip: {
-                trigger: 'axis',
-                axisPointer: { type: 'cross' }
+            color: ['#1D3557', '#FF595E', '#FFCA3A', '#8AC926', '#1982C4', '#4267B2'],
+            title: { text: serverData.stock_name + ' (' + serverData.stock_id + ') 價值河流圖', left: 'center', top: '2%' },
+            tooltip: { 
+                trigger: 'axis', axisPointer: { type: 'cross' }, backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                valueFormatter: function (value) { return value ? Number(value).toFixed(2) : '-'; }
             },
-            legend: {
-                data: ['本益比', '極高', '偏高', '合理', '偏低', '極低'],
-                top: '10%'
-            },
-            grid: { left: '5%', right: '5%', bottom: '15%', containLabel: true },
-            xAxis: {
-                type: 'category',
-                boundaryGap: false,
-                data: serverData.dates
-            },
-            yAxis: {
-                type: 'value',
-                scale: true
-            },
-            // 數據列設定
+            // 🚀 白話文圖例
+            legend: { data: ['本益比', '極高 (危險區)', '偏高 (昂貴區)', '合理 (平均價)', '偏低 (便宜區)', '極低 (超跌區)'], top: '8%' },
+            grid: { left: '3%', right: '12%', bottom: '15%', containLabel: true },
+            xAxis: { type: 'category', boundaryGap: false, data: serverData.dates, axisLabel: { color: '#666' } },
+            yAxis: { type: 'value', scale: true, axisLabel: { color: '#666' }, splitLine: { lineStyle: { type: 'dashed', opacity: 0.3 } } },
             series: [
-                {
-                    name: '本益比',
-                    type: 'line',
-                    data: serverData.pe_smooth,
-                    symbol: 'none',
-                    lineStyle: { color: '#1D3557', width: 3 },
-                    zIndex: 10
-                },
-                { name: '極高', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.極高), lineStyle: { type: 'dashed', color: '#FF595E' }, symbol: 'none' },
-                { name: '偏高', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.偏高), lineStyle: { type: 'dashed', color: '#FFCA3A' }, symbol: 'none' },
-                { name: '合理', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.合理), lineStyle: { type: 'dashed', color: '#8AC926' }, symbol: 'none' },
-                { name: '偏低', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.偏低), lineStyle: { type: 'dashed', color: '#1982C4' }, symbol: 'none' },
-                { name: '極低', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.極低), lineStyle: { type: 'dashed', color: '#4267B2' }, symbol: 'none' }
+                { name: '本益比', type: 'line', data: serverData.pe_smooth, symbol: 'none', lineStyle: { width: 3 }, zIndex: 10 },
+                // 🚀 白話文標籤
+                { name: '極高 (危險區)', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.極高), lineStyle: { type: 'dashed', width: 1 }, symbol: 'none', endLabel: { show: true, formatter: '{a}', color: 'inherit', distance: 10 } },
+                { name: '偏高 (昂貴區)', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.偏高), lineStyle: { type: 'dashed', width: 1 }, symbol: 'none', endLabel: { show: true, formatter: '{a}', color: 'inherit', distance: 10 } },
+                { name: '合理 (平均價)', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.合理), lineStyle: { type: 'dashed', width: 1 }, symbol: 'none', endLabel: { show: true, formatter: '{a}', color: 'inherit', distance: 10 } },
+                { name: '偏低 (便宜區)', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.偏低), lineStyle: { type: 'dashed', width: 1 }, symbol: 'none', endLabel: { show: true, formatter: '{a}', color: 'inherit', distance: 10 } },
+                { name: '極低 (超跌區)', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.極低), lineStyle: { type: 'dashed', width: 1 }, symbol: 'none', endLabel: { show: true, formatter: '{a}', color: 'inherit', distance: 10 } }
             ],
-            // 縮放功能 (放這裡才對！)
-            dataZoom: [
-                { type: 'slider', start: 80, end: 100, bottom: '5%' },
-                { type: 'inside' }
-            ]
+            dataZoom: [{ type: 'slider', start: 80, end: 100, bottom: '5%' }, { type: 'inside' }],
+            
+            // 🚀 白話文統計面板
+            graphic: [{
+                type: 'group', left: 'center', top: '14%',
+                children: [
+                    { type: 'rect', z: 100, shape: { width: 450, height: 32 }, style: { fill: 'rgba(255, 255, 255, 0.9)', stroke: '#ccc', lineWidth: 1, shadowBlur: 4, shadowColor: 'rgba(0,0,0,0.1)', radius: 5 } }, 
+                    { type: 'text', z: 101, left: 15, top: 10, style: { text: '計算中...', font: '13px "Microsoft JhengHei", sans-serif', fill: '#333', fontWeight: 'bold' }, id: 'statText' }
+                ]
+            }]
         };
 
-        // 3. 套用設定
         myChart.setOption(option);
-    }
 
-    // 4. 視窗縮放自適應
-    window.addEventListener('resize', function() {
-        myChart.resize();
-    });
-  </script>
+        myChart.on('dataZoom', function () {
+            var axis = myChart.getModel().getComponent('xAxis', 0).axis;
+            var range = axis.scale._extent;
+
+            if (range && range.length === 2) {
+                var startIndex = Math.floor(range[0]);
+                var endIndex = Math.ceil(range[1]);
+                var activeData = serverData.pe_smooth.slice(startIndex, endIndex + 1).filter(v => v !== null);
+
+                if (activeData.length > 0) {
+                    var sum = activeData.reduce((a, b) => a + b, 0);
+                    var newAvg = sum / activeData.length;
+                    var squareDiffs = activeData.map(v => Math.pow(v - newAvg, 2));
+                    var newStd = Math.sqrt(squareDiffs.reduce((a, b) => a + b, 0) / activeData.length);
+
+                    var counts = { high: 0, fair: 0, low: 0 };
+                    activeData.forEach(pe => {
+                        if (pe > newAvg + 0.5 * newStd) counts.high++;
+                        else if (pe >= newAvg - 0.5 * newStd) counts.fair++;
+                        else counts.low++;
+                    });
+
+                    var total = activeData.length;
+                    // 🚀 簡化為：偏高、合理、偏低 三大區塊的佔比，讓人一目瞭然
+                    var statStr = `📊 區間特性： 偏高昂貴 ${(counts.high/total*100).toFixed(0)}% ｜ 合理震盪 ${(counts.fair/total*100).toFixed(0)}% ｜ 偏低便宜 ${(counts.low/total*100).toFixed(0)}%`;
+
+                    myChart.setOption({
+                        graphic: { id: 'statText', style: { text: statStr } },
+                        series: [
+                            { name: '極高 (危險區)', data: Array(serverData.dates.length).fill(newAvg + 1.5 * newStd) },
+                            { name: '偏高 (昂貴區)', data: Array(serverData.dates.length).fill(newAvg + 0.5 * newStd) },
+                            { name: '合理 (平均價)', data: Array(serverData.dates.length).fill(newAvg) },
+                            { name: '偏低 (便宜區)', data: Array(serverData.dates.length).fill(newAvg - 0.5 * newStd) },
+                            { name: '極低 (超跌區)', data: Array(serverData.dates.length).fill(newAvg - 1.5 * newStd) }
+                        ]
+                    });
+                }
+            }
+        });
+        myChart.dispatchAction({ type: 'dataZoom', start: 80, end: 100 });
+    }
+    window.addEventListener('resize', function() { myChart.resize(); });
+</script>
 </html>
