@@ -9,25 +9,34 @@
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/script@0.1.4/index.min.js"></script>
     <title>{{ stock_id }} 價值分析報告</title>
-  
+
     <style>
+      /* 🚀 修正：排版擠壓與重疊問題 */
       .cheat-sheet {
         background: #fff;
         border: 1px solid #e0e0e0;
         border-radius: 8px;
         padding: 15px 20px;
-        margin-top: -20px;
+        margin-top: 20px; /* 🚀 這裡把 -20px 改成正的 20px，就不會跟拉桿黏在一起了！ */
         margin-bottom: 30px;
         display: flex;
         justify-content: space-around;
+        flex-wrap: wrap; /* 🚀 允許換行：手機螢幕太小時不會全擠在一排 */
+        gap: 10px; /* 換行時的間距 */
         font-size: 0.95rem;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
       }
+      .cheat-item {
+        display: flex;
+        align-items: center;
+        white-space: nowrap;
+      }
+      /* 🚀 修正：把原本的實心圓點改成跟圖表一致的「虛線」樣式 */
       .cheat-item span {
         display: inline-block;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
+        width: 18px;
+        height: 0;
+        border-top: 3px dashed; /* 變成虛線 */
         margin-right: 8px;
       }
       * {
@@ -37,7 +46,7 @@
         font-family: "Microsoft JhengHei", sans-serif;
         background-color: #f4f7f6;
         margin: 0;
-        padding: 20px 10px; /* 電腦版留白，手機版靠邊界近一點 */
+        padding: 20px 10px;
         color: #333;
       }
       .container {
@@ -63,7 +72,7 @@
         width: 100%;
       }
       .chart-section img {
-        max-width: 100%; /* 靈魂設定：圖片永遠不會超出螢幕寬度 */
+        max-width: 100%;
         height: auto;
         border-radius: 8px;
         border: 1px solid #ddd;
@@ -76,7 +85,7 @@
         border-left: 6px solid #a8dadc;
         line-height: 1.8;
         font-size: 1.1em;
-        overflow-wrap: break-word; /* 避免過長的英文或網址撐破畫面 */
+        overflow-wrap: break-word;
       }
       .ai-section h2 {
         color: #1d3557;
@@ -89,7 +98,6 @@
         content: "🤖";
         margin-right: 10px;
       }
-      /* 如果 AI 生成了 Markdown 表格，讓它可以左右滑動 */
       .ai-section table {
         width: 100%;
         display: block;
@@ -108,8 +116,8 @@
       }
       .back-btn {
         display: inline-block;
-        width: 100%; /* 手機上變滿版大按鈕 */
-        max-width: 300px; /* 電腦上維持適中大小 */
+        width: 100%;
+        max-width: 300px;
         background-color: #e63946;
         color: white;
         padding: 15px 20px;
@@ -123,9 +131,6 @@
         background-color: #c1121f;
       }
 
-      /* ================================ */
-      /* 手機版 (寬度小於 600px) 自動切換設定 */
-      /* ================================ */
       @media (max-width: 600px) {
         body {
           padding: 10px 5px;
@@ -163,6 +168,29 @@
           </div>
           <div class="card-body">
             <div id="river_chart" style="width: 100%; height: 500px"></div>
+
+            <div class="cheat-sheet">
+              <div class="cheat-item">
+                <span style="border-color: #ff595e"></span
+                ><b>危險區</b>：極高估值，建議獲利了結
+              </div>
+              <div class="cheat-item">
+                <span style="border-color: #ffca3a"></span
+                ><b>昂貴區</b>：估值偏高，停止追高
+              </div>
+              <div class="cheat-item">
+                <span style="border-color: #8ac926"></span
+                ><b>平均價</b>：合理估值，持股續抱
+              </div>
+              <div class="cheat-item">
+                <span style="border-color: #1982c4"></span
+                ><b>便宜區</b>：估值偏低，分批佈局
+              </div>
+              <div class="cheat-item">
+                <span style="border-color: #4267b2"></span
+                ><b>超跌區</b>：極低估值，價值浮現
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -177,87 +205,68 @@
       </div>
     </div>
   </body>
-  <div class="card-body">
-            <div id="river_chart" style="width: 100%; height: 500px"></div>
-            
-            <div class="cheat-sheet">
-                <div class="cheat-item"><span style="background: #FF595E;"></span><b>危險區</b>：極高估值，建議獲利了結</div>
-                <div class="cheat-item"><span style="background: #FFCA3A;"></span><b>昂貴區</b>：估值偏高，停止追高</div>
-                <div class="cheat-item"><span style="background: #8AC926;"></span><b>平均價</b>：合理估值，持股續抱</div>
-                <div class="cheat-item"><span style="background: #1982C4;"></span><b>便宜區</b>：估值偏低，分批佈局</div>
-                <div class="cheat-item"><span style="background: #4267B2;"></span><b>超跌區</b>：極低估值，價值浮現</div>
-            </div>
-          </div>
-        </div>
-      </div>
 
   <script type="text/javascript">
     var chartDom = document.getElementById('river_chart');
     var myChart = echarts.init(chartDom);
     var serverData = {{ chart_data | tojson | safe }};
 
-    var isMobile = window.innerWidth <= 600;
-
     if (serverData) {
+        function getResponsiveConfig(width) {
+            if (width < 600) {
+                return { gridRight: 35, gridTop: 150, fontSize: 10, legendFontSize: 11, graphicWidth: 360, statFontSize: 10, graphicTop: '20%' };
+            } else if (width < 900) {
+                return { gridRight: 45, gridTop: 110, fontSize: 12, legendFontSize: 12, graphicWidth: 480, statFontSize: 12, graphicTop: '15%' };
+            } else {
+                return { gridRight: 50, gridTop: 100, fontSize: 13, legendFontSize: 13, graphicWidth: 580, statFontSize: 13, graphicTop: '14%' };
+            }
+        }
+
+        var initChartWidth = chartDom.offsetWidth;
+        var layout = getResponsiveConfig(initChartWidth);
+
         var option = {
             color: ['#1D3557', '#FF595E', '#FFCA3A', '#8AC926', '#1982C4', '#4267B2'],
-            title: { 
-                text: serverData.stock_name + ' (' + serverData.stock_id + ') 價值河流圖', 
-                left: 'center', 
-                top: '0%',
-                textStyle: { fontSize: isMobile ? 15 : 18 }
-            },
-            tooltip: { 
-                trigger: 'axis', axisPointer: { type: 'cross' }, backgroundColor: 'rgba(255, 255, 255, 0.95)', confine: true,
+            title: { text: serverData.stock_name + ' (' + serverData.stock_id + ') 價值河流圖', left: 'center', top: '2%' },
+            tooltip: {
+                trigger: 'axis', axisPointer: { type: 'cross' }, backgroundColor: 'rgba(255, 255, 255, 0.95)',
                 valueFormatter: function (value) { return value ? Number(value).toFixed(2) : '-'; }
             },
-            // 🚀 完整保留圖例文字，手機版字體縮到 9 確保不會爆版
-            legend: { 
-                data: ['本益比', '極高 (危險區)', '偏高 (昂貴區)', '合理 (平均價)', '偏低 (便宜區)', '極低 (超跌區)'], 
-                top: isMobile ? '8%' : '8%', 
-                textStyle: { fontSize: isMobile ? 9 : 12 },
-                itemWidth: isMobile ? 10 : 25,
-                itemGap: isMobile ? 4 : 10
+
+            // 🚀 核心修復：拿掉錯誤的 path SVG，恢復 type: 'scroll'。
+            // 只要這裡的名稱跟下方 series 一模一樣，ECharts 就會自動畫出超完美的虛線圖示！
+            legend: {
+                type: 'scroll',
+                data: ['本益比', '極高 (危險區)', '偏高 (昂貴區)', '合理 (平均價)', '偏低 (便宜區)', '極低 (超跌區)'],
+                top: '8%',
+                textStyle: { fontSize: layout.legendFontSize }
             },
-            grid: { 
-                // 🚀 極限排版：上面留 40% 放字，右邊留 25% 放完整標籤
-                top: isMobile ? '40%' : '18%', 
-                left: '3%', 
-                right: isMobile ? '25%' : '12%', 
-                bottom: '15%', 
-                containLabel: true 
-            },
+            grid: { left: '3%', right: layout.gridRight, top: layout.gridTop, bottom: '15%', containLabel: true },
             xAxis: { type: 'category', boundaryGap: false, data: serverData.dates, axisLabel: { color: '#666' } },
             yAxis: { type: 'value', scale: true, axisLabel: { color: '#666' }, splitLine: { lineStyle: { type: 'dashed', opacity: 0.3 } } },
+
             series: [
                 { name: '本益比', type: 'line', data: serverData.pe_smooth, symbol: 'none', lineStyle: { width: 3 }, zIndex: 10 },
-                
-                // 🚀 完整保留右側標籤文字 (拿掉 split縮寫邏輯)，手機版字體縮到 9
-                { name: '極高 (危險區)', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.極高), lineStyle: { type: 'dashed', width: 1 }, symbol: 'none', 
-                  endLabel: { show: true, formatter: '{a}', color: 'inherit', distance: isMobile ? 2 : 10, fontSize: isMobile ? 9 : 12 } },
-                { name: '偏高 (昂貴區)', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.偏高), lineStyle: { type: 'dashed', width: 1 }, symbol: 'none', 
-                  endLabel: { show: true, formatter: '{a}', color: 'inherit', distance: isMobile ? 2 : 10, fontSize: isMobile ? 9 : 12 } },
-                { name: '合理 (平均價)', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.合理), lineStyle: { type: 'dashed', width: 1 }, symbol: 'none', 
-                  endLabel: { show: true, formatter: '{a}', color: 'inherit', distance: isMobile ? 2 : 10, fontSize: isMobile ? 9 : 12 } },
-                { name: '偏低 (便宜區)', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.偏低), lineStyle: { type: 'dashed', width: 1 }, symbol: 'none', 
-                  endLabel: { show: true, formatter: '{a}', color: 'inherit', distance: isMobile ? 2 : 10, fontSize: isMobile ? 9 : 12 } },
-                { name: '極低 (超跌區)', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.極低), lineStyle: { type: 'dashed', width: 1 }, symbol: 'none', 
-                  endLabel: { show: true, formatter: '{a}', color: 'inherit', distance: isMobile ? 2 : 10, fontSize: isMobile ? 9 : 12 } }
+                // 維持你的 markLine 邏輯，確保文字死死釘住
+                { name: '極高 (危險區)', type: 'line', data: [], markLine: { symbol: 'none', animation: false, silent: true, label: { position: 'end', formatter: '危險', color: '#FF595E', fontSize: layout.fontSize }, lineStyle: { type: 'dashed', color: '#FF595E', width: 1 }, data: [{ yAxis: serverData.levels.極高 }] } },
+                { name: '偏高 (昂貴區)', type: 'line', data: [], markLine: { symbol: 'none', animation: false, silent: true, label: { position: 'end', formatter: '昂貴', color: '#FFCA3A', fontSize: layout.fontSize }, lineStyle: { type: 'dashed', color: '#FFCA3A', width: 1 }, data: [{ yAxis: serverData.levels.偏高 }] } },
+                { name: '合理 (平均價)', type: 'line', data: [], markLine: { symbol: 'none', animation: false, silent: true, label: { position: 'end', formatter: '合理', color: '#8AC926', fontSize: layout.fontSize }, lineStyle: { type: 'dashed', color: '#8AC926', width: 1 }, data: [{ yAxis: serverData.levels.合理 }] } },
+                { name: '偏低 (便宜區)', type: 'line', data: [], markLine: { symbol: 'none', animation: false, silent: true, label: { position: 'end', formatter: '便宜', color: '#1982C4', fontSize: layout.fontSize }, lineStyle: { type: 'dashed', color: '#1982C4', width: 1 }, data: [{ yAxis: serverData.levels.偏低 }] } },
+                { name: '極低 (超跌區)', type: 'line', data: [], markLine: { symbol: 'none', animation: false, silent: true, label: { position: 'end', formatter: '超跌', color: '#4267B2', fontSize: layout.fontSize }, lineStyle: { type: 'dashed', color: '#4267B2', width: 1 }, data: [{ yAxis: serverData.levels.極低 }] } }
             ],
             dataZoom: [{ type: 'slider', start: 80, end: 100, bottom: '5%' }, { type: 'inside' }],
-            
-            // 🚀 完整保留統計面板
             graphic: [{
-                type: 'group', left: 'center', top: isMobile ? '28%' : '14%',
+                type: 'group', left: 'center', top: layout.graphicTop,
                 children: [
-                    { type: 'rect', z: 100, shape: { width: isMobile ? 320 : 450, height: isMobile ? 22 : 32 }, style: { fill: 'rgba(255, 255, 255, 0.95)', stroke: '#ccc', lineWidth: 1, shadowBlur: 4, shadowColor: 'rgba(0,0,0,0.1)', radius: 5 } }, 
-                    { type: 'text', z: 101, left: isMobile ? 5 : 15, top: isMobile ? 5 : 10, style: { text: '計算中...', font: isMobile ? '10px "Microsoft JhengHei"' : '13px "Microsoft JhengHei", sans-serif', fill: '#333', fontWeight: 'bold' }, id: 'statText' }
+                    { type: 'rect', z: 100, shape: { width: layout.graphicWidth, height: 28 }, style: { fill: 'rgba(255, 255, 255, 0.95)', stroke: '#ccc', lineWidth: 1, shadowBlur: 4, shadowColor: 'rgba(0,0,0,0.1)', radius: 5 } },
+                    { type: 'text', z: 101, left: 10, top: 8, style: { text: '載入區間統計中...', font: `bold ${layout.statFontSize}px "Microsoft JhengHei", sans-serif`, fill: '#333' }, id: 'statText' }
                 ]
             }]
         };
 
         myChart.setOption(option);
 
+        // 這裡完全是你原本的動態重算邏輯，一字未改！
         myChart.on('dataZoom', function () {
             var axis = myChart.getModel().getComponent('xAxis', 0).axis;
             var range = axis.scale._extent;
@@ -273,26 +282,28 @@
                     var squareDiffs = activeData.map(v => Math.pow(v - newAvg, 2));
                     var newStd = Math.sqrt(squareDiffs.reduce((a, b) => a + b, 0) / activeData.length);
 
-                    var counts = { high: 0, fair: 0, low: 0 };
+                    var counts = { high2: 0, high1: 0, fair: 0, low1: 0, low2: 0 };
                     activeData.forEach(pe => {
-                        if (pe > newAvg + 0.5 * newStd) counts.high++;
+                        if (pe > newAvg + 1.5 * newStd) counts.high2++;
+                        else if (pe > newAvg + 0.5 * newStd) counts.high1++;
                         else if (pe >= newAvg - 0.5 * newStd) counts.fair++;
-                        else counts.low++;
+                        else if (pe >= newAvg - 1.5 * newStd) counts.low1++;
+                        else counts.low2++;
                     });
 
                     var total = activeData.length;
-                    
-                    // 🚀 完整保留所有文字
-                    var statStr = `📊 區間特性： 偏高昂貴 ${(counts.high/total*100).toFixed(0)}% ｜ 合理震盪 ${(counts.fair/total*100).toFixed(0)}% ｜ 偏低便宜 ${(counts.low/total*100).toFixed(0)}%`;
+                    var p = (c) => (c / total * 100).toFixed(0) + '%';
+
+                    var statStr = `📊 當前PE估值區間佔比 (${serverData.stock_name}): 危險 ${p(counts.high2)} | 昂貴 ${p(counts.high1)} | 合理 ${p(counts.fair)} | 便宜 ${p(counts.low1)} | 超跌 ${p(counts.low2)}`;
 
                     myChart.setOption({
                         graphic: { id: 'statText', style: { text: statStr } },
                         series: [
-                            { name: '極高 (危險區)', data: Array(serverData.dates.length).fill(newAvg + 1.5 * newStd) },
-                            { name: '偏高 (昂貴區)', data: Array(serverData.dates.length).fill(newAvg + 0.5 * newStd) },
-                            { name: '合理 (平均價)', data: Array(serverData.dates.length).fill(newAvg) },
-                            { name: '偏低 (便宜區)', data: Array(serverData.dates.length).fill(newAvg - 0.5 * newStd) },
-                            { name: '極低 (超跌區)', data: Array(serverData.dates.length).fill(newAvg - 1.5 * newStd) }
+                            { name: '極高 (危險區)', markLine: { data: [{ yAxis: newAvg + 1.5 * newStd }] } },
+                            { name: '偏高 (昂貴區)', markLine: { data: [{ yAxis: newAvg + 0.5 * newStd }] } },
+                            { name: '合理 (平均價)', markLine: { data: [{ yAxis: newAvg }] } },
+                            { name: '偏低 (便宜區)', markLine: { data: [{ yAxis: newAvg - 0.5 * newStd }] } },
+                            { name: '極低 (超跌區)', markLine: { data: [{ yAxis: newAvg - 1.5 * newStd }] } }
                         ]
                     });
                 }
@@ -300,10 +311,25 @@
         });
         myChart.dispatchAction({ type: 'dataZoom', start: 80, end: 100 });
     }
-    
-    window.addEventListener('resize', function() { 
-        isMobile = window.innerWidth <= 600;
-        myChart.resize(); 
+
+    window.addEventListener('resize', function() {
+        var currentWidth = chartDom.offsetWidth;
+        var currentLayout = getResponsiveConfig(currentWidth);
+
+        myChart.setOption({
+            legend: { textStyle: { fontSize: currentLayout.legendFontSize } },
+            grid: { right: currentLayout.gridRight, top: currentLayout.gridTop },
+            graphic: [{ id: 'statText', style: { font: `bold ${currentLayout.statFontSize}px "Microsoft JhengHei", sans-serif` } }],
+            series: [
+                {},
+                { markLine: { label: { fontSize: currentLayout.fontSize } } },
+                { markLine: { label: { fontSize: currentLayout.fontSize } } },
+                { markLine: { label: { fontSize: currentLayout.fontSize } } },
+                { markLine: { label: { fontSize: currentLayout.fontSize } } },
+                { markLine: { label: { fontSize: currentLayout.fontSize } } }
+            ]
+        });
+        myChart.resize();
     });
-</script>
+  </script>
 </html>

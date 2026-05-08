@@ -82,7 +82,26 @@
     <div class="container">
       <h2>📊 台股估值河流圖分析</h2>
       <p>請輸入股票代號（例如：2330, 2454）</p>
+
       <form action="/analyze" method="POST">
+        {% if error_msg %}
+        <div
+          style="
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.95rem;
+          "
+        >
+          ⚠️ {{ error_msg }}
+        </div>
+        {% endif %}
+
         <input
           type="text"
           name="stock_id"
