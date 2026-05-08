@@ -176,17 +176,18 @@ def write_stock_db(stock_id, date_str, stock_map):
         return size
     except:
         return 0
-
-
-# ==========================================
-# 3. 專業五階段估值河流圖模組
-# ==========================================
-def plot_stock_pe_trend(stock_id, start_date='2006-01-01', end_date='2027-12-31', 
-                        smooth_days=5, std_high=1.5, std_mid=0.5, dpi=100):
     
+# 新增Echart功能 先抓數據
+def get_echarts_data(stock_id, start_date='2006-01-01', end_date='2027-12-31', 
+                     smooth_days=5, std_high=1.5, std_mid=0.5):
+    """
+    計算河流圖數據，並以 Dictionary (JSON) 格式回傳，不進行實體繪圖。
+    """
+    # 1. 抓取資料 (沿用原本邏輯)
     df = get_stock_data(stock_id)
-    if df.empty: return
+    if df.empty: return None
 
+    # 2. 清洗資料
     stock_name = df['stock_name'].iloc[0] if df['stock_name'].iloc[0] else stock_id
     df['date'] = pd.to_datetime(df['date'], errors='coerce')
     df = df.dropna(subset=['date']).sort_values('date')
@@ -194,93 +195,142 @@ def plot_stock_pe_trend(stock_id, start_date='2006-01-01', end_date='2027-12-31'
     df['pe_ratio'] = pd.to_numeric(df['pe_ratio'], errors='coerce')
     df = df.dropna(subset=['pe_ratio']).set_index('date')
 
-    if len(df) < 2: return
+    if len(df) < 2: return None
 
-    df['pe_smooth'] = df['pe_ratio'].rolling(window=smooth_days, min_periods=1).mean()
+    # 3. 計算平滑線與估值區間 (原本你的計算邏輯)
+    pe_smooth = df['pe_ratio'].rolling(window=smooth_days, min_periods=1).mean()
     avg_pe = df['pe_ratio'].mean()
     std_pe = df['pe_ratio'].std()
     
+    # 建立五個區間的門檻值
     lv = {
-        '極高': avg_pe + std_high * std_pe,
-        '偏高': avg_pe + std_mid * std_pe,
-        '合理': avg_pe,
-        '偏低': avg_pe - std_mid * std_pe,
-        '極低': avg_pe - std_high * std_pe
+        '極高': round(avg_pe + std_high * std_pe, 2),
+        '偏高': round(avg_pe + std_mid * std_pe, 2),
+        '合理': round(avg_pe, 2),
+        '偏低': round(avg_pe - std_mid * std_pe, 2),
+        '極低': round(avg_pe - std_high * std_pe, 2)
     }
 
-    fig, ax = plt.subplots(figsize=(22, 12), facecolor='#FCFCFC')
+    # 4. 封裝成 ECharts 需要的數據格式
+    # ECharts 需要列表 (List) 格式，所以我們用 .tolist() 轉換
+    chart_data = {
+        "stock_name": stock_name,
+        "stock_id": stock_id,
+        "dates": df.index.strftime('%Y-%m-%d').tolist(), # 日期轉成字串
+        "pe_smooth": [round(x, 2) for x in pe_smooth.tolist()], # 平滑後的 PE
+        "levels": lv # 五個區間的基準值
+    }
     
-    ax.fill_between(df.index, lv['極高'], lv['極高']*1.5, color='#FF595E', alpha=0.3)
-    ax.fill_between(df.index, lv['偏高'], lv['極高'], color='#FFCA3A', alpha=0.2)
-    ax.fill_between(df.index, lv['偏低'], lv['偏高'], color='#F8FFE5', alpha=0.2)
-    ax.fill_between(df.index, lv['極低'], lv['偏低'], color='#8AC926', alpha=0.2)
-    ax.fill_between(df.index, 0, lv['極低'], color='#1982C4', alpha=0.15)
+    return chart_data
 
-    ax.plot(df.index, df['pe_smooth'], color='#1D3557', linewidth=2.5, zorder=5)
+# --- 原本的 plot_stock_pe_trend 可以註解掉或關閉 ---
+# def plot_stock_pe_trend(...): 
+#    ... (這裡面的程式碼暫時不用跑了)
 
-    # ==========================================
-    # 🎯 補回：最高、最低與最新數據標示
-    # ==========================================
-    # 1. 原始的最高與最低點
-    max_val, max_dt = df['pe_ratio'].max(), df['pe_ratio'].idxmax()
-    min_val, min_dt = df['pe_ratio'].min(), df['pe_ratio'].idxmin()
-    ax.scatter([max_dt, min_dt], [max_val, min_val], color=['#D90429', '#023E8A'], s=120, zorder=10, edgecolor='white')
 
-    # 加上最高最低的數字標籤
-    ax.annotate(f'最高: {max_val:.2f}', xy=(max_dt, max_val), xytext=(0, 15),
-                textcoords='offset points', ha='center', color='#D90429', fontweight='bold', fontsize=14)
-    ax.annotate(f'最低: {min_val:.2f}', xy=(min_dt, min_val), xytext=(0, -20),
-                textcoords='offset points', ha='center', color='#023E8A', fontweight='bold', fontsize=14)
-
-    # 2. 補上「最新數據」的點與標籤
-    current_dt = df.index[-1]
-    current_val = df['pe_ratio'].iloc[-1]
+# ==========================================
+# 3. 專業五階段估值河流圖模組
+# ==========================================
+# def plot_stock_pe_trend(stock_id, start_date='2006-01-01', end_date='2027-12-31', 
+#                         smooth_days=5, std_high=1.5, std_mid=0.5, dpi=100):
     
-    ax.scatter(current_dt, current_val, color='#FCA311', s=150, zorder=11, edgecolor='white')
-    ax.annotate(f'最新: {current_val:.2f}', xy=(current_dt, current_val), xytext=(15, 0),
-                textcoords='offset points', ha='left', va='center', color='#FCA311', fontweight='bold', fontsize=14,
-                bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="#FCA311", lw=1.5, alpha=0.9))
-    # ==========================================
+#     df = get_stock_data(stock_id)
+#     if df.empty: return
 
-    table_data = [
-        ["極高階段", f"{lv['極高']:.2f} ↑", "獲利了結"],
-        ["偏高階段", f"{lv['合理']:.2f}-{lv['極高']:.2f}", "停止追高"],
-        ["合理階段", f"{lv['偏低']:.2f}-{lv['合理']:.2f}", "持股續抱"],
-        ["偏低階段", f"{lv['極低']:.2f}-{lv['偏低']:.2f}", "建立持股"],
-        ["極低階段", f"{lv['極低']:.2f} ↓", "價值佈局"]
-    ]
+#     stock_name = df['stock_name'].iloc[0] if df['stock_name'].iloc[0] else stock_id
+#     df['date'] = pd.to_datetime(df['date'], errors='coerce')
+#     df = df.dropna(subset=['date']).sort_values('date')
+#     df = df[(df['date'] >= start_date) & (df['date'] <= end_date)]
+#     df['pe_ratio'] = pd.to_numeric(df['pe_ratio'], errors='coerce')
+#     df = df.dropna(subset=['pe_ratio']).set_index('date')
 
-    the_table = ax.table(
-        cellText=table_data, 
-        colLabels=["估值階段", "門檻值", "建議"], 
-        loc='lower right', 
-        cellLoc='center', 
-        bbox=[0.68, 0.05, 0.30, 0.22]
-    )
+#     if len(df) < 2: return
 
-    the_table.auto_set_font_size(False)
-    the_table.set_fontsize(13) 
+#     df['pe_smooth'] = df['pe_ratio'].rolling(window=smooth_days, min_periods=1).mean()
+#     avg_pe = df['pe_ratio'].mean()
+#     std_pe = df['pe_ratio'].std()
     
-    for (row, col), cell in the_table.get_celld().items():
-        cell.set_alpha(0.7) 
-        if row == 0:
-            cell.set_text_props(weight='bold', color='white')
-            cell.set_facecolor('#1D3557')
-            cell.set_alpha(0.9)
+#     lv = {
+#         '極高': avg_pe + std_high * std_pe,
+#         '偏高': avg_pe + std_mid * std_pe,
+#         '合理': avg_pe,
+#         '偏低': avg_pe - std_mid * std_pe,
+#         '極低': avg_pe - std_high * std_pe
+#     }
 
-    ax.set_title(f'{stock_name} ({stock_id}) 歷史五階段估值河流圖', fontsize=26, fontweight='bold', pad=30)
-    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
-    ax.grid(True, linestyle='--', alpha=0.3)
+#     fig, ax = plt.subplots(figsize=(22, 12), facecolor='#FCFCFC')
     
-    plt.tight_layout(pad=3.0)
+#     ax.fill_between(df.index, lv['極高'], lv['極高']*1.5, color='#FF595E', alpha=0.3)
+#     ax.fill_between(df.index, lv['偏高'], lv['極高'], color='#FFCA3A', alpha=0.2)
+#     ax.fill_between(df.index, lv['偏低'], lv['偏高'], color='#F8FFE5', alpha=0.2)
+#     ax.fill_between(df.index, lv['極低'], lv['偏低'], color='#8AC926', alpha=0.2)
+#     ax.fill_between(df.index, 0, lv['極低'], color='#1982C4', alpha=0.15)
+
+#     ax.plot(df.index, df['pe_smooth'], color='#1D3557', linewidth=2.5, zorder=5)
+
+#     # ==========================================
+#     # 🎯 補回：最高、最低與最新數據標示
+#     # ==========================================
+#     # 1. 原始的最高與最低點
+#     max_val, max_dt = df['pe_ratio'].max(), df['pe_ratio'].idxmax()
+#     min_val, min_dt = df['pe_ratio'].min(), df['pe_ratio'].idxmin()
+#     ax.scatter([max_dt, min_dt], [max_val, min_val], color=['#D90429', '#023E8A'], s=120, zorder=10, edgecolor='white')
+
+#     # 加上最高最低的數字標籤
+#     ax.annotate(f'最高: {max_val:.2f}', xy=(max_dt, max_val), xytext=(0, 15),
+#                 textcoords='offset points', ha='center', color='#D90429', fontweight='bold', fontsize=14)
+#     ax.annotate(f'最低: {min_val:.2f}', xy=(min_dt, min_val), xytext=(0, -20),
+#                 textcoords='offset points', ha='center', color='#023E8A', fontweight='bold', fontsize=14)
+
+#     # 2. 補上「最新數據」的點與標籤
+#     current_dt = df.index[-1]
+#     current_val = df['pe_ratio'].iloc[-1]
     
-    filename = f"{stock_id}_Ultimate_RiverMap.png"
-    plt.savefig(filename, dpi=dpi, bbox_inches='tight')
-    plt.close(fig) 
+#     ax.scatter(current_dt, current_val, color='#FCA311', s=150, zorder=11, edgecolor='white')
+#     ax.annotate(f'最新: {current_val:.2f}', xy=(current_dt, current_val), xytext=(15, 0),
+#                 textcoords='offset points', ha='left', va='center', color='#FCA311', fontweight='bold', fontsize=14,
+#                 bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="#FCA311", lw=1.5, alpha=0.9))
+#     # ==========================================
+
+#     table_data = [
+#         ["極高階段", f"{lv['極高']:.2f} ↑", "獲利了結"],
+#         ["偏高階段", f"{lv['合理']:.2f}-{lv['極高']:.2f}", "停止追高"],
+#         ["合理階段", f"{lv['偏低']:.2f}-{lv['合理']:.2f}", "持股續抱"],
+#         ["偏低階段", f"{lv['極低']:.2f}-{lv['偏低']:.2f}", "建立持股"],
+#         ["極低階段", f"{lv['極低']:.2f} ↓", "價值佈局"]
+#     ]
+
+#     the_table = ax.table(
+#         cellText=table_data, 
+#         colLabels=["估值階段", "門檻值", "建議"], 
+#         loc='lower right', 
+#         cellLoc='center', 
+#         bbox=[0.68, 0.05, 0.30, 0.22]
+#     )
+
+#     the_table.auto_set_font_size(False)
+#     the_table.set_fontsize(13) 
     
-    # 順手幫你加上垃圾回收，確保它永遠不會爆記憶體
-    import gc
-    gc.collect()
+#     for (row, col), cell in the_table.get_celld().items():
+#         cell.set_alpha(0.7) 
+#         if row == 0:
+#             cell.set_text_props(weight='bold', color='white')
+#             cell.set_facecolor('#1D3557')
+#             cell.set_alpha(0.9)
+
+#     ax.set_title(f'{stock_name} ({stock_id}) 歷史五階段估值河流圖', fontsize=26, fontweight='bold', pad=30)
+#     ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
+#     ax.grid(True, linestyle='--', alpha=0.3)
+    
+#     plt.tight_layout(pad=3.0)
+    
+#     filename = f"{stock_id}_Ultimate_RiverMap.png"
+#     plt.savefig(filename, dpi=dpi, bbox_inches='tight')
+#     plt.close(fig) 
+    
+#     # 順手幫你加上垃圾回收，確保它永遠不會爆記憶體
+#     import gc
+#     gc.collect()
 
 # ==========================================
 # 4. 主程式入口
@@ -290,6 +340,6 @@ if __name__ == "__main__":
     IMAGE_DPI = 100 
     open_db()
     if cursor:
-        plot_stock_pe_trend(TARGET_ID, dpi=IMAGE_DPI)
+        print(get_echarts_data(TARGET_ID)) , #dpi=IM_DPI沒畫圖先拿掉
         close_db()
 

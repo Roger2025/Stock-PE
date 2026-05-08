@@ -105,41 +105,26 @@ def analyze():
         return "❌ 錯誤：請輸入股票代號！", 400
 
     try:
-        logger.info(f"========== 開始處理股票分析：{stock_id} ==========")
+        logger.info(f"========== 開始處理 ECharts 分析：{stock_id} ==========")
 
-        # --- 步驟 A：產出河流圖 (DPI 調低至 100 以節省記憶體) ---
-        logger.info(f"[{stock_id}] 正在生成河流圖...")
-        stock_PE.plot_stock_pe_trend(
-            stock_id=stock_id, 
-            start_date='2006-01-01', 
-            smooth_days=5, 
-            dpi=100
-        )
+        # --- 步驟 A：取得 ECharts 專用的數據字典 (核心改動) ---
+        # 我們直接呼叫 stock_PE 裡面新寫好的 get_echarts_data
+        chart_json_data = stock_PE.get_echarts_data(stock_id)
 
-        # --- 步驟 B：靜態資源歸檔 (搬移圖片) ---
-        original_image = Path(f"{stock_id}_Ultimate_RiverMap.png")
-        target_image_path = STATIC_IMG_DIR / original_image.name
-        
-        if original_image.exists():
-            # 先移除舊圖，再移動新圖，避免 replace 在某些系統報錯
-            if target_image_path.exists():
-                target_image_path.unlink()
-            original_image.replace(target_image_path)
-            logger.info(f"[{stock_id}] 圖片已歸檔。")
-        else:
-            logger.warning(f"[{stock_id}] 未找到產出的圖檔。")
+        if not chart_json_data:
+            return f"❌ 找不到股票代號 {stock_id} 的數據，請確認資料庫已有資料。", 404
 
-        final_image_url = url_for('static', filename=f'images/{original_image.name}')
-
-        # --- 步驟 C：撈取數據與 AI 報告 ---
+        # --- 步驟 B：撈取原始數據供 AI 報告使用 (維持原樣) ---
         df = stock_PE.get_stock_data(stock_id)
         ai_html_report = generate_ai_report(stock_id, df)
 
-        logger.info(f"========== {stock_id} 處理完成 ==========")
+        logger.info(f"========== {stock_id} 處理完成 (ECharts 數據模式) ==========")
+        
+        # --- 步驟 C：傳送數據到 result.html ---
         return render_template(
             'result.html', 
             stock_id=stock_id, 
-            image_url=final_image_url, 
+            chart_data=chart_json_data, # 把整包 JSON 丟給前端
             ai_report=ai_html_report
         )
 
