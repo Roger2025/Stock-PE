@@ -101,21 +101,20 @@ def index():
 def analyze():
     stock_id = request.form.get('stock_id', '').strip()
     
-    # 🚀 修改 1：沒輸入代號時，回到首頁並顯示警告
     if not stock_id:
-        return render_template('index.html', error_msg="請輸入股票代號！")
+        return "❌ 錯誤：請輸入股票代號！", 400
 
     try:
         logger.info(f"========== 開始處理 ECharts 分析：{stock_id} ==========")
 
-        # --- 步驟 A：取得 ECharts 專用的數據字典 ---
+        # --- 步驟 A：取得 ECharts 專用的數據字典 (核心改動) ---
+        # 我們直接呼叫 stock_PE 裡面新寫好的 get_echarts_data
         chart_json_data = stock_PE.get_echarts_data(stock_id)
 
-        # 🚀 修改 2：資料庫沒數據時，回到首頁並顯示警告
         if not chart_json_data:
-            return render_template('index.html', error_msg=f"找不到股票代號 {stock_id} 的數據，請確認資料庫已有資料。")
+            return f"❌ 找不到股票代號 {stock_id} 的數據，請確認資料庫已有資料。", 404
 
-        # --- 步驟 B：撈取原始數據供 AI 報告使用 ---
+        # --- 步驟 B：撈取原始數據供 AI 報告使用 (維持原樣) ---
         df = stock_PE.get_stock_data(stock_id)
         ai_html_report = generate_ai_report(stock_id, df)
 
@@ -125,14 +124,13 @@ def analyze():
         return render_template(
             'result.html', 
             stock_id=stock_id, 
-            chart_data=chart_json_data, 
+            chart_data=chart_json_data, # 把整包 JSON 丟給前端
             ai_report=ai_html_report
         )
 
     except Exception as e:
         logger.exception(f"處理時發生致命錯誤: {stock_id}")
-        # 🚀 修改 3：系統當機時，回到首頁並顯示警告 (避免吐出醜醜的 500 錯誤頁面)
-        return render_template('index.html', error_msg=f"伺服器處理失敗: {str(e)}")
+        return f"❌ 伺服器處理失敗: {str(e)}", 500
 
 
 if __name__ == "__main__":
