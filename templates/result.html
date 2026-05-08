@@ -191,41 +191,67 @@
         </div>
       </div>
 
-<script type="text/javascript">
+  <script type="text/javascript">
     var chartDom = document.getElementById('river_chart');
     var myChart = echarts.init(chartDom);
     var serverData = {{ chart_data | tojson | safe }};
 
+    var isMobile = window.innerWidth <= 600;
+
     if (serverData) {
         var option = {
             color: ['#1D3557', '#FF595E', '#FFCA3A', '#8AC926', '#1982C4', '#4267B2'],
-            title: { text: serverData.stock_name + ' (' + serverData.stock_id + ') 價值河流圖', left: 'center', top: '2%' },
+            title: { 
+                text: serverData.stock_name + ' (' + serverData.stock_id + ') 價值河流圖', 
+                left: 'center', 
+                top: '0%',
+                textStyle: { fontSize: isMobile ? 15 : 18 }
+            },
             tooltip: { 
-                trigger: 'axis', axisPointer: { type: 'cross' }, backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                trigger: 'axis', axisPointer: { type: 'cross' }, backgroundColor: 'rgba(255, 255, 255, 0.95)', confine: true,
                 valueFormatter: function (value) { return value ? Number(value).toFixed(2) : '-'; }
             },
-            // 🚀 白話文圖例
-            legend: { data: ['本益比', '極高 (危險區)', '偏高 (昂貴區)', '合理 (平均價)', '偏低 (便宜區)', '極低 (超跌區)'], top: '8%' },
-            grid: { left: '3%', right: '12%', bottom: '15%', containLabel: true },
+            // 🚀 完整保留圖例文字，手機版字體縮到 9 確保不會爆版
+            legend: { 
+                data: ['本益比', '極高 (危險區)', '偏高 (昂貴區)', '合理 (平均價)', '偏低 (便宜區)', '極低 (超跌區)'], 
+                top: isMobile ? '8%' : '8%', 
+                textStyle: { fontSize: isMobile ? 9 : 12 },
+                itemWidth: isMobile ? 10 : 25,
+                itemGap: isMobile ? 4 : 10
+            },
+            grid: { 
+                // 🚀 極限排版：上面留 40% 放字，右邊留 25% 放完整標籤
+                top: isMobile ? '40%' : '18%', 
+                left: '3%', 
+                right: isMobile ? '25%' : '12%', 
+                bottom: '15%', 
+                containLabel: true 
+            },
             xAxis: { type: 'category', boundaryGap: false, data: serverData.dates, axisLabel: { color: '#666' } },
             yAxis: { type: 'value', scale: true, axisLabel: { color: '#666' }, splitLine: { lineStyle: { type: 'dashed', opacity: 0.3 } } },
             series: [
                 { name: '本益比', type: 'line', data: serverData.pe_smooth, symbol: 'none', lineStyle: { width: 3 }, zIndex: 10 },
-                // 🚀 白話文標籤
-                { name: '極高 (危險區)', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.極高), lineStyle: { type: 'dashed', width: 1 }, symbol: 'none', endLabel: { show: true, formatter: '{a}', color: 'inherit', distance: 10 } },
-                { name: '偏高 (昂貴區)', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.偏高), lineStyle: { type: 'dashed', width: 1 }, symbol: 'none', endLabel: { show: true, formatter: '{a}', color: 'inherit', distance: 10 } },
-                { name: '合理 (平均價)', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.合理), lineStyle: { type: 'dashed', width: 1 }, symbol: 'none', endLabel: { show: true, formatter: '{a}', color: 'inherit', distance: 10 } },
-                { name: '偏低 (便宜區)', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.偏低), lineStyle: { type: 'dashed', width: 1 }, symbol: 'none', endLabel: { show: true, formatter: '{a}', color: 'inherit', distance: 10 } },
-                { name: '極低 (超跌區)', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.極低), lineStyle: { type: 'dashed', width: 1 }, symbol: 'none', endLabel: { show: true, formatter: '{a}', color: 'inherit', distance: 10 } }
+                
+                // 🚀 完整保留右側標籤文字 (拿掉 split縮寫邏輯)，手機版字體縮到 9
+                { name: '極高 (危險區)', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.極高), lineStyle: { type: 'dashed', width: 1 }, symbol: 'none', 
+                  endLabel: { show: true, formatter: '{a}', color: 'inherit', distance: isMobile ? 2 : 10, fontSize: isMobile ? 9 : 12 } },
+                { name: '偏高 (昂貴區)', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.偏高), lineStyle: { type: 'dashed', width: 1 }, symbol: 'none', 
+                  endLabel: { show: true, formatter: '{a}', color: 'inherit', distance: isMobile ? 2 : 10, fontSize: isMobile ? 9 : 12 } },
+                { name: '合理 (平均價)', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.合理), lineStyle: { type: 'dashed', width: 1 }, symbol: 'none', 
+                  endLabel: { show: true, formatter: '{a}', color: 'inherit', distance: isMobile ? 2 : 10, fontSize: isMobile ? 9 : 12 } },
+                { name: '偏低 (便宜區)', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.偏低), lineStyle: { type: 'dashed', width: 1 }, symbol: 'none', 
+                  endLabel: { show: true, formatter: '{a}', color: 'inherit', distance: isMobile ? 2 : 10, fontSize: isMobile ? 9 : 12 } },
+                { name: '極低 (超跌區)', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.極低), lineStyle: { type: 'dashed', width: 1 }, symbol: 'none', 
+                  endLabel: { show: true, formatter: '{a}', color: 'inherit', distance: isMobile ? 2 : 10, fontSize: isMobile ? 9 : 12 } }
             ],
             dataZoom: [{ type: 'slider', start: 80, end: 100, bottom: '5%' }, { type: 'inside' }],
             
-            // 🚀 白話文統計面板
+            // 🚀 完整保留統計面板
             graphic: [{
-                type: 'group', left: 'center', top: '14%',
+                type: 'group', left: 'center', top: isMobile ? '28%' : '14%',
                 children: [
-                    { type: 'rect', z: 100, shape: { width: 450, height: 32 }, style: { fill: 'rgba(255, 255, 255, 0.9)', stroke: '#ccc', lineWidth: 1, shadowBlur: 4, shadowColor: 'rgba(0,0,0,0.1)', radius: 5 } }, 
-                    { type: 'text', z: 101, left: 15, top: 10, style: { text: '計算中...', font: '13px "Microsoft JhengHei", sans-serif', fill: '#333', fontWeight: 'bold' }, id: 'statText' }
+                    { type: 'rect', z: 100, shape: { width: isMobile ? 320 : 450, height: isMobile ? 22 : 32 }, style: { fill: 'rgba(255, 255, 255, 0.95)', stroke: '#ccc', lineWidth: 1, shadowBlur: 4, shadowColor: 'rgba(0,0,0,0.1)', radius: 5 } }, 
+                    { type: 'text', z: 101, left: isMobile ? 5 : 15, top: isMobile ? 5 : 10, style: { text: '計算中...', font: isMobile ? '10px "Microsoft JhengHei"' : '13px "Microsoft JhengHei", sans-serif', fill: '#333', fontWeight: 'bold' }, id: 'statText' }
                 ]
             }]
         };
@@ -255,7 +281,8 @@
                     });
 
                     var total = activeData.length;
-                    // 🚀 簡化為：偏高、合理、偏低 三大區塊的佔比，讓人一目瞭然
+                    
+                    // 🚀 完整保留所有文字
                     var statStr = `📊 區間特性： 偏高昂貴 ${(counts.high/total*100).toFixed(0)}% ｜ 合理震盪 ${(counts.fair/total*100).toFixed(0)}% ｜ 偏低便宜 ${(counts.low/total*100).toFixed(0)}%`;
 
                     myChart.setOption({
@@ -273,6 +300,10 @@
         });
         myChart.dispatchAction({ type: 'dataZoom', start: 80, end: 100 });
     }
-    window.addEventListener('resize', function() { myChart.resize(); });
+    
+    window.addEventListener('resize', function() { 
+        isMobile = window.innerWidth <= 600;
+        myChart.resize(); 
+    });
 </script>
 </html>
