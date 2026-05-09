@@ -50,7 +50,7 @@ def generate_ai_report(stock_id: str, df: pd.DataFrame) -> str:
         # --- 型別修正與髒數據清洗 ---
         df = df.copy() 
         # 1. 加入 errors='coerce'，遇到 0000-00-00 就強制作為 NaT (空值)
-        df['date'] = pd.to_datetime(df['date'], errors='coerce')
+        df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d', errors='coerce')
         # 2. 把變成空值的無效資料刪除，確保接下來排隊的都是正確日期
         df = df.dropna(subset=['date'])
         
@@ -131,6 +131,12 @@ def analyze():
     except Exception as e:
         logger.exception(f"處理時發生致命錯誤: {stock_id}")
         return f"❌ 伺服器處理失敗: {str(e)}", 500
+    
+@app.route('/analyze')
+def analyzes():
+    # 這裡未來可以加入爬蟲抓取最新經濟數據的邏輯
+    # 目前我們先單純渲染這個靜態的儀表板
+    return render_template('analyze.html')
 
 
 if __name__ == "__main__":

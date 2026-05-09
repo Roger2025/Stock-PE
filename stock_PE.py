@@ -51,14 +51,14 @@ load_dotenv()
 # # 執行設定
 # set_mpl_fonts()
 
+conn = None
+cursor = None
 
 # ==========================================
 # 1. 資料庫連線模組
 # ==========================================
 def open_db():
     global conn, cursor
-    conn = None
-    cursor = None
     try:
         host = os.getenv("db_host").strip()
         user = os.getenv("db_user").strip()
@@ -133,6 +133,7 @@ def close_db():
 # ==========================================
 # 2. 爬蟲與資料清洗模組
 # ==========================================
+# 透過API抓取所有股票代號跟名稱
 def get_stock_map():
     url = "https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL"
     try:
@@ -157,6 +158,8 @@ def write_stock_db(stock_id, date_str, stock_map):
     stock_name = stock_map.get(stock_id, stock_id)
     raw_datas = json_data['data']
     fields = json_data.get('fields', [])
+    # 加if in不讓程式抱錯
+    # 這寫法可動態抓取本益比位置 克服證交所改位置的問題
     pe_index = fields.index('本益比') if '本益比' in fields else 3
     clean_data = []
     for item in raw_datas:
@@ -168,6 +171,7 @@ def write_stock_db(stock_id, date_str, stock_map):
             pe_raw = item[pe_index].strip()
             pe_ratio = float(pe_raw.replace(',', '')) if pe_raw not in ["-", ""] else None
             clean_data.append((western_date, stock_id, stock_name, pe_ratio))
+        # 有錯誤就下一檔
         except: continue
     sql = "INSERT IGNORE INTO stock_pe_ratio (date, stock_id, stock_name, pe_ratio) VALUES (%s, %s, %s, %s)"
     try:

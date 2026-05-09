@@ -65,6 +65,46 @@
         background-color: #457b9d;
         transform: translateY(-2px);
       }
+      .btn-macro-portal {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 24px;
+        background: rgba(19, 21, 36, 0.8);
+        color: #4facfe; /* 科技藍 */
+        text-decoration: none;
+        border: 1px solid #4facfe;
+        border-radius: 50px; /* 圓角膠囊型 */
+        font-weight: 600;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        box-shadow: 0 0 10px rgba(79, 172, 254, 0.2);
+      }
+
+      .btn-macro-portal:hover {
+        background: #4facfe;
+        color: #0a0b14; /* 深色背景 */
+        box-shadow: 0 0 25px rgba(79, 172, 254, 0.6);
+        transform: translateY(-3px);
+      }
+
+      .btn-macro-portal i {
+        font-size: 1.1rem;
+        /* 讓圖標稍微閃爍，增加動態感 */
+        animation: pulseIcon 2s infinite;
+      }
+
+      @keyframes pulseIcon {
+        0% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
 
       /* 手機版專屬微調 */
       @media (max-width: 600px) {
@@ -111,6 +151,11 @@
         />
         <button type="submit">生成專業分析報告</button>
       </form>
+    </div>
+    <div style="text-align: center; margin-top: 30px">
+      <a href="{{ url_for('analyzes') }}" class="btn-macro-portal">
+        <i class="fa-solid fa-satellite-dish"></i> 進入總經戰情研討室
+      </a>
     </div>
   </body>
 </html>
