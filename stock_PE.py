@@ -21,35 +21,35 @@ import platform
 load_dotenv()
 
 
-# --- 終極字體解決方案 (本地打包 + 自動保底) ---
-def set_mpl_fonts():
-    import os
-    import platform
-    import matplotlib.font_manager as fm
+# # --- 終極字體解決方案 (本地打包 + 自動保底) ---  用matplotlib再開啟
+# def set_mpl_fonts():
+#     import os
+#     import platform
+#     import matplotlib.font_manager as fm
 
-    # --- 關鍵：路徑要加上 static/ ---
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    # 這裡多加一個 "static"
-    local_font_path = os.path.join(current_dir, "static", "myfont.ttf") 
-    print(f"--- 偵測字體路徑: {os.path.abspath(local_font_path)} ---")
-    print(f"--- 檔案是否存在: {os.path.exists(local_font_path)} ---")
-    if platform.system() == 'Windows':
-        plt.rcParams['font.sans-serif'] = ['Microsoft JhengHei', 'Arial']
-    else:
-        if os.path.exists(local_font_path):
-            try:
-                fm.fontManager.addfont(local_font_path)
-                prop = fm.FontProperties(fname=local_font_path)
-                plt.rcParams['font.sans-serif'] = [prop.get_name(), 'sans-serif']
-                print(f"✅ 成功從 static 載入字體: {prop.get_name()}")
-            except:
-                plt.rcParams['font.sans-serif'] = ['DejaVu Sans']
-        else:
-            print(f"⚠️ 找不到字體，路徑檢查: {local_font_path}")
-            plt.rcParams['font.sans-serif'] = ['DejaVu Sans']
+#     # --- 關鍵：路徑要加上 static/ ---
+#     current_dir = os.path.dirname(os.path.abspath(__file__))
+#     # 這裡多加一個 "static"
+#     local_font_path = os.path.join(current_dir, "static", "myfont.ttf") 
+#     print(f"--- 偵測字體路徑: {os.path.abspath(local_font_path)} ---")
+#     print(f"--- 檔案是否存在: {os.path.exists(local_font_path)} ---")
+#     if platform.system() == 'Windows':
+#         plt.rcParams['font.sans-serif'] = ['Microsoft JhengHei', 'Arial']
+#     else:
+#         if os.path.exists(local_font_path):
+#             try:
+#                 fm.fontManager.addfont(local_font_path)
+#                 prop = fm.FontProperties(fname=local_font_path)
+#                 plt.rcParams['font.sans-serif'] = [prop.get_name(), 'sans-serif']
+#                 print(f"✅ 成功從 static 載入字體: {prop.get_name()}")
+#             except:
+#                 plt.rcParams['font.sans-serif'] = ['DejaVu Sans']
+#         else:
+#             print(f"⚠️ 找不到字體，路徑檢查: {local_font_path}")
+#             plt.rcParams['font.sans-serif'] = ['DejaVu Sans']
 
-# 執行設定
-set_mpl_fonts()
+# # 執行設定
+# set_mpl_fonts()
 
 
 # ==========================================

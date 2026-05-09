@@ -216,81 +216,83 @@
         function getResponsiveConfig(width) {
             var isMobile = width < 600;
             return {
-                gridRight: isMobile ? 45 : 100, // 增加右邊間距，給標籤更多空間
+                gridRight: isMobile ? 45 : 100,
                 gridTop: isMobile ? '28%' : '22%',
-                gridBottom: isMobile ? '18%' : '15%',
+                gridBottom: isMobile ? '18%' : '20%',
                 fontSize: isMobile ? 11 : 13,
                 legendFontSize: isMobile ? 11 : 13,
                 badgeFontSize: isMobile ? 11 : 13,
-                labelDistance: isMobile ? 5 : 12 // 電腦版文字離線遠一點，防止重疊
+                labelDistance: isMobile ? 5 : 12
             };
         }
 
         var initChartWidth = chartDom.offsetWidth;
         var layout = getResponsiveConfig(initChartWidth);
+        var colors = ['#1D3557', '#FF595E', '#FFCA3A', '#8AC926', '#1982C4', '#4267B2'];
 
-        // 使用繼承模式的圖例樣式
-        var option = {
-            color: ['#1D3557', '#FF595E', '#FFCA3A', '#8AC926', '#1982C4', '#4267B2'],
-            title: [
-                {
-                    text: serverData.stock_name + ' (' + serverData.stock_id + ') 價值河流圖',
-                    left: 'center', top: '2%',
-                    textStyle: { color: '#1D3557', fontSize: 18 }
-                },
-                {
-                    id: 'statBadge',
-                    text: '📊 區間分佈計算中...',
-                    left: 'center', top: '8%', // 🚀 分佈資訊保持在上方
-                    textStyle: { color: '#495057', fontSize: layout.badgeFontSize, fontWeight: '500' },
-                    backgroundColor: '#F8F9FA', borderColor: '#DEE2E6', borderWidth: 1, borderRadius: 20, padding: [6, 15]
-                }
-            ],
-            tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
-
-            // 🚀 圖例移到下方
-            legend: {
-                data: ['本益比', '危險區', '昂貴區', '合理區', '便宜區', '超跌區'],
-                bottom: '8%', // 移至底部上方一點
-                itemWidth: 24,
-                itemHeight: 12,
-                itemGap: 10,
-                textStyle: { fontSize: layout.legendFontSize }
-            },
-
-            grid: {
-                left: '3%',
-                right: layout.gridRight,
-                top: layout.gridTop,
-                bottom: '20%', // 為了底部圖例留空間
-                containLabel: true
-            },
-            xAxis: { type: 'category', boundaryGap: false, data: serverData.dates },
-            yAxis: { type: 'value', scale: true, splitLine: { lineStyle: { type: 'dashed', opacity: 0.3 } } },
-
-            series: [
-                { name: '本益比', type: 'line', data: serverData.pe_smooth, symbol: 'none', lineStyle: { width: 3 }, zIndex: 10 },
-                {
-                    name: '危險區', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.極高),
-                    lineStyle: { type: 'dashed', width: 2 }, symbol: 'none',
-                    endLabel: {
-                        show: true, formatter: '危險', color: 'inherit',
-                        distance: layout.labelDistance, // 🚀 修正重疊問題
+        // 🚀 神級重構：用 markLine 畫線，徹底擺脫跑版噩夢
+        function createBandSeries(name, labelText, colorIndex, value) {
+            return {
+                name: name,
+                type: 'line',
+                data: Array(serverData.dates.length).fill(value), // 保留資料讓 Tooltip 讀取
+                itemStyle: { color: colors[colorIndex] },
+                lineStyle: { opacity: 0 }, // 隱藏原本會跑版的實體線
+                symbol: 'none',
+                markLine: {
+                    symbol: ['none', 'none'], // 不要有箭頭
+                    label: {
+                        position: 'end',
+                        formatter: labelText,
+                        color: colors[colorIndex],
+                        distance: layout.labelDistance,
                         fontSize: layout.fontSize
                     },
-                    labelLayout: { moveOverlap: 'shiftY' }
-                },
-                { name: '昂貴區', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.偏高), lineStyle: { type: 'dashed', width: 2 }, symbol: 'none', endLabel: { show: true, formatter: '昂貴', color: 'inherit', distance: layout.labelDistance, fontSize: layout.fontSize }, labelLayout: { moveOverlap: 'shiftY' } },
-                { name: '合理區', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.合理), lineStyle: { type: 'dashed', width: 2 }, symbol: 'none', endLabel: { show: true, formatter: '合理', color: 'inherit', distance: layout.labelDistance, fontSize: layout.fontSize }, labelLayout: { moveOverlap: 'shiftY' } },
-                { name: '便宜區', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.偏低), lineStyle: { type: 'dashed', width: 2 }, symbol: 'none', endLabel: { show: true, formatter: '便宜', color: 'inherit', distance: layout.labelDistance, fontSize: layout.fontSize }, labelLayout: { moveOverlap: 'shiftY' } },
-                { name: '超跌區', type: 'line', data: Array(serverData.dates.length).fill(serverData.levels.極低), lineStyle: { type: 'dashed', width: 2 }, symbol: 'none', endLabel: { show: true, formatter: '超跌', color: 'inherit', distance: layout.labelDistance, fontSize: layout.fontSize }, labelLayout: { moveOverlap: 'shiftY' } }
+                    lineStyle: { color: colors[colorIndex], type: 'dashed', width: 2 },
+                    data: [{ yAxis: value }], // 鎖死在指定的 Y 軸位置
+                    animation: false // 取消動畫，讓拉動滑桿時瞬間鎖定
+                }
+            };
+        }
+
+        var option = {
+            color: colors,
+            title: [
+                { text: serverData.stock_name + ' (' + serverData.stock_id + ') 價值河流圖', left: 'center', top: '2%', textStyle: { color: '#1D3557', fontSize: 18 } },
+                { id: 'statBadge', text: '📊 區間分佈計算中...', left: 'center', top: '8%', textStyle: { color: '#495057', fontSize: layout.badgeFontSize, fontWeight: '500' }, backgroundColor: '#F8F9FA', borderColor: '#DEE2E6', borderWidth: 1, borderRadius: 20, padding: [6, 15] }
             ],
-            dataZoom: [{ type: 'slider', start: 80, end: 100, bottom: '2%' }, { type: 'inside' }]
+            tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+            legend: {
+                data: [
+                    { name: '本益比', icon: 'rect' }, { name: '危險區', icon: 'rect' }, { name: '昂貴區', icon: 'rect' }, { name: '合理區', icon: 'rect' }, { name: '便宜區', icon: 'rect' }, { name: '超跌區', icon: 'rect' }
+                ],
+                bottom: '8%', itemWidth: 24, itemHeight: 3, itemGap: 15,
+                textStyle: { fontSize: layout.legendFontSize, padding: [3, 0, 0, 0] }
+            },
+            grid: { left: '3%', right: layout.gridRight, top: layout.gridTop, bottom: layout.gridBottom, containLabel: true },
+            xAxis: { type: 'category', boundaryGap: false, data: serverData.dates },
+            yAxis: { type: 'value', scale: true, splitLine: { lineStyle: { type: 'dashed', opacity: 0.3 } } },
+            series: [
+                { name: '本益比', type: 'line', data: serverData.pe_smooth, symbol: 'none', lineStyle: { width: 3 }, zIndex: 10, itemStyle: { color: colors[0] } },
+                createBandSeries('危險區', '危險', 1, serverData.levels.極高),
+                createBandSeries('昂貴區', '昂貴', 2, serverData.levels.偏高),
+                createBandSeries('合理區', '合理', 3, serverData.levels.合理),
+                createBandSeries('便宜區', '便宜', 4, serverData.levels.偏低),
+                createBandSeries('超跌區', '超跌', 5, serverData.levels.極低)
+            ],
+            dataZoom: [{ type: 'slider', start: 80, end: 100, bottom: '2%', height: 25 }, { type: 'inside' }]
         };
 
         myChart.setOption(option);
 
-        // 監聽縮放邏輯
+        // 動態更新 markLine
+        function updateBandSeries(value) {
+            return {
+                data: Array(serverData.dates.length).fill(value),
+                markLine: { data: [{ yAxis: value }] } // 滑動時直接更新鎖死的 Y 軸位置
+            };
+        }
+
         myChart.on('dataZoom', function () {
             var axis = myChart.getModel().getComponent('xAxis', 0).axis;
             var range = axis.scale._extent;
@@ -312,15 +314,16 @@
                     var total = activeData.length;
                     var formatPct = (c) => ((c / total) * 100).toFixed(0) + '%';
                     var statStr = `分佈: 危險 ${formatPct(counts.h2)} ｜ 昂貴 ${formatPct(counts.h1)} ｜ 合理 ${formatPct(counts.f)} ｜ 便宜 ${formatPct(counts.l1)} ｜ 超跌 ${formatPct(counts.l2)}`;
+
                     myChart.setOption({
                         title: [{}, { id: 'statBadge', text: statStr }],
                         series: [
-                            {},
-                            { data: Array(serverData.dates.length).fill(newAvg + 1.5 * newStd) },
-                            { data: Array(serverData.dates.length).fill(newAvg + 0.5 * newStd) },
-                            { data: Array(serverData.dates.length).fill(newAvg) },
-                            { data: Array(serverData.dates.length).fill(newAvg - 0.5 * newStd) },
-                            { data: Array(serverData.dates.length).fill(newAvg - 1.5 * newStd) }
+                            {}, // pe_smooth 不動
+                            updateBandSeries(newAvg + 1.5 * newStd),
+                            updateBandSeries(newAvg + 0.5 * newStd),
+                            updateBandSeries(newAvg),
+                            updateBandSeries(newAvg - 0.5 * newStd),
+                            updateBandSeries(newAvg - 1.5 * newStd)
                         ]
                     });
                 }
@@ -333,8 +336,15 @@
         var newWidth = chartDom.offsetWidth;
         var newLayout = getResponsiveConfig(newWidth);
         myChart.setOption({
-            grid: { right: newLayout.gridRight, top: newLayout.gridTop },
-            series: [{}, { endLabel: { distance: newLayout.labelDistance } }, { endLabel: { distance: newLayout.labelDistance } }, { endLabel: { distance: newLayout.labelDistance } }, { endLabel: { distance: newLayout.labelDistance } }, { endLabel: { distance: newLayout.labelDistance } }]
+            grid: { right: newLayout.gridRight, top: newLayout.gridTop, bottom: newLayout.gridBottom },
+            series: [
+                {},
+                { markLine: { label: { distance: newLayout.labelDistance } } },
+                { markLine: { label: { distance: newLayout.labelDistance } } },
+                { markLine: { label: { distance: newLayout.labelDistance } } },
+                { markLine: { label: { distance: newLayout.labelDistance } } },
+                { markLine: { label: { distance: newLayout.labelDistance } } }
+            ]
         });
         myChart.resize();
     });
