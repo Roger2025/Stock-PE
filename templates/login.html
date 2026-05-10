@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登入會員 | Roger 投資分析終端</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        /* 繼承全域 Navbar 樣式 */
+        .navbar-brand { letter-spacing: 0.5px; }
+        
+        /* 登入專屬尊榮級卡片設計 */
+        .auth-wrapper {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+        .auth-card {
+            background: #ffffff;
+            border: none;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            max-width: 900px;
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        /* 左側品牌宣傳欄 (增強轉換率與信任感) */
+        .auth-sidebar {
+            background: linear-gradient(135deg, #1d3557 0%, #457b9d 100%);
+            color: #ffffff;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .auth-sidebar h3 { font-weight: 800; letter-spacing: 1px; }
+        .bullet-item { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; font-size: 0.95rem; }
+        .bullet-item i { color: #a8dadc; font-size: 1.2rem; }
+        
+        /* 右側表單操作欄 */
+        .auth-form-area {
+            padding: 50px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .form-control {
+            border-radius: 8px;
+            padding: 12px 15px;
+            border: 1px solid #e2e8f0;
+            font-size: 0.95rem;
+        }
+        .form-control:focus {
+            border-color: #1d3557;
+            box-shadow: 0 0 0 0.25rem rgba(29, 53, 87, 0.15);
+        }
+        .btn-primary-custom {
+            background-color: #1d3557;
+            border-color: #1d3557;
+            color: #ffffff;
+            border-radius: 8px;
+            padding: 12px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+        .btn-primary-custom:hover {
+            background-color: #e63946;
+            border-color: #e63946;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(230, 57, 70, 0.2);
+        }
+        .link-custom { color: #457b9d; text-decoration: none; font-weight: 600; font-size: 0.9rem; }
+        .link-custom:hover { color: #e63946; text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/">🚀 Roger 投資分析終端</a>
+        <div class="d-flex align-items-center ms-auto">
+            <a href="/register" class="btn btn-outline-light btn-sm fw-bold" style="border-radius: 6px;">加入免費會員</a>
+        </div>
+    </div>
+</nav>
+
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="col-12 col-md-5 auth-sidebar">
+            <h3 class="mb-4">量化終端・安全解鎖</h3>
+            <p class="mb-4 text-light" style="opacity: 0.9;">登入以存取您的個人化設定與機構級分析模組。</p>
+            
+            <div class="bullet-item">
+                <i class="fa-solid fa-chart-pie"></i>
+                <span>12 格全動態量化回撤雷達</span>
+            </div>
+            <div class="bullet-item">
+                <i class="fa-solid fa-water"></i>
+                <span>五階段 PE 估值河流圖引擎</span>
+            </div>
+            <div class="bullet-item">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>軍規級 PBKDF2 安全加密防護</span>
+            </div>
+            
+            <div class="mt-5 pt-3" style="border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.8rem; opacity: 0.7;">
+                © 2026 Roger SaaS. 連線已受 SSL 保護。
+            </div>
+        </div>
+
+        <div class="col-12 col-md-7 auth-form-area">
+            <h4 class="fw-bold mb-2" style="color: #1d3557;">登入數位資產帳號</h4>
+            <p class="text-muted mb-4 fs-7">輸入您的註冊信箱與密碼以接管終端</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert" style="border-radius: 8px;">
+                            <strong>提示：</strong> {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form action="/login" method="POST" id="loginForm">
+                <div class="mb-3">
+                    <label for="email" class="form-label fw-bold fs-7" style="color: #457b9d;"><i class="fa-solid fa-envelope me-1"></i> 電子信箱 Email</label>
+                    <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com" required autofocus>
+                </div>
+                <div class="mb-4">
+                    <label for="password" class="form-label fw-bold fs-7" style="color: #457b9d;"><i class="fa-solid fa-lock me-1"></i> 帳號密碼 Password</label>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" required>
+                </div>
+                <div class="d-grid mb-3">
+                    <button type="submit" class="btn btn-primary-custom" id="submitBtn">🚀 驗證並登入戰情室</button>
+                </div>
+            </form>
+
+            <div class="text-center mt-3">
+                <span class="text-muted fs-7">尚未擁有數位資產帳號？</span> 
+                <a href="/register" class="link-custom">立即免費註冊解鎖</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // 點擊後按鈕防呆與動態回饋
+    document.getElementById('loginForm').addEventListener('submit', function() {
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>安全驗證中...';
+    });
+</script>
+</body>
+</html>

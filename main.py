@@ -5,9 +5,14 @@ from pathlib import Path
 
 import pandas as pd
 import markdown
-from flask import Flask, jsonify, render_template, request, url_for
+from flask import Flask, jsonify, render_template, request, url_for, redirect, flash
 from openai import OpenAI, OpenAIError
 from dotenv import load_dotenv
+
+# --- 🎯 導入商用 SaaS 會員驗證套件 ---
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
 
 import stock_PE
 import backtest_engine
@@ -28,147 +33,191 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 app = Flask(__name__)
 
+# 🎯 SaaS 安全防護：設定 Session 秘密金鑰 (防篡改)
+app.secret_key = os.getenv("SECRET_KEY", "RogerUltraSecureSaaSKey2026")
+
+# 🎯 整合 Aiven 資料庫連線 (使用 SQLAlchemy ORM)
+db_host = os.getenv("db_host", "").strip()
+db_user = os.getenv("db_user", "").strip()
+db_password = os.getenv("db_password", "").strip()
+db_database = os.getenv("db_database", "").strip()
+db_port = os.getenv("db_port", "21697").strip()
+
+# 轉換為標準 SQLAlchemy 連線字串 (強制開啟 SSL 連線 Aiven)
+app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_database}?ssl_ca="
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# 實例化數據庫 ORM 與 登入管理器
+db = SQLAlchemy(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
+# 設定未登入時，自動跳轉的頁面
+login_manager.login_view = 'login'
+login_manager.login_message = "⚠️ 偵測到未登入，請先進入會員系統以解鎖戰情室。"
+login_manager.login_message_category = "warning"
+
 # 確保從環境變數正確抓取 API Key
 api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key)
 
-# 使用現代化 Pathlib 建立與管理靜態目錄
+# 使用現代化 Pathlib 管理目錄
 STATIC_IMG_DIR = Path(app.root_path) / "static" / "images"
 STATIC_IMG_DIR.mkdir(parents=True, exist_ok=True)
+
+# ==========================================
+# 🎯 會員數據庫模型 (User Model)
+# ==========================================
+class User(db.Model, UserMixin):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    password_hash = db.Column(db.String(256), nullable=False)
+    is_vip = db.Column(db.Boolean, default=False)          # 商業權限開關
+    quota_remaining = db.Column(db.Integer, default=5)     # 每日使用額度
+    created_at = db.Column(db.DateTime, default=datetime.now)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+# 啟動時自動檢查並建立 user 表
+with app.app_context():
+    try:
+        db.create_all()
+        logger.info("✅ Aiven 資料庫中的 users 會員表已就緒。")
+    except Exception as e:
+        logger.error(f"❌ 初始化 users 表失敗: {e}")
 
 
 # ==========================================
 # 核心服務：AI 報告生成器
 # ==========================================
 def generate_ai_report(stock_id: str, df: pd.DataFrame) -> str:
-    """
-    將 DataFrame 轉換為文字，並呼叫 OpenAI 生成 HTML 格式的報告。
-    """
     try:
         if df is None or df.empty:
-            logger.warning(f"[{stock_id}] 資料庫無數據，取消 AI 生成。")
-            return "<p style='color:#E63946;'><strong>⚠️ 無法取得資料庫數據，無法生成 AI 報告。</strong></p>"
+            return "<p style='color:#E63946;'><strong>⚠️ 無法取得資料庫數據。</strong></p>"
 
-        # --- 型別修正與髒數據清洗 ---
         df = df.copy() 
-        # 1. 加入 errors='coerce'，遇到 0000-00-00 就強制作為 NaT (空值)
         df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d', errors='coerce')
-        # 2. 把變成空值的無效資料刪除，確保接下來排隊的都是正確日期
         df = df.dropna(subset=['date'])
         
-        # 準備數據：排序並取最後 20 筆
         df_sorted = df.sort_values('date')
         report_data = df_sorted.tail(20).to_string()
 
-        # 呼叫 GPT 進行分析
-        logger.info(f"[{stock_id}] 正在發送請求至 OpenAI API...")
-        
-        # 增加 timeout 到 45 秒，避免 Render 連線過慢超時
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {
-                    "role": "system", 
-                    "content": "你是一位精通台股的價值投資分析師。請根據提供的本益比歷史數據，判斷目前估值處於什麼位階，並給出專業、簡潔的投資與操盤建議。請務必使用 Markdown 格式排版。"
-                },
-                {
-                    "role": "user", 
-                    "content": f"這是代號 {stock_id} 最新 20 天的數據：\n{report_data}\n請給出分析報告。"
-                }
+                {"role": "system", "content": "你是一位精通台股的價值投資分析師。請使用 Markdown 格式。"},
+                {"role": "user", "content": f"分析代號 {stock_id} 最新數據：\n{report_data}"}
             ],
             timeout=45 
         )
-        
-        logger.info(f"[{stock_id}] OpenAI 報告生成完畢。")
-        ai_markdown = response.choices[0].message.content
-        return markdown.markdown(ai_markdown)
-
-    except OpenAIError as api_err:
-        logger.error(f"[{stock_id}] OpenAI API 發生錯誤：{api_err}")
-        return f"<p style='color:#E63946;'><strong>⚠️ AI 服務暫時無法使用，請檢查 API Key 或餘額。</strong></p>"
+        return markdown.markdown(response.choices[0].message.content)
     except Exception as e:
-        logger.exception(f"[{stock_id}] 報告生成發生錯誤")
-        return f"<p style='color:#E63946;'><strong>⚠️ 系統分析出錯：{str(e)}</strong></p>"
+        return f"<p style='color:#E63946;'><strong>⚠️ AI 分析出錯：{str(e)}</strong></p>"
 
 
 # ==========================================
-# Web 路由設計 (Routing)
+# 🎯 會員註冊與登入路由 (Auth Logic)
+# ==========================================
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    if request.method == 'POST':
+        email = request.form.get('email').strip()
+        password = request.form.get('password').strip()
+        if User.query.filter_by(email=email).first():
+            flash("❌ 該 Email 已經註冊過，請直接登入。", "danger")
+            return redirect(url_for('register'))
+        new_user = User(email=email)
+        new_user.set_password(password)
+        new_user.is_vip = True # 推廣期註冊預設開啟 VIP
+        db.session.add(new_user)
+        db.session.commit()
+        flash("✅ 註冊成功！請登入體驗完整功能。", "success")
+        return redirect(url_for('login'))
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    if request.method == 'POST':
+        email = request.form.get('email').strip()
+        password = request.form.get('password').strip()
+        user = User.query.filter_by(email=email).first()
+        if user and user.check_password(password):
+            login_user(user, remember=True)
+            flash("✅ 歡迎回來！戰情系統已成功解鎖。", "success")
+            return redirect(url_for('index'))
+        else:
+            flash("❌ Email 或密碼錯誤，請重新檢查。", "danger")
+    return render_template('login.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash("您已成功登出。", "info")
+    return redirect(url_for('login'))
+
+
+# ==========================================
+# Web 路由設計 (含權限保護)
 # ==========================================
 @app.route('/', methods=['GET'])
 def index():
+    # 這是你的「完美首頁」入口，目前可先維持公開，或引導至登入
     return render_template('index.html')
 
-
 @app.route('/analyze', methods=['POST'])
+@login_required # 🎯 保護 API：必須登入才能請求分析
 def analyze():
     stock_id = request.form.get('stock_id', '').strip()
-    
     if not stock_id:
         return "❌ 錯誤：請輸入股票代號！", 400
-
     try:
-        logger.info(f"========== 開始處理 ECharts 分析：{stock_id} ==========")
-
-        # --- 步驟 A：取得 ECharts 專用的數據字典 (核心改動) ---
-        # 我們直接呼叫 stock_PE 裡面新寫好的 get_echarts_data
         chart_json_data = stock_PE.get_echarts_data(stock_id)
-
         if not chart_json_data:
-            return f"❌ 找不到股票代號 {stock_id} 的數據，請確認資料庫已有資料。", 404
-
-        # --- 步驟 B：撈取原始數據供 AI 報告使用 (維持原樣) ---
+            return f"❌ 找不到股票 {stock_id} 的數據。", 404
         df = stock_PE.get_stock_data(stock_id)
         ai_html_report = generate_ai_report(stock_id, df)
-
-        logger.info(f"========== {stock_id} 處理完成 (ECharts 數據模式) ==========")
-        
-        # --- 步驟 C：傳送數據到 result.html ---
-        return render_template(
-            'result.html', 
-            stock_id=stock_id, 
-            chart_data=chart_json_data, # 把整包 JSON 丟給前端
-            ai_report=ai_html_report
-        )
-
+        return render_template('result.html', stock_id=stock_id, chart_data=chart_json_data, ai_report=ai_html_report)
     except Exception as e:
-        logger.exception(f"處理時發生致命錯誤: {stock_id}")
         return f"❌ 伺服器處理失敗: {str(e)}", 500
-    
+
 @app.route('/analyze')
+@login_required # 🎯 保護頁面
 def analyzes():
-    # 這裡未來可以加入爬蟲抓取最新經濟數據的邏輯
-    # 目前我們先單純渲染這個靜態的儀表板
     return render_template('analyze.html')
 
-# 2. 量化動態回測 UI 入口
 @app.route('/backtest')
+@login_required # 🎯 保護頁面
 def backtest_page():
     return render_template('backtest.html')
 
 @app.route('/api/run_backtest', methods=['POST'])
+@login_required # 🎯 保護 API
 def api_run_backtest():
     data = request.get_json() or {}
     ticker = data.get('ticker', '2330.TW')
-    
-    # 預設抓取 2000 年初到當前最新日期
     today_str = datetime.now().strftime('%Y-%m-%d')
     start_date = data.get('start_date', '2000-01-01')
     end_date = data.get('end_date', today_str)
-        
-    result = backtest_engine.run_backtest_json(
-        ticker=ticker, 
-        start_date=start_date, 
-        end_date=end_date
-    )
+    result = backtest_engine.run_backtest_json(ticker=ticker, start_date=start_date, end_date=end_date)
     return jsonify(result), 200
 
+# ==========================================
+# 啟動服務
+# ==========================================
 if __name__ == "__main__":
-    # 1. 取得 Render 分配的門牌號碼，沒分配就用 10000
     port = int(os.environ.get("PORT", 10000))
-    
-    # 2. 啟動日誌，讓你在 Render Log 裡能看到現在用哪個 Port
-    logger.info(f"🚀 伺服器啟動中... 目標 Port: {port}")
-    
-    # 3. 啟動服務
-    # host='0.0.0.0' 是必須的，代表允許外部連線進來
+    logger.info(f"🚀 SaaS 戰情終端啟動中... Port: {port}")
     app.run(host='0.0.0.0', port=port)
