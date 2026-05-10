@@ -1,14 +1,16 @@
+from datetime import datetime
 import os
 import logging
 from pathlib import Path
 
 import pandas as pd
 import markdown
-from flask import Flask, render_template, request, url_for
+from flask import Flask, jsonify, render_template, request, url_for
 from openai import OpenAI, OpenAIError
 from dotenv import load_dotenv
 
 import stock_PE
+import backtest_engine
 
 # ==========================================
 # 專業設定 1：初始化系統日誌 (Logging)
@@ -138,6 +140,27 @@ def analyzes():
     # 目前我們先單純渲染這個靜態的儀表板
     return render_template('analyze.html')
 
+# 2. 量化動態回測 UI 入口
+@app.route('/backtest')
+def backtest_page():
+    return render_template('backtest.html')
+
+@app.route('/api/run_backtest', methods=['POST'])
+def api_run_backtest():
+    data = request.get_json() or {}
+    ticker = data.get('ticker', '2330.TW')
+    
+    # 預設抓取 2000 年初到當前最新日期
+    today_str = datetime.now().strftime('%Y-%m-%d')
+    start_date = data.get('start_date', '2000-01-01')
+    end_date = data.get('end_date', today_str)
+        
+    result = backtest_engine.run_backtest_json(
+        ticker=ticker, 
+        start_date=start_date, 
+        end_date=end_date
+    )
+    return jsonify(result), 200
 
 if __name__ == "__main__":
     # 1. 取得 Render 分配的門牌號碼，沒分配就用 10000

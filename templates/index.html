@@ -152,10 +152,14 @@
         <button type="submit">生成專業分析報告</button>
       </form>
     </div>
-    <div style="text-align: center; margin-top: 30px">
+    <div style="display: flex; justify-content: center; gap: 15px; margin-top: 30px; flex-wrap: wrap;">
       <a href="{{ url_for('analyzes') }}" class="btn-macro-portal">
         <i class="fa-solid fa-satellite-dish"></i> 進入總經戰情研討室
       </a>
+      <a href="/backtest" class="btn-macro-portal" style="border-color: #ff7675; color: #ff7675; box-shadow: 0 0 10px rgba(255, 118, 117, 0.2);">
+        <i class="fa-solid fa-chart-line"></i> 量化動態回測系統
+      </a>
     </div>
+    
   </body>
 </html>
