@@ -3,9 +3,12 @@ import random
 import pandas as pd
 import stock_PE  # 引用你寫好的 open_db, write_stock_db 等函式
 
-def run_batch_fetch(max_stocks=50, start_year='2006'):
+def run_batch_fetch(max_stocks=50, start_year='2006', target_list=None):
     """
     批次抓取多檔股票的歷史資料並寫入 Aiven 雲端資料庫
+    :param max_stocks: 預設抓取前 N 檔數量 (當 target_list 未指定時)
+    :param start_year: 抓取歷史資料的起始年份
+    :param target_list: 強制指定只抓取特定代號的清單，例如 ["3374"]
     """
     stock_PE.open_db()
     
@@ -22,10 +25,21 @@ def run_batch_fetch(max_stocks=50, start_year='2006'):
         stock_PE.close_db()
         return
 
-    # 2. 取出前 max_stocks 檔股票 (stock_map 是一個 dict)
-    # 這裡會依序取出前 50 檔 (通常從 1101 台泥 開始)
-    target_stocks = list(stock_map.keys())[:max_stocks]
-    
+    # 2. 判斷是單獨鎖定目標，還是掃描市場前 N 檔
+    if target_list and len(target_list) > 0:
+        # 只保留存在於市場清單中的指定代號
+        target_stocks = [sid for sid in target_list if sid in stock_map]
+        print(f"🎯 鎖定特定目標模式！強制指定清單：{target_stocks}")
+    else:
+        # 依序取出前 max_stocks 檔 (通常從 1101 台泥 開始)
+        target_stocks = list(stock_map.keys())[:max_stocks]
+        print(f"掃描模式：依序取出清單前 {len(target_stocks)} 檔股票。")
+        
+    if not target_stocks:
+        print("⚠️ 找不到目標股票代號，請確認輸入是否正確。")
+        stock_PE.close_db()
+        return
+
     print(f"✅ 成功取得清單，本次預計抓取 {len(target_stocks)} 檔股票。")
     print("=" * 50)
 
@@ -55,6 +69,7 @@ def run_batch_fetch(max_stocks=50, start_year='2006'):
             print(f"  📅 月份 {d} | 新增: {count} 筆")
             
             # 【防禦機制 1】隨機小冷卻：月份之間休息 3 到 6 秒
+            # 💡 照原版穩固邏輯：就算沒抓到資料顯示 0 筆，也一律乖乖等滿秒數，保護 IP 絕對不被鎖！
             sleep_time = random.uniform(3, 6)
             time.sleep(sleep_time) 
 
@@ -72,5 +87,11 @@ def run_batch_fetch(max_stocks=50, start_year='2006'):
     stock_PE.close_db()
 
 if __name__ == "__main__":
-    # 你想睡覺時抓 50 檔，直接在這裡設定
-    run_batch_fetch(max_stocks=50, start_year="2006")
+    # 🎯 實戰目標：單獨鎖定抓取 3374 (精材)
+    run_batch_fetch(start_year="2006", target_list=["2303"])
+    
+    # 💡 擴充預留通道：未來如果想一次慢慢爬多檔，只要把上面那行註解掉，改開這行即可：
+    # run_batch_fetch(start_year="2006", target_list=["3374", "2330", "2308"])
+    
+    # 💡 原始掃描通道：想放著讓它睡覺時狂抓前 50 檔，直接留空 target_list：
+    # run_batch_fetch(max_stocks=50, start_year="2006")

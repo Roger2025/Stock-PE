@@ -193,7 +193,7 @@ def get_echarts_data(stock_id, start_date='2006-01-01', end_date='2027-12-31',
 
     # 2. 清洗資料
     stock_name = df['stock_name'].iloc[0] if df['stock_name'].iloc[0] else stock_id
-    df['date'] = pd.to_datetime(df['date'], errors='coerce')
+    df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d', errors='coerce')
     df = df.dropna(subset=['date']).sort_values('date')
     df = df[(df['date'] >= start_date) & (df['date'] <= end_date)]
     df['pe_ratio'] = pd.to_numeric(df['pe_ratio'], errors='coerce')

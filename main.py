@@ -101,14 +101,22 @@ with app.app_context():
     db.create_all()
 
 # ==========================================
-# 🎯 核心功能：AI 報告生成
+# 🎯 核心功能：AI 報告生成 (終極型態防禦版)
 # ==========================================
 def generate_ai_report(stock_id: str, df: pd.DataFrame) -> str:
     try:
         if df is None or df.empty:
             return "<p style='color:#E63946;'><strong>⚠️ 無法取得資料庫數據。</strong></p>"
-        df_sorted = df.sort_values('date')
+        
+        # 🚀 關鍵修復：複製一份獨立的 DataFrame，並強制將 date 欄位洗成純字串格式
+        # 這樣一來，無論後續進行 sort_values 還是送到 AI Prompt 裡，都絕對不會與字串打架！
+        df_clean = df.copy()
+        df_clean['date'] = df_clean['date'].astype(str)
+        
+        # 依據字串型態的日期進行絕對穩定排序
+        df_sorted = df_clean.sort_values('date')
         report_data = df_sorted.tail(20).to_string()
+        
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -117,10 +125,10 @@ def generate_ai_report(stock_id: str, df: pd.DataFrame) -> str:
             ],
             timeout=45 
         )
+        # 完美調用 dot notation 取出回傳字串並轉為 HTML
         return markdown.markdown(response.choices[0].message.content)
     except Exception as e:
         return f"<p style='color:#E63946;'><strong>⚠️ AI 分析出錯：{str(e)}</strong></p>"
-
 # ==========================================
 # 🎯 路由設計：會員系統
 # ==========================================
@@ -172,10 +180,10 @@ def pricing():
 @app.route('/checkout', methods=['POST'])
 @login_required
 def checkout():
-    # 強制鎖定沙盒測試參數，確保雲端編譯完全一致
-    ECPAY_MERCHANT_ID = "2000132"
-    ECPAY_HASH_KEY = "5294y06JbISpM5x9"
-    ECPAY_HASH_IV = "v77hoKGq4kWxNNIS"
+    # 完美動態讀取環境變數，沙盒保底設定
+    ECPAY_MERCHANT_ID = os.getenv("ECPAY_MERCHANT_ID", "2000132").strip()
+    ECPAY_HASH_KEY = os.getenv("ECPAY_HASH_KEY", "5294y06JbISpM5x9").strip()
+    ECPAY_HASH_IV = os.getenv("ECPAY_HASH_IV", "v77hoKGq4kWxNNIS").strip()
 
     trade_no = "RG" + datetime.now().strftime("%Y%m%d%H%M%S") + "".join(random.choices(string.ascii_uppercase, k=2))
     amount = 888 
@@ -204,8 +212,12 @@ def checkout():
     }
     
     try:
+        # 🚀 真相大白：絕對必須先經過 create_order() 讓底層注入 MerchantID 並計算 CheckMacValue！
+        final_order_params = ecpay_sdk.create_order(order_params)
+        
+        # 接著再將帶有完整加密壓碼的字典，轉換為自動提交 HTML 表單
         action_url = "https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5"
-        auto_submit_html = ecpay_sdk.gen_html_post_form(action_url, order_params)
+        auto_submit_html = ecpay_sdk.gen_html_post_form(action_url, final_order_params)
         return auto_submit_html
     except Exception as e:
         logger.error(f"❌ 建立綠界跳轉表單失敗: {e}")
@@ -213,9 +225,9 @@ def checkout():
 
 @app.route('/ecpay_callback', methods=['POST'])
 def ecpay_callback():
-    ECPAY_MERCHANT_ID = "2000132"
-    ECPAY_HASH_KEY = "5294y06JbISpM5x9"
-    ECPAY_HASH_IV = "v77hoKGq4kWxNNIS"
+    ECPAY_MERCHANT_ID = os.getenv("ECPAY_MERCHANT_ID", "2000132").strip()
+    ECPAY_HASH_KEY = os.getenv("ECPAY_HASH_KEY", "5294y06JbISpM5x9").strip()
+    ECPAY_HASH_IV = os.getenv("ECPAY_HASH_IV", "v77hoKGq4kWxNNIS").strip()
 
     data = request.form.to_dict()
     ecpay_sdk = ecpay_payment_sdk.ECPayPaymentSdk(
