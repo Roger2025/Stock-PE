@@ -3,9 +3,11 @@ gunicorn
 pandas
 matplotlib
 openai>=1.0.0
-pymysql
+requests
 python-dotenv
 markdown
-requests
-sqlalchemy
 yfinance
+pymysql
+flask-sqlalchemy
+flask-login
+werkzeug
