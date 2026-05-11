@@ -1,0 +1,17 @@
+/* ==========================================
+   🚀 全域絲滑轉場引擎 (View Transitions API)
+   ========================================== */
+
+/* 啟用瀏覽器原生 SPA 交叉轉場黑科技 */
+@view-transition { navigation: auto; }
+
+/* 定義進出場平滑過渡屬性 */
+body {
+    opacity: 1;
+    transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 觸發轉場時的隱藏狀態 */
+body.page-is-changing {
+    opacity: 0 !important;
+}

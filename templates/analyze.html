@@ -6,278 +6,323 @@
     <title>總經戰情室 | Roger 投資分析終端</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/transitions.css') }}?v=1.0">
     <style>
-      /* 統一繼承回測終端的乾淨、現代化商用風格 */
+      /* 統一繼承首頁的深沉科技黑/藍色系 */
       body {
         font-family: "Microsoft JhengHei", "Noto Sans TC", sans-serif;
-        background-color: #f4f7f6;
-        color: #333;
+        background-color: #0a0b14;
+        color: #e4e7eb;
         margin: 0;
-        padding-bottom: 50px;
+        padding-bottom: 60px;
+        overflow-x: hidden;
       }
       
-      /* 頂部導覽列優化：海軍深藍底色 */
-      .navbar-brand {
-        letter-spacing: 0.5px;
+      /* 動態身分感知 Navbar 優化 */
+      .navbar {
+        background: rgba(10, 11, 20, 0.9) !important;
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
       }
+      .navbar-brand { letter-spacing: 1px; font-weight: 800; }
       
       /* 核心主視覺區域 (Hero Section) */
       .hero-section {
-        padding: 40px 20px 20px;
+        padding: 100px 20px 40px;
         text-align: center;
+        background: radial-gradient(circle at center, rgba(29, 53, 87, 0.4) 0%, rgba(10, 11, 20, 1) 80%);
       }
       .hero-title {
-        font-size: 2.2rem;
+        font-size: 2.5rem;
         font-weight: 800;
-        color: #1d3557;
         letter-spacing: 2px;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
+        background: linear-gradient(135deg, #ffffff 30%, #4facfe 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
       }
       .hero-subtitle {
-        color: #666;
-        font-size: 1.05rem;
-        margin-bottom: 25px;
+        color: #8b9bb4;
+        font-size: 1.1rem;
+        max-width: 650px;
+        margin: 0 auto;
+        line-height: 1.6;
       }
       
-      /* 篩選控制列美化 */
+      /* 深色高質感篩選控制列 */
       .controls-bar {
-        background: #ffffff;
-        padding: 15px 20px;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        background: #131524;
+        padding: 18px 25px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
         gap: 15px;
-        margin-bottom: 30px;
+        margin-bottom: 40px;
       }
       .section-label {
         font-weight: 700;
-        font-size: 1.1rem;
-        color: #1d3557;
+        font-size: 1.2rem;
+        color: #ffffff;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
       }
+      .filter-group { display: flex; gap: 10px; }
       .filter-btn {
-        background: #f8f9fa;
-        border: 1px solid #e2e8f0;
-        color: #6c757d;
-        padding: 8px 18px;
-        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #8b9bb4;
+        padding: 10px 20px;
+        border-radius: 10px;
         cursor: pointer;
         transition: all 0.3s ease;
-        font-size: 0.9rem;
+        font-size: 0.95rem;
         font-weight: 600;
       }
       .filter-btn:hover {
-        background: #e9ecef;
-        color: #1d3557;
+        background: rgba(79, 172, 254, 0.15);
+        color: #ffffff;
+        border-color: rgba(79, 172, 254, 0.3);
       }
       .filter-btn.active {
-        background-color: #1d3557;
+        background: linear-gradient(135deg, #1d3557 0%, #4facfe 100%);
         color: #ffffff;
-        border-color: #1d3557;
-        box-shadow: 0 4px 10px rgba(29, 53, 87, 0.2);
+        border-color: #4facfe;
+        box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
       }
       
-      /* 總經卡片設計：繼承浮動陰影回饋 */
+      /* 總經卡片網格系統 */
       .cards-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-        gap: 25px;
+        grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+        gap: 30px;
       }
+      
+      /* 頂級深色擬真卡片設計 */
       .macro-card {
-        background: #ffffff;
-        border: none;
-        border-radius: 12px;
+        background: #131524;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
         overflow: hidden;
-        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.06);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        transition: all 0.3s ease;
         display: flex;
         flex-direction: column;
       }
       .macro-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
+        box-shadow: 0 20px 45px rgba(79, 172, 254, 0.15);
+        border-color: rgba(79, 172, 254, 0.4);
       }
       
-      /* 卡片標頭與標籤 */
+      /* 卡片標頭與專屬徽章 */
       .card-header-custom {
-        padding: 18px 20px;
-        background-color: #ffffff;
-        border-bottom: 1px solid #f0f0f0;
+        padding: 20px 22px;
+        background-color: rgba(255, 255, 255, 0.02);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         display: flex;
         justify-content: space-between;
         align-items: center;
       }
       .card-title-box h3 {
-        font-size: 1.2rem;
-        color: #1d3557;
+        font-size: 1.25rem;
+        color: #ffffff;
         margin: 0;
         font-weight: 700;
       }
       .badge-custom {
-        font-size: 0.75rem;
-        padding: 5px 10px;
-        border-radius: 6px;
-        font-weight: 600;
+        font-size: 0.8rem;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
       }
-      .badge-trend { background: #e8f4fd; color: #0275d8; }
-      .badge-risk { background: #fdeaea; color: #d9534f; }
-      .badge-money { background: #fef8e7; color: #f0ad4e; }
-      .badge-key { background: #e6f9f5; color: #5cb85c; }
+      .badge-trend { background: rgba(2, 117, 216, 0.2); color: #4facfe; border: 1px solid rgba(79, 172, 254, 0.3); }
+      .badge-risk { background: rgba(217, 83, 79, 0.2); color: #ff5e62; border: 1px solid rgba(255, 94, 98, 0.3); }
+      .badge-money { background: rgba(240, 173, 78, 0.2); color: #fde24f; border: 1px solid rgba(253, 226, 79, 0.3); }
+      .badge-key { background: rgba(92, 184, 92, 0.2); color: #00f2c3; border: 1px solid rgba(0, 242, 195, 0.3); }
       
-      /* 圖片容器 */
+      /* 圖片展示區 (微調深色包覆觸感) */
       .card-img-container {
         width: 100%;
-        height: 220px;
-        background-color: #fafafa;
+        height: 230px;
+        background-color: #0c0d18;
         display: flex;
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        border-bottom: 1px solid #f0f0f0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        position: relative;
       }
       .card-img-container img {
         width: 100%;
         height: 100%;
         object-fit: contain;
         padding: 10px;
+        transition: transform 0.3s ease;
+      }
+      .macro-card:hover .card-img-container img {
+        transform: scale(1.03);
       }
       
       /* 卡片內文解讀區 */
       .card-body-custom {
-        padding: 20px;
+        padding: 22px;
         display: flex;
         flex-direction: column;
         flex-grow: 1;
-        gap: 15px;
+        gap: 18px;
       }
       .insight-box {
-        background: #f8f9fa;
-        border-radius: 8px;
-        padding: 12px 15px;
-        font-size: 0.9rem;
-        color: #555;
-        border-left: 4px solid #1d3557;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 10px;
+        padding: 15px;
+        font-size: 0.95rem;
+        color: #b0c0d0;
+        border-left: 4px solid #4facfe;
+        border-top: 1px solid rgba(255, 255, 255, 0.03);
+        border-right: 1px solid rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        line-height: 1.5;
       }
       .insight-box strong {
-        color: #1d3557;
+        color: #ffffff;
         display: block;
-        margin-bottom: 5px;
-        font-size: 0.95rem;
+        margin-bottom: 8px;
+        font-size: 1rem;
       }
       
       /* 實戰策略清單 */
       .strategy-box {
-        background: #ffffff;
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
-        padding: 15px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        padding: 18px;
       }
       .strategy-title {
-        font-size: 0.9rem;
-        color: #1d3557;
+        font-size: 0.95rem;
+        color: #4facfe;
         font-weight: 700;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
       }
       .strategy-list {
         list-style: none;
         padding: 0;
         margin: 0;
-        font-size: 0.85rem;
+        font-size: 0.9rem;
       }
       .strategy-list li {
-        margin-bottom: 8px;
+        margin-bottom: 10px;
         display: flex;
         align-items: flex-start;
-        gap: 8px;
-        color: #444;
-        line-height: 1.4;
+        gap: 10px;
+        color: #e4e7eb;
+        line-height: 1.5;
       }
-      .strategy-list li:last-child {
-        margin-bottom: 0;
-      }
+      .strategy-list li:last-child { margin-bottom: 0; }
       
       /* 策略指示燈點 */
       .dot {
         width: 8px;
         height: 8px;
         border-radius: 50%;
-        margin-top: 5px;
+        margin-top: 7px;
         flex-shrink: 0;
+        box-shadow: 0 0 5px currentColor;
       }
-      .dot-g { background-color: #2ecc71; }
-      .dot-r { background-color: #e74c3c; }
-      .dot-y { background-color: #f1c40f; }
+      .dot-g { background-color: #00f2c3; color: #00f2c3; }
+      .dot-r { background-color: #ff5e62; color: #ff5e62; }
+      .dot-y { background-color: #fde24f; color: #fde24f; }
       
-      /* 底部按鈕 */
+      /* 底部傳送門按鈕美化 */
       .btn-source {
         display: block;
         text-align: center;
-        padding: 10px;
-        background: #f8f9fa;
-        color: #1d3557;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        color: #4facfe;
         text-decoration: none;
-        border-radius: 8px;
-        font-size: 0.85rem;
+        border-radius: 10px;
+        font-size: 0.95rem;
         font-weight: 700;
-        border: 1px solid #e9ecef;
-        transition: all 0.2s ease;
+        border: 1px solid rgba(79, 172, 254, 0.3);
+        transition: all 0.3s ease;
         margin-top: auto;
       }
       .btn-source:hover {
-        background: #1d3557;
-        color: #ffffff;
+        background: #4facfe;
+        color: #0a0b14;
+        box-shadow: 0 0 15px rgba(79, 172, 254, 0.4);
       }
       
-      /* 手機端 RWD 完美適應 */
+      /* 手機版 RWD 適應 */
       @media (max-width: 768px) {
-        .controls-bar { flex-direction: column; align-items: stretch; }
-        .filter-group { display: flex; justify-content: space-between; width: 100%; }
-        .filter-btn { flex: 1; text-align: center; padding: 8px; font-size: 0.85rem; }
-        .cards-grid { grid-template-columns: 1fr; }
+        .controls-bar { flex-direction: column; align-items: stretch; padding: 20px; }
+        .filter-group { display: flex; flex-wrap: wrap; justify-content: space-between; width: 100%; gap: 8px; }
+        .filter-btn { flex: 1 1 45%; text-align: center; padding: 10px; font-size: 0.9rem; }
+        .cards-grid { grid-template-columns: 1fr; gap: 20px; }
+        .hero-title { font-size: 2.2rem; }
+        .hero-section { padding: 90px 15px 30px; }
       }
     </style>
   </head>
   <body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-2 shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
       <div class="container">
-        <a class="navbar-brand fw-bold" href="#">🚀 Roger 投資分析終端</a>
+        <a class="navbar-brand" href="/">🚀 ROGER 投資分析終端</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
           <span class="navbar-toggler-icon"></span>
         </button>
+        
         <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ms-auto align-items-center">
+          <ul class="navbar-nav ms-auto align-items-center gap-2">
             <li class="nav-item">
               <a class="nav-link" href="/"><i class="fa-solid fa-house ms-1 me-1"></i> 系統首頁</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link active fw-bold" href="/analyze"><i class="fa-solid fa-satellite-dish ms-1 me-1"></i> 總經戰情室</a>
+              <a class="nav-link active fw-bold" href="/analyze" style="color: #4facfe;"><i class="fa-solid fa-satellite-dish ms-1 me-1"></i> 總經戰情室</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="/backtest"><i class="fa-solid fa-chart-line ms-1 me-1"></i> 量化動態回測</a>
             </li>
+            
+            {% if current_user.is_authenticated %}
+              <li class="nav-item ms-lg-3">
+                <span class="nav-link text-success fw-bold"><i class="fa-solid fa-circle-check me-1"></i> 尊榮會員已驗證</span>
+              </li>
+              <li class="nav-item">
+                <a class="btn btn-outline-danger btn-sm fw-bold px-3 py-1" href="/logout" style="border-radius: 6px;">登出系統</a>
+              </li>
+            {% else %}
+              <li class="nav-item ms-lg-3"><a class="nav-link" href="/login">會員登入</a></li>
+              <li class="nav-item">
+                <a class="btn btn-danger btn-sm fw-bold px-3 py-1" href="/register" style="border-radius: 6px; background: #e63946;">免費開通 VIP</a>
+              </li>
+            {% endif %}
           </ul>
         </div>
       </div>
     </nav>
 
     <section class="hero-section">
-      <h1 class="hero-title">全球總經戰情・深度研討室</h1>
-      <div class="hero-subtitle">掌握總體經濟核心數據，精準定位大盤長線多空位階。</div>
+      <div class="container">
+        <h1 class="hero-title">全球總經戰情・深度研討室</h1>
+        <p class="hero-subtitle">掌握總體經濟核心數據，精準定位大盤長線多空位階與系統性風險防線。</p>
+      </div>
     </section>
 
-    <main class="container">
+    <main class="container mt-2">
       <div class="controls-bar">
         <div class="section-label">
-          <i class="fa-solid fa-layer-group text-primary"></i> 核心監控指標板塊
+          <i class="fa-solid fa-layer-group" style="color: #4facfe;"></i> 核心監控指標板塊
         </div>
         <div class="filter-group">
           <button class="filter-btn active" onclick="filterCards('all')">全部研討</button>
@@ -528,7 +573,7 @@
         <article class="macro-card" data-category="trend">
           <div class="card-header-custom">
             <div class="card-title-box">
-              <h3>台灣-未完成訂單減客戶存貨</h3>
+              <h3>台灣-未完成訂單減存貨</h3>
             </div>
             <span class="badge-custom badge-key">關鍵領先</span>
           </div>
@@ -564,13 +609,13 @@
           <div class="card-body-custom">
             <div class="insight-box">
               <strong><i class="fa-solid fa-magnifying-glass me-1"></i> 數據解讀</strong>
-              反映市場融資槓桿與浮額狀況。當維持率跌破警戒區，代表散戶面臨強制平倉（斷頭），常為市場底部特徵。
+              反映市場融資槓桿狀況。跌破警戒區代表散戶斷頭，常為底部特徵。
             </div>
             <div class="strategy-box">
               <div class="strategy-title"><i class="fa-solid fa-chess-knight"></i> 實戰策略</div>
               <ul class="strategy-list">
-                <li><span class="dot dot-g"></span> 跌破 140% (斷頭潮)：恐慌殺盤、籌碼洗淨，往往是波段長線買點。</li>
-                <li><span class="dot dot-r"></span> 攀升至 170%↑：散戶極度樂觀、槓桿過高，需提防高檔反轉風險。</li>
+                <li><span class="dot dot-g"></span> 跌破 140% (斷頭潮)：籌碼洗淨，往往是長線買點。</li>
+                <li><span class="dot dot-r"></span> 攀升至 170%↑：槓桿過高，需提防高檔反轉風險。</li>
               </ul>
             </div>
             <a href="https://www.macromicro.me/charts/53117/taiwan-taiex-maintenance-margin" target="_blank" class="btn-source">查看圖表來源 <i class="fa-solid fa-external-link-alt ms-1"></i></a>
@@ -580,15 +625,15 @@
       </div>
     </main>
 
-    <footer class="mt-5 pt-4 pb-4 text-center text-muted" style="border-top: 1px solid #e9ecef; background-color: #ffffff;">
+    <footer class="mt-5 pt-4 pb-4 text-center text-muted border-top border-secondary" style="background-color: #0a0b14;">
       <div class="container">
-        <p class="mb-0 fs-7 fw-bold">© 2026 Roger 投資分析終端. 數據研討專用，投資請自行評估風險。</p>
+        <p class="mb-0 fs-7 fw-bold text-light">© 2026 Roger 投資分析終端. 數據研討專用，投資請嚴守停損紀律。</p>
       </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-      // 動態流暢篩選引擎
+      // 完美保留原本強大的動態流暢篩選引擎
       function filterCards(category) {
         const cards = document.querySelectorAll(".macro-card");
         const btns = document.querySelectorAll(".filter-btn");
@@ -615,5 +660,6 @@
         });
       }
     </script>
+    <script src="{{ url_for('static', filename='js/transitions.js') }}?v=1.0"></script>
   </body>
 </html>
