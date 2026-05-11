@@ -1,4 +1,4 @@
-# 置頂強制載入環境變數
+# 🚀 置頂載入環境變數
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -172,7 +172,7 @@ def pricing():
 @app.route('/checkout', methods=['POST'])
 @login_required
 def checkout():
-    # 🚀 終極防彈解法：直接在發動交易的函式內部強制綁定常數，徹底斬斷全域脫鉤風險！
+    # 強制鎖定沙盒測試參數，確保雲端編譯完全一致
     ECPAY_MERCHANT_ID = "2000132"
     ECPAY_HASH_KEY = "5294y06JbISpM5x9"
     ECPAY_HASH_IV = "v77hoKGq4kWxNNIS"
@@ -213,7 +213,6 @@ def checkout():
 
 @app.route('/ecpay_callback', methods=['POST'])
 def ecpay_callback():
-    # 🚀 Webhook 通知同理強制鎖死常數核對
     ECPAY_MERCHANT_ID = "2000132"
     ECPAY_HASH_KEY = "5294y06JbISpM5x9"
     ECPAY_HASH_IV = "v77hoKGq4kWxNNIS"
