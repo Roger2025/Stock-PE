@@ -1,18 +1,26 @@
+# 置頂強制載入環境變數
+from dotenv import load_dotenv
+load_dotenv()
+
 from datetime import datetime
 import os
 import logging
+import random
+import string
 from pathlib import Path
 
 import pandas as pd
 import markdown
 from flask import Flask, jsonify, render_template, request, url_for, redirect, flash
 from openai import OpenAI, OpenAIError
-from dotenv import load_dotenv
 
-# --- 🎯 導入商用 SaaS 會員驗證套件 ---
+# --- 🎯 導入商用 SaaS 會員驗證與金流套件 ---
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+
+# 引入綠界 SDK 實體檔案
+import ecpay_payment_sdk
 
 import stock_PE
 import backtest_engine
@@ -30,50 +38,42 @@ logger = logging.getLogger(__name__)
 # ==========================================
 # 專業設定 2：環境與核心服務實例化
 # ==========================================
-load_dotenv()
 app = Flask(__name__)
 
-# 🎯 SaaS 安全防護：設定 Session 秘密金鑰 (防篡改)
+# 🎯 SaaS 安全防護：設定 Session 秘密金鑰
 app.secret_key = os.getenv("SECRET_KEY", "RogerUltraSecureSaaSKey2026")
 
-# 🎯 整合 Aiven 資料庫連線 (使用 SQLAlchemy ORM)
+# 🎯 整合 Aiven 資料庫連線
 db_host = os.getenv("db_host", "").strip()
 db_user = os.getenv("db_user", "").strip()
 db_password = os.getenv("db_password", "").strip()
 db_database = os.getenv("db_database", "").strip()
 db_port = os.getenv("db_port", "21697").strip()
 
-# 轉換為標準 SQLAlchemy 連線字串 (強制開啟 SSL 連線 Aiven)
 app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_database}?ssl_ca="
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# 實例化數據庫 ORM 與 登入管理器
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
-# 設定未登入時，自動跳轉的頁面
 login_manager.login_view = 'login'
 login_manager.login_message = "⚠️ 偵測到未登入，請先進入會員系統以解鎖戰情室。"
 login_manager.login_message_category = "warning"
 
-# 確保從環境變數正確抓取 API Key
-api_key = os.getenv("OPENAI_API_KEY")
-client = OpenAI(api_key=api_key)
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# 使用現代化 Pathlib 管理目錄
-STATIC_IMG_DIR = Path(app.root_path) / "static" / "images"
-STATIC_IMG_DIR.mkdir(parents=True, exist_ok=True)
+BASE_URL = os.getenv("BASE_URL", "http://127.0.0.1:10000").strip()
 
 # ==========================================
-# 🎯 會員數據庫模型 (User Model)
+# 🎯 會員與訂單數據庫模型
 # ==========================================
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(256), nullable=False)
-    is_vip = db.Column(db.Boolean, default=False)          # 商業權限開關
-    quota_remaining = db.Column(db.Integer, default=5)     # 每日使用額度
+    is_vip = db.Column(db.Boolean, default=False)
+    quota_remaining = db.Column(db.Integer, default=5)
     created_at = db.Column(db.DateTime, default=datetime.now)
 
     def set_password(self, password):
@@ -82,34 +82,33 @@ class User(db.Model, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+class Order(db.Model):
+    __tablename__ = 'orders'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    merchant_trade_no = db.Column(db.String(50), unique=True, nullable=False) 
+    amount = db.Column(db.Integer, nullable=False)
+    status = db.Column(db.String(20), default='pending') 
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    
+    user = db.relationship('User', backref=db.backref('orders', lazy=True))
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# 啟動時自動檢查並建立 user 表
 with app.app_context():
-    try:
-        db.create_all()
-        logger.info("✅ Aiven 資料庫中的 users 會員表已就緒。")
-    except Exception as e:
-        logger.error(f"❌ 初始化 users 表失敗: {e}")
-
+    db.create_all()
 
 # ==========================================
-# 核心服務：AI 報告生成器
+# 🎯 核心功能：AI 報告生成
 # ==========================================
 def generate_ai_report(stock_id: str, df: pd.DataFrame) -> str:
     try:
         if df is None or df.empty:
             return "<p style='color:#E63946;'><strong>⚠️ 無法取得資料庫數據。</strong></p>"
-
-        df = df.copy() 
-        df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d', errors='coerce')
-        df = df.dropna(subset=['date'])
-        
         df_sorted = df.sort_values('date')
         report_data = df_sorted.tail(20).to_string()
-
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -122,33 +121,29 @@ def generate_ai_report(stock_id: str, df: pd.DataFrame) -> str:
     except Exception as e:
         return f"<p style='color:#E63946;'><strong>⚠️ AI 分析出錯：{str(e)}</strong></p>"
 
-
 # ==========================================
-# 🎯 會員註冊與登入路由 (Auth Logic)
+# 🎯 路由設計：會員系統
 # ==========================================
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
+    if current_user.is_authenticated: return redirect(url_for('index'))
     if request.method == 'POST':
         email = request.form.get('email').strip()
         password = request.form.get('password').strip()
         if User.query.filter_by(email=email).first():
-            flash("❌ 該 Email 已經註冊過，請直接登入。", "danger")
+            flash("❌ 該 Email 已經註冊過。", "danger")
             return redirect(url_for('register'))
         new_user = User(email=email)
         new_user.set_password(password)
-        new_user.is_vip = True # 推廣期註冊預設開啟 VIP
         db.session.add(new_user)
         db.session.commit()
-        flash("✅ 註冊成功！請登入體驗完整功能。", "success")
+        flash("✅ 註冊成功！請登入解鎖功能。", "success")
         return redirect(url_for('login'))
     return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
+    if current_user.is_authenticated: return redirect(url_for('index'))
     if request.method == 'POST':
         email = request.form.get('email').strip()
         password = request.form.get('password').strip()
@@ -157,67 +152,137 @@ def login():
             login_user(user, remember=True)
             flash("✅ 歡迎回來！戰情系統已成功解鎖。", "success")
             return redirect(url_for('index'))
-        else:
-            flash("❌ Email 或密碼錯誤，請重新檢查。", "danger")
+        flash("❌ Email 或密碼錯誤。", "danger")
     return render_template('login.html')
 
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
-    flash("您已成功登出。", "info")
     return redirect(url_for('login'))
 
+# ==========================================
+# 🎯 路由設計：金流變現系統 (ECPay)
+# ==========================================
+@app.route('/pricing')
+@login_required
+def pricing():
+    return render_template('pricing.html')
+
+@app.route('/checkout', methods=['POST'])
+@login_required
+def checkout():
+    # 🚀 終極防彈解法：直接在發動交易的函式內部強制綁定常數，徹底斬斷全域脫鉤風險！
+    ECPAY_MERCHANT_ID = "2000132"
+    ECPAY_HASH_KEY = "5294y06JbISpM5x9"
+    ECPAY_HASH_IV = "v77hoKGq4kWxNNIS"
+
+    trade_no = "RG" + datetime.now().strftime("%Y%m%d%H%M%S") + "".join(random.choices(string.ascii_uppercase, k=2))
+    amount = 888 
+    
+    new_order = Order(user_id=current_user.id, merchant_trade_no=trade_no, amount=amount)
+    db.session.add(new_order)
+    db.session.commit()
+    
+    ecpay_sdk = ecpay_payment_sdk.ECPayPaymentSdk(
+        MerchantID=ECPAY_MERCHANT_ID,
+        HashKey=ECPAY_HASH_KEY,
+        HashIV=ECPAY_HASH_IV
+    )
+    
+    order_params = {
+        'MerchantTradeNo': trade_no,
+        'MerchantTradeDate': datetime.now().strftime("%Y/%m/%d %H:%M:%S"),
+        'PaymentType': 'aio',
+        'TotalAmount': amount,
+        'TradeDesc': 'Roger SaaS VIP 尊榮開通方案',
+        'ItemName': '量化戰情室 Pro 終身權限',
+        'ReturnURL': f"{BASE_URL}/ecpay_callback",       
+        'OrderResultURL': f"{BASE_URL}/payment_result",   
+        'ChoosePayment': 'ALL',
+        'EncryptType': 1,
+    }
+    
+    try:
+        action_url = "https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5"
+        auto_submit_html = ecpay_sdk.gen_html_post_form(action_url, order_params)
+        return auto_submit_html
+    except Exception as e:
+        logger.error(f"❌ 建立綠界跳轉表單失敗: {e}")
+        return "金流系統連接異常，請檢查伺服器日誌。", 500
+
+@app.route('/ecpay_callback', methods=['POST'])
+def ecpay_callback():
+    # 🚀 Webhook 通知同理強制鎖死常數核對
+    ECPAY_MERCHANT_ID = "2000132"
+    ECPAY_HASH_KEY = "5294y06JbISpM5x9"
+    ECPAY_HASH_IV = "v77hoKGq4kWxNNIS"
+
+    data = request.form.to_dict()
+    ecpay_sdk = ecpay_payment_sdk.ECPayPaymentSdk(
+        MerchantID=ECPAY_MERCHANT_ID,
+        HashKey=ECPAY_HASH_KEY,
+        HashIV=ECPAY_HASH_IV
+    )
+    
+    if ecpay_sdk.generate_check_mac_value(data) == data.get('CheckMacValue'):
+        if data.get('RtnCode') == '1':
+            trade_no = data.get('MerchantTradeNo')
+            order = Order.query.filter_by(merchant_trade_no=trade_no).first()
+            if order and order.status == 'pending':
+                order.status = 'paid'
+                user = User.query.get(order.user_id)
+                user.is_vip = True
+                db.session.commit()
+                logger.info(f"💰 訂單 {trade_no} 成功收款！會員 {user.email} 解鎖 VIP！")
+        return '1|OK'
+    return '0|Error'
+
+@app.route('/payment_result')
+@login_required
+def payment_result():
+    flash("🎉 綠界付款流程完成！系統正透過專屬加密通道同步升級您的帳號，請稍候刷新頁面。", "success")
+    return redirect(url_for('index'))
 
 # ==========================================
-# Web 路由設計 (含權限保護)
+# 🎯 路由設計：戰情功能
 # ==========================================
 @app.route('/', methods=['GET'])
 def index():
-    # 這是你的「完美首頁」入口，目前可先維持公開，或引導至登入
     return render_template('index.html')
 
 @app.route('/analyze', methods=['POST'])
-@login_required # 🎯 保護 API：必須登入才能請求分析
+@login_required
 def analyze():
     stock_id = request.form.get('stock_id', '').strip()
-    if not stock_id:
-        return "❌ 錯誤：請輸入股票代號！", 400
+    if not stock_id: return "❌ 請輸入代號", 400
     try:
         chart_json_data = stock_PE.get_echarts_data(stock_id)
-        if not chart_json_data:
-            return f"❌ 找不到股票 {stock_id} 的數據。", 404
         df = stock_PE.get_stock_data(stock_id)
         ai_html_report = generate_ai_report(stock_id, df)
         return render_template('result.html', stock_id=stock_id, chart_data=chart_json_data, ai_report=ai_html_report)
     except Exception as e:
-        return f"❌ 伺服器處理失敗: {str(e)}", 500
+        return f"❌ 處理失敗: {str(e)}", 500
 
 @app.route('/analyze')
-@login_required # 🎯 保護頁面
+@login_required
 def analyzes():
     return render_template('analyze.html')
 
 @app.route('/backtest')
-@login_required # 🎯 保護頁面
+@login_required
 def backtest_page():
     return render_template('backtest.html')
 
 @app.route('/api/run_backtest', methods=['POST'])
-@login_required # 🎯 保護 API
+@login_required
 def api_run_backtest():
     data = request.get_json() or {}
     ticker = data.get('ticker', '2330.TW')
-    today_str = datetime.now().strftime('%Y-%m-%d')
     start_date = data.get('start_date', '2000-01-01')
-    end_date = data.get('end_date', today_str)
+    end_date = data.get('end_date', datetime.now().strftime('%Y-%m-%d'))
     result = backtest_engine.run_backtest_json(ticker=ticker, start_date=start_date, end_date=end_date)
     return jsonify(result), 200
 
-# ==========================================
-# 啟動服務
-# ==========================================
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    logger.info(f"🚀 SaaS 戰情終端啟動中... Port: {port}")
-    app.run(host='0.0.0.0', port=port)
+if __name__ == "__main__":  
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))

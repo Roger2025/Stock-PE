@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>方案選擇 | Roger 投資分析終端</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/transitions.css') }}?v=1.0">
+    <style>
+        body { 
+            background-color: #0a0b14; 
+            color: #e4e7eb; 
+            padding-top: 100px; 
+            padding-bottom: 50px;
+            font-family: "Microsoft JhengHei", "Noto Sans TC", sans-serif; 
+        }
+
+        /* 頂部導覽列動態身分感知 */
+        .navbar {
+            background: rgba(10, 11, 20, 0.9) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .navbar-brand { letter-spacing: 1px; font-weight: 800; }
+
+        /* 方案卡片科技玻璃擬真設計 */
+        .pricing-card {
+            background: #131524;
+            border: 1px solid rgba(79, 172, 254, 0.4);
+            border-radius: 16px;
+            padding: 45px 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            max-width: 420px;
+            margin: 0 auto;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+        }
+        .pricing-card:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 20px 45px rgba(79, 172, 254, 0.25); 
+            border-color: #4facfe;
+        }
+        
+        .price { font-size: 3.5rem; font-weight: 800; color: #4facfe; margin: 15px 0; }
+        
+        /* 🚀 修正對比度：大幅加亮原先隱形的文案 */
+        .desc-highlight { 
+            color: #d1dbe5; 
+            font-size: 1.05rem; 
+            font-weight: 600; 
+            margin-bottom: 25px; 
+        }
+        
+        /* 權益清單佈局 */
+        .feature-list { list-style: none; padding: 0; margin: 30px 0; text-align: left; }
+        .feature-list li { margin-bottom: 16px; font-size: 1rem; color: #ffffff; display: flex; align-items: center; }
+        .feature-icon { font-size: 1.1rem; width: 25px; }
+        
+        /* 結帳按鈕深色優化 */
+        .btn-pay { 
+            background: linear-gradient(135deg, #1d3557 0%, #4facfe 100%); 
+            border: none; 
+            padding: 16px; 
+            font-weight: 700; 
+            font-size: 1.1rem; 
+            border-radius: 10px; 
+            width: 100%; 
+            color: white; 
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3); 
+            transition: all 0.3s ease;
+        }
+        .btn-pay:hover { 
+            background: linear-gradient(135deg, #4facfe 0%, #1d3557 100%); 
+            box-shadow: 0 8px 20px rgba(79, 172, 254, 0.5); 
+        }
+        
+        /* 🚀 美化返回首頁傳送門 */
+        .back-portal { 
+            color: #4facfe; 
+            font-weight: 700; 
+            text-decoration: none; 
+            transition: color 0.2s; 
+            font-size: 1.05rem; 
+            display: inline-block;
+            margin-top: 30px;
+        }
+        .back-portal:hover { color: #ffffff; text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="/">🚀 ROGER 投資分析終端</a>
+            <div class="ms-auto">
+                <a href="/" class="btn btn-outline-light btn-sm fw-bold px-3 py-1" style="border-radius: 6px;">回終端首頁</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2 class="text-center mb-4 fw-bold text-light" style="letter-spacing: 1px;">解鎖機構級量化算力通道</h2>
+        
+        <div class="pricing-card">
+            <span class="badge px-3 py-1 mb-2" style="background: rgba(255, 94, 98, 0.2); color: #ff5e62; border: 1px solid rgba(255, 94, 98, 0.3); border-radius: 6px; font-weight: bold;">限時推廣終身授權</span>
+            <h3 class="text-light fw-bold mt-2">量化戰情室 Pro</h3>
+            <div class="price">NT$ 888</div>
+            
+            <div class="desc-highlight">終身一次性買斷開通，永久免費調取更新</div>
+            
+            <ul class="feature-list">
+                <li><i class="fa-solid fa-wand-magic-sparkles feature-icon text-success" style="color: #00f2c3 !important;"></i> 解鎖無限次 AI 深度個股診斷</li>
+                <li><i class="fa-solid fa-chart-line feature-icon text-success" style="color: #00f2c3 !important;"></i> 解鎖 12 格全動態勝率回測雷達</li>
+                <li><i class="fa-solid fa-bolt feature-icon text-success" style="color: #00f2c3 !important;"></i> 專門分配 Aiven 獨立雲端執行緒</li>
+                <li><i class="fa-solid fa-crown feature-icon text-warning" style="color: #fde24f !important;"></i> 取得專屬尊榮 VIP 會員發光標誌</li>
+            </ul>
+            
+            <form action="/checkout" method="POST">
+                <button type="submit" class="btn-pay">🚀 立即進入綠界安全刷卡</button>
+            </form>
+        </div>
+        
+        <div class="text-center">
+            <a href="/" class="back-portal"><i class="fa-solid fa-arrow-left me-1"></i> 先回終端首頁進行基礎試用</a>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/transitions.js') }}?v=1.0"></script>
+</body>
+</html>
