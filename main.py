@@ -8,6 +8,7 @@ import logging
 import random
 import string
 from pathlib import Path
+from functools import wraps
 
 import pandas as pd
 import markdown
@@ -65,23 +66,8 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 BASE_URL = os.getenv("BASE_URL", "http://127.0.0.1:10000").strip()
 
 # ==========================================
-# 🎯 會員與訂單數據庫模型
+# 🎯 會員與訂單數據庫模型 (支援完整生命週期時間戳版)
 # ==========================================
-class User(db.Model, UserMixin):
-    __tablename__ = 'users'
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
-    password_hash = db.Column(db.String(256), nullable=False)
-    is_vip = db.Column(db.Boolean, default=False)
-    quota_remaining = db.Column(db.Integer, default=5)
-    created_at = db.Column(db.DateTime, default=datetime.now)
-
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
-
 class Order(db.Model):
     __tablename__ = 'orders'
     id = db.Column(db.Integer, primary_key=True)
@@ -90,30 +76,65 @@ class Order(db.Model):
     amount = db.Column(db.Integer, nullable=False)
     status = db.Column(db.String(20), default='pending') 
     created_at = db.Column(db.DateTime, default=datetime.now)
+
+class User(db.Model, UserMixin):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    password_hash = db.Column(db.String(256), nullable=False)
+    is_vip = db.Column(db.Boolean, default=False)
+    quota_remaining = db.Column(db.Integer, default=5)
+    created_at = db.Column(db.DateTime, default=datetime.now)
     
-    user = db.relationship('User', backref=db.backref('orders', lazy=True))
+    # 🚀 升級新增：精準追蹤會員付費與退訂生命週期
+    vip_since = db.Column(db.DateTime, nullable=True)     # 開通 VIP 的準確時間
+    canceled_at = db.Column(db.DateTime, nullable=True)   # 取消/降級 VIP 的準確時間
+    
+    orders = db.relationship('Order', backref='user', lazy=True, cascade="all, delete-orphan")
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+# 系統啟動時自動檢查並建立新欄位 (若表格已存在，SQLAlchemy 預設不會自動加欄位，建議看下方說明)
 with app.app_context():
     db.create_all()
 
 # ==========================================
-# 🎯 核心功能：AI 報告生成 (終極型態防禦版)
+# 🛡️ SaaS 創辦人絕對領域與權限防護設定
+# ==========================================
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "A127038349@gmail.com").strip()
+
+@app.context_processor
+def inject_admin():
+    return dict(admin_email=ADMIN_EMAIL)
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or current_user.email != ADMIN_EMAIL:
+            flash("⛔ 越權存取攔截：您不具備總管中台的存取權限。", "danger")
+            return redirect(url_for('index'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# ==========================================
+# 🎯 核心功能：AI 報告生成
 # ==========================================
 def generate_ai_report(stock_id: str, df: pd.DataFrame) -> str:
     try:
         if df is None or df.empty:
             return "<p style='color:#E63946;'><strong>⚠️ 無法取得資料庫數據。</strong></p>"
         
-        # 🚀 關鍵修復：複製一份獨立的 DataFrame，並強制將 date 欄位洗成純字串格式
-        # 這樣一來，無論後續進行 sort_values 還是送到 AI Prompt 裡，都絕對不會與字串打架！
         df_clean = df.copy()
         df_clean['date'] = df_clean['date'].astype(str)
         
-        # 依據字串型態的日期進行絕對穩定排序
         df_sorted = df_clean.sort_values('date')
         report_data = df_sorted.tail(20).to_string()
         
@@ -125,10 +146,10 @@ def generate_ai_report(stock_id: str, df: pd.DataFrame) -> str:
             ],
             timeout=45 
         )
-        # 完美調用 dot notation 取出回傳字串並轉為 HTML
         return markdown.markdown(response.choices[0].message.content)
     except Exception as e:
         return f"<p style='color:#E63946;'><strong>⚠️ AI 分析出錯：{str(e)}</strong></p>"
+
 # ==========================================
 # 🎯 路由設計：會員系統
 # ==========================================
@@ -180,7 +201,6 @@ def pricing():
 @app.route('/checkout', methods=['POST'])
 @login_required
 def checkout():
-    # 完美動態讀取環境變數，沙盒保底設定
     ECPAY_MERCHANT_ID = os.getenv("ECPAY_MERCHANT_ID", "2000132").strip()
     ECPAY_HASH_KEY = os.getenv("ECPAY_HASH_KEY", "5294y06JbISpM5x9").strip()
     ECPAY_HASH_IV = os.getenv("ECPAY_HASH_IV", "v77hoKGq4kWxNNIS").strip()
@@ -212,10 +232,7 @@ def checkout():
     }
     
     try:
-        # 🚀 真相大白：絕對必須先經過 create_order() 讓底層注入 MerchantID 並計算 CheckMacValue！
         final_order_params = ecpay_sdk.create_order(order_params)
-        
-        # 接著再將帶有完整加密壓碼的字典，轉換為自動提交 HTML 表單
         action_url = "https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5"
         auto_submit_html = ecpay_sdk.gen_html_post_form(action_url, final_order_params)
         return auto_submit_html
@@ -244,8 +261,11 @@ def ecpay_callback():
                 order.status = 'paid'
                 user = User.query.get(order.user_id)
                 user.is_vip = True
+                # 🚀 自動化進帳監控：綠界確認收款當下，精準押上 VIP 生效時間戳記，並清空退訂紀錄
+                user.vip_since = datetime.now()
+                user.canceled_at = None
                 db.session.commit()
-                logger.info(f"💰 訂單 {trade_no} 成功收款！會員 {user.email} 解鎖 VIP！")
+                logger.info(f"💰 訂單 {trade_no} 成功收款！會員 {user.email} 於 {user.vip_since} 啟用 Pro 權限！")
         return '1|OK'
     return '0|Error'
 
@@ -254,6 +274,77 @@ def ecpay_callback():
 def payment_result():
     flash("🎉 綠界付款流程完成！系統正透過專屬加密通道同步升級您的帳號，請稍候刷新頁面。", "success")
     return redirect(url_for('index'))
+
+# ==========================================
+# 👑 路由設計：創辦人管理中台 (Admin Console)
+# ==========================================
+@app.route('/admin')
+@login_required
+@admin_required
+def admin_dashboard():
+    total_users = User.query.count()
+    vip_users = User.query.filter_by(is_vip=True).count()
+    
+    paid_orders = Order.query.filter_by(status='paid').all()
+    total_gmv = sum(o.amount for o in paid_orders)
+    
+    users = User.query.order_by(User.created_at.desc()).limit(50).all()
+    orders = Order.query.order_by(Order.created_at.desc()).limit(50).all()
+    
+    return render_template(
+        'admin.html', 
+        total_users=total_users, 
+        vip_users=vip_users, 
+        total_gmv=total_gmv, 
+        users=users, 
+        orders=orders
+    )
+
+@app.route('/admin/toggle_vip/<int:user_id>', methods=['POST'])
+@login_required
+@admin_required
+def admin_toggle_vip(user_id):
+    target_user = User.query.get_or_404(user_id)
+    
+    if target_user.email == ADMIN_EMAIL:
+        flash("⚠️ 安全鎖生效：創辦人無法隨意降級自身總管權限。", "warning")
+        return redirect(url_for('admin_dashboard'))
+        
+    target_user.is_vip = not target_user.is_vip
+    
+    # 🚀 總管介入自動化感知邏輯：
+    if target_user.is_vip:
+        # 手動晉升 VIP：押上開通時間，抹除退訂紀錄
+        target_user.vip_since = datetime.now()
+        target_user.canceled_at = None
+        action_text = "晉升尊榮 VIP (已記錄生效時間)"
+    else:
+        # 手動降級普通用戶：押上退訂/終止時間
+        target_user.canceled_at = datetime.now()
+        action_text = "降級為普通帳號 (已記錄退訂時間)"
+        
+    db.session.commit()
+    logger.info(f"🛠️ 總管覆寫：會員 {target_user.email} 權限已 {action_text}")
+    flash(f"✅ 成功將帳號 {target_user.email} {action_text}！", "success")
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/delete_user/<int:user_id>', methods=['POST'])
+@login_required
+@admin_required
+def admin_delete_user(user_id):
+    target_user = User.query.get_or_404(user_id)
+    
+    if target_user.email == ADMIN_EMAIL:
+        flash("⛔ 致命攔截：系統嚴禁刪除創辦人總管核心帳號。", "danger")
+        return redirect(url_for('admin_dashboard'))
+        
+    deleted_email = target_user.email
+    db.session.delete(target_user)
+    db.session.commit()
+    
+    logger.warning(f"💥 總管執行核爆指令：已徹底抹除會員 {deleted_email} 及其連動數據。")
+    flash(f"💥 已將帳號 {deleted_email} 從系統資料庫徹底銷毀！", "success")
+    return redirect(url_for('admin_dashboard'))
 
 # ==========================================
 # 🎯 路由設計：戰情功能
