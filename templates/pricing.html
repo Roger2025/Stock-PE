@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>方案選擇 | Roger 投資分析終端</title>
+    <title>升級算力方案 | Roger 投資分析終端</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/transitions.css') }}?v=1.0">
@@ -12,11 +12,11 @@
             background-color: #0a0b14; 
             color: #e4e7eb; 
             padding-top: 100px; 
-            padding-bottom: 50px;
+            padding-bottom: 70px;
             font-family: "Microsoft JhengHei", "Noto Sans TC", sans-serif; 
+            overflow-x: hidden;
         }
 
-        /* 頂部導覽列動態身分感知 */
         .navbar {
             background: rgba(10, 11, 20, 0.9) !important;
             backdrop-filter: blur(10px);
@@ -27,64 +27,111 @@
         /* 方案卡片科技玻璃擬真設計 */
         .pricing-card {
             background: #131524;
-            border: 1px solid rgba(79, 172, 254, 0.4);
-            border-radius: 16px;
-            padding: 45px 40px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 40px 30px;
             text-align: center;
             transition: all 0.3s ease;
-            max-width: 420px;
-            margin: 0 auto;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
         }
         .pricing-card:hover { 
-            transform: translateY(-5px); 
-            box-shadow: 0 20px 45px rgba(79, 172, 254, 0.25); 
-            border-color: #4facfe;
+            transform: translateY(-8px); 
+            box-shadow: 0 25px 50px rgba(79, 172, 254, 0.15); 
+            border-color: rgba(79, 172, 254, 0.4);
         }
+
+        /* 👑 旗艦推薦專屬樣式 */
+        .pricing-card.popular {
+            background: linear-gradient(180deg, #131524 0%, #1a1d36 100%);
+            border: 2px solid #4facfe;
+            box-shadow: 0 20px 45px rgba(79, 172, 254, 0.25);
+        }
+        .popular-badge {
+            position: absolute;
+            top: -15px;
+            right: 50%;
+            transform: translateX(50%);
+            background: linear-gradient(135deg, #1d3557 0%, #4facfe 100%);
+            color: white;
+            padding: 6px 18px;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .plan-title { font-size: 1.4rem; font-weight: 700; color: #ffffff; margin-top: 10px; }
+        .price { font-size: 3rem; font-weight: 800; color: #4facfe; margin: 15px 0; }
+        .price span { font-size: 1rem; color: #8b9bb4; font-weight: 500; }
         
-        .price { font-size: 3.5rem; font-weight: 800; color: #4facfe; margin: 15px 0; }
-        
-        /* 🚀 修正對比度：大幅加亮原先隱形的文案 */
+        .pricing-card.popular .price { color: #00f2c3; }
+
         .desc-highlight { 
-            color: #d1dbe5; 
-            font-size: 1.05rem; 
-            font-weight: 600; 
-            margin-bottom: 25px; 
+            color: #a0aec0; 
+            font-size: 0.95rem; 
+            font-weight: 500; 
+            margin-bottom: 25px;
+            min-height: 45px;
         }
-        
-        /* 權益清單佈局 */
-        .feature-list { list-style: none; padding: 0; margin: 30px 0; text-align: left; }
-        .feature-list li { margin-bottom: 16px; font-size: 1rem; color: #ffffff; display: flex; align-items: center; }
-        .feature-icon { font-size: 1.1rem; width: 25px; }
-        
-        /* 結帳按鈕深色優化 */
+
+        .feature-list { list-style: none; padding: 0; margin: 20px 0 auto; text-align: left; border-top: 1px solid rgba(255,255,255,0.05); pt-4; }
+        .feature-list li { margin-bottom: 14px; font-size: 0.95rem; color: #d1dbe5; display: flex; align-items: center; }
+        .feature-icon { font-size: 1rem; width: 25px; }
+
         .btn-pay { 
-            background: linear-gradient(135deg, #1d3557 0%, #4facfe 100%); 
-            border: none; 
-            padding: 16px; 
+            background: rgba(255, 255, 255, 0.05); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            padding: 14px; 
             font-weight: 700; 
-            font-size: 1.1rem; 
-            border-radius: 10px; 
+            font-size: 1.05rem; 
+            border-radius: 12px; 
             width: 100%; 
-            color: white; 
+            color: #ffffff; 
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3); 
             transition: all 0.3s ease;
+            margin-top: 25px;
         }
         .btn-pay:hover { 
-            background: linear-gradient(135deg, #4facfe 0%, #1d3557 100%); 
-            box-shadow: 0 8px 20px rgba(79, 172, 254, 0.5); 
+            background: rgba(255, 255, 255, 0.1); 
+            border-color: #ffffff; 
         }
-        
-        /* 🚀 美化返回首頁傳送門 */
+
+        .pricing-card.popular .btn-pay {
+            background: linear-gradient(135deg, #1d3557 0%, #4facfe 100%);
+            border: none;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+        }
+        .pricing-card.popular .btn-pay:hover {
+            background: linear-gradient(135deg, #4facfe 0%, #1d3557 100%);
+            box-shadow: 0 8px 20px rgba(79, 172, 254, 0.5);
+        }
+
+        /* 終身版尊榮按鈕 */
+        .pricing-card.lifetime .btn-pay {
+            background: linear-gradient(135deg, #f0932b 0%, #ff5e62 100%);
+            border: none;
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 94, 98, 0.3);
+        }
+        .pricing-card.lifetime .btn-pay:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 20px rgba(255, 94, 98, 0.6);
+        }
+        .pricing-card.lifetime .price { color: #ff5e62; }
+
         .back-portal { 
-            color: #4facfe; 
-            font-weight: 700; 
+            color: #5c6a7e; 
+            font-weight: 600; 
             text-decoration: none; 
             transition: color 0.2s; 
-            font-size: 1.05rem; 
+            font-size: 1rem; 
             display: inline-block;
-            margin-top: 30px;
+            margin-top: 40px;
         }
         .back-portal:hover { color: #ffffff; text-decoration: underline; }
     </style>
@@ -101,29 +148,78 @@
     </nav>
 
     <div class="container">
-        <h2 class="text-center mb-4 fw-bold text-light" style="letter-spacing: 1px;">解鎖機構級量化算力通道</h2>
-        
-        <div class="pricing-card">
-            <span class="badge px-3 py-1 mb-2" style="background: rgba(255, 94, 98, 0.2); color: #ff5e62; border: 1px solid rgba(255, 94, 98, 0.3); border-radius: 6px; font-weight: bold;">限時推廣終身授權</span>
-            <h3 class="text-light fw-bold mt-2">量化戰情室 Pro</h3>
-            <div class="price">NT$ 888</div>
-            
-            <div class="desc-highlight">終身一次性買斷開通，永久免費調取更新</div>
-            
-            <ul class="feature-list">
-                <li><i class="fa-solid fa-wand-magic-sparkles feature-icon text-success" style="color: #00f2c3 !important;"></i> 解鎖無限次 AI 深度個股診斷</li>
-                <li><i class="fa-solid fa-chart-line feature-icon text-success" style="color: #00f2c3 !important;"></i> 解鎖 12 格全動態勝率回測雷達</li>
-                <li><i class="fa-solid fa-bolt feature-icon text-success" style="color: #00f2c3 !important;"></i> 專門分配 Aiven 獨立雲端執行緒</li>
-                <li><i class="fa-solid fa-crown feature-icon text-warning" style="color: #fde24f !important;"></i> 取得專屬尊榮 VIP 會員發光標誌</li>
-            </ul>
-            
-            <form action="/checkout" method="POST">
-                <button type="submit" class="btn-pay">🚀 立即進入綠界安全刷卡</button>
-            </form>
+        <div class="text-center mb-5">
+            <h2 class="fw-bold text-light mb-2" style="letter-spacing: 1px; font-size: 2.2rem;">解鎖機構級量化算力通道</h2>
+            <p class="text-muted fs-6">選擇最適合您的戰鬥配置，即刻啟動五階段估值與全自動回測雷達</p>
         </div>
         
+        <div class="row g-4 justify-content-center">
+            
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="pricing-card">
+                    <div class="plan-title">Pro 月費版</div>
+                    <div class="price">NT$ 299<span> / 月</span></div>
+                    <div class="desc-highlight">小資入門無負擔，適合短期專案測試與市場水位探勘</div>
+                    
+                    <ul class="feature-list mt-3 pt-4">
+                        <li><i class="fa-solid fa-check feature-icon text-secondary"></i> 解鎖個股深度分析通道</li>
+                        <li><i class="fa-solid fa-check feature-icon text-secondary"></i> 無限次調用 AI 投資展望報告</li>
+                        <li><i class="fa-solid fa-check feature-icon text-secondary"></i> 啟動量化動態回測系統</li>
+                        <li><i class="fa-solid fa-check feature-icon text-secondary"></i> 獨立 Session 資料庫連線防護</li>
+                    </ul>
+                    
+                    <form action="/checkout" method="POST" class="mt-auto">
+                        <input type="hidden" name="plan" value="pro_monthly">
+                        <button type="submit" class="btn-pay">選擇月費方案</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="pricing-card popular">
+                    <div class="popular-badge">🔥 創辦人推薦 CP 旗艦</div>
+                    <div class="plan-title">Pro 年費版</div>
+                    <div class="price">NT$ 2,888<span> / 年</span></div>
+                    <div class="desc-highlight">買 10 個月送 2 個月，價值型長期投資者的最愛配備</div>
+                    
+                    <ul class="feature-list mt-3 pt-4">
+                        <li><i class="fa-solid fa-wand-magic-sparkles feature-icon" style="color: #00f2c3;"></i> 完整包含 Pro 版所有頂級權限</li>
+                        <li><i class="fa-solid fa-bolt feature-icon" style="color: #00f2c3;"></i> 優先分配 Aiven 雲端專用執行緒</li>
+                        <li><i class="fa-solid fa-chart-line feature-icon" style="color: #00f2c3;"></i> 解鎖 12 格全動態勝率回測雷達</li>
+                        <li><i class="fa-solid fa-crown feature-icon text-warning"></i> 取得 Pro 專屬黃金發光頭銜</li>
+                    </ul>
+                    
+                    <form action="/checkout" method="POST" class="mt-auto">
+                        <input type="hidden" name="plan" value="pro_yearly">
+                        <button type="submit" class="btn-pay">🚀 立即開通專屬通道</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="pricing-card lifetime">
+                    <div class="plan-title">Pro 終身買斷</div>
+                    <div class="price">NT$ 8,888<span> / 永久</span></div>
+                    <div class="desc-highlight">一次性支持 Roger 研發，永久免繳月費，未來新功能直接繼承</div>
+                    
+                    <ul class="feature-list mt-3 pt-4">
+                        <li><i class="fa-solid fa-gem feature-icon" style="color: #ff5e62;"></i> 永久解鎖當前與未來所有高級模組</li>
+                        <li><i class="fa-solid fa-infinity feature-icon" style="color: #ff5e62;"></i> 終身免續約，防禦未來通膨漲價</li>
+                        <li><i class="fa-solid fa-shield-halved feature-icon" style="color: #ff5e62;"></i> 獲得創辦人核心鐵粉終身支援資格</li>
+                        <li><i class="fa-solid fa-crown feature-icon text-warning"></i> 尊榮紅金鑽石級專屬視覺識別</li>
+                    </ul>
+                    
+                    <form action="/checkout" method="POST" class="mt-auto">
+                        <input type="hidden" name="plan" value="pro_lifetime">
+                        <button type="submit" class="btn-pay">💎 永久買斷無限算力</button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+
         <div class="text-center">
-            <a href="/" class="back-portal"><i class="fa-solid fa-arrow-left me-1"></i> 先回終端首頁進行基礎試用</a>
+            <a href="/" class="back-portal"><i class="fa-solid fa-arrow-left me-1"></i> 暫不升級，先回終端首頁進行大盤趨勢研討</a>
         </div>
     </div>
 

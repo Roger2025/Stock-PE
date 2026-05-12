@@ -139,26 +139,36 @@
 
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
       <div class="container">
-        <a class="navbar-brand" href="/">🚀 ROGER 投資分析終端</a>
+        <a class="navbar-brand" href="/">
+            🚀 {{ current_user.nickname if current_user.is_authenticated and current_user.nickname else "ROGER" }} 投資分析終端
+        </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
           <span class="navbar-toggler-icon"></span>
         </button>
         
         <div class="collapse navbar-collapse" id="navbarNav">
           
-          <ul class="navbar-nav mx-auto">
-            {% if current_user.is_authenticated and not current_user.is_vip %}
-              <li class="nav-item my-2 my-lg-0">
-                <a class="nav-link btn-upgrade-portal text-center px-4" href="/pricing">
-                  <i class="fa-solid fa-gem me-1"></i> 升級尊榮 Pro 算限
-                </a>
-              </li>
-            {% elif current_user.is_authenticated and current_user.is_vip %}
-              <li class="nav-item my-2 my-lg-0">
-                <span class="nav-link text-warning fw-bold px-3" style="background: rgba(255,255,255,0.05); border-radius: 50px;">
-                  <i class="fa-solid fa-crown me-1"></i> Pro 終身算限已啟用
-                </span>
-              </li>
+          <ul class="navbar-nav mx-auto align-items-center">
+            {% if current_user.is_authenticated %}
+              {% if current_user.email|string|lower|trim == admin_email|string|lower|trim %}
+                <li class="nav-item my-1">
+                  <span class="nav-link text-info fw-bold px-3 py-1" style="background: rgba(79,172,254,0.08); border-radius: 50px; border: 1px solid rgba(79,172,254,0.2);">
+                    <i class="fa-solid fa-wand-magic-sparkles me-1"></i> 創辦人絕對權限啟用
+                  </span>
+                </li>
+              {% elif current_user.is_vip %}
+                <li class="nav-item my-1">
+                  <span class="nav-link text-warning fw-bold px-3 py-1" style="background: rgba(255,255,255,0.05); border-radius: 50px;">
+                    <i class="fa-solid fa-crown me-1"></i> Pro 頂級算限已啟用
+                  </span>
+                </li>
+              {% else %}
+                <li class="nav-item my-1">
+                  <a class="nav-link btn-upgrade-portal text-center px-4 py-1" href="/pricing">
+                    <i class="fa-solid fa-gem me-1"></i> 升級尊榮 Pro 算限
+                  </a>
+                </li>
+              {% endif %}
             {% endif %}
           </ul>
 
@@ -174,7 +184,7 @@
               {% endif %}
 
               <li class="nav-item">
-                <span class="nav-link text-success fw-bold"><i class="fa-solid fa-circle-check me-1"></i> 會員已驗證</span>
+                <span class="nav-link text-success fw-bold fs-7"><i class="fa-solid fa-circle-check me-1"></i> 會員在線</span>
               </li>
               <li class="nav-item">
                 <a class="btn btn-outline-danger btn-sm fw-bold px-3 py-1 me-2" href="/logout" style="border-radius: 6px;">登出系統</a>
@@ -206,31 +216,53 @@
           {% endwith %}
         </div>
 
-        <h1 class="hero-title">專業量化戰情與估值終端</h1>
+        <h1 class="hero-title">
+            <span style="color: #deff9a; text-shadow: 0 0 15px rgba(222,255,154,0.3);">
+                {{ current_user.nickname if current_user.is_authenticated and current_user.nickname else "專業量化" }}
+            </span> 
+            投資分析終端
+        </h1>
         <p class="hero-subtitle">利用五階段河流圖鎖定個股多空位階，結合雙軌計價回撤雷達精算真實勝率。</p>
 
         <div class="search-container">
           <h3>📊 個股五階段估值河流圖</h3>
           <p>輸入台股代號一鍵調取 Aiven 雲端運算序列</p>
 
-          <form action="/analyze" method="POST" id="analyzeForm">
-            {% if error_msg %}
-              <div class="alert alert-warning text-center fw-bold fs-7 py-2 mb-3" style="border-radius: 8px; background-color: rgba(255, 243, 205, 0.9); color: #856404; border: none;">
-                ⚠️ {{ error_msg }}
-              </div>
-            {% endif %}
+          {% if current_user.is_authenticated and (current_user.is_vip or current_user.email|string|lower|trim == admin_email|string|lower|trim) %}
+            <form action="/analyze" method="POST" id="analyzeForm">
+              {% if error_msg %}
+                <div class="alert alert-warning text-center fw-bold fs-7 py-2 mb-3" style="border-radius: 8px; background-color: rgba(255, 243, 205, 0.9); color: #856404; border: none;">
+                  ⚠️ {{ error_msg }}
+                </div>
+              {% endif %}
 
-            <input type="text" name="stock_id" id="stockInput" placeholder="範例：2330 (台積電), 2454 (聯發科)" required autocomplete="off" />
-            
-            <button type="submit" class="btn-submit-custom" id="searchSubmitBtn">
-              <i class="fa-solid fa-wand-magic-sparkles me-2"></i>調取獨立通道生成報告
-            </button>
-          </form>
+              <input type="text" name="stock_id" id="stockInput" placeholder="範例：2330 (台積電), 2454 (聯發科)" required autocomplete="off" />
+              
+              <button type="submit" class="btn-submit-custom" id="searchSubmitBtn">
+                <i class="fa-solid fa-wand-magic-sparkles me-2"></i>調取獨立通道生成報告
+              </button>
+            </form>
+          {% else %}
+            <div class="locked-overlay p-4 text-center" style="background: rgba(0,0,0,0.4); border-radius: 12px; border: 1px dashed #f0932b;">
+              <i class="fa-solid fa-lock mb-3" style="font-size: 2.2rem; color: #f0932b;"></i>
+              <p class="text-white fw-bold mb-3 fs-6">個股運算通道與 AI 報告為 Pro 專屬功能</p>
+              <a href="/pricing" class="btn btn-warning fw-bold w-100 py-2 shadow-sm" style="background: linear-gradient(135deg, #f0932b 0%, #ff5e62 100%); color: white; border: none;">
+                <i class="fa-solid fa-crown me-2"></i>立即升級解鎖通道
+              </a>
+            </div>
+          {% endif %}
         </div>
 
         <div class="portal-wrapper">
           <a href="/analyze" class="btn-macro-portal"><i class="fa-solid fa-satellite-dish"></i> 進入總經戰情研討室</a>
-          <a href="/backtest" class="btn-macro-portal danger-portal"><i class="fa-solid fa-chart-line"></i> 啟動量化動態回測</a>
+          
+          {% if current_user.is_authenticated and (current_user.is_vip or current_user.email|string|lower|trim == admin_email|string|lower|trim) %}
+            <a href="/backtest" class="btn-macro-portal danger-portal"><i class="fa-solid fa-chart-line"></i> 啟動量化動態回測</a>
+          {% else %}
+            <a href="/pricing" class="btn-macro-portal" style="border-color: #5c6a7e; color: #5c6a7e; cursor: pointer;">
+              <i class="fa-solid fa-lock me-2"></i> 量化回測 (Pro 專屬)
+            </a>
+          {% endif %}
         </div>
 
       </div>
@@ -271,11 +303,16 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-      document.getElementById('analyzeForm').addEventListener('submit', function() {
-        const btn = document.getElementById('searchSubmitBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>雲端序列運算中...';
-      });
+      const analyzeForm = document.getElementById('analyzeForm');
+      if (analyzeForm) {
+        analyzeForm.addEventListener('submit', function() {
+          const btn = document.getElementById('searchSubmitBtn');
+          if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>雲端序列運算中...';
+          }
+        });
+      }
     </script>
     <script src="{{ url_for('static', filename='js/transitions.js') }}?v=1.0"></script>
   </body>

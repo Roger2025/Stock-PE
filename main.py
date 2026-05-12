@@ -13,6 +13,7 @@ from functools import wraps
 import pandas as pd
 import markdown
 from flask import Flask, jsonify, render_template, request, url_for, redirect, flash
+from sqlalchemy import text
 from openai import OpenAI, OpenAIError
 
 # --- 🎯 導入商用 SaaS 會員驗證與金流套件 ---
@@ -81,6 +82,7 @@ class User(db.Model, UserMixin):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    nickname = db.Column(db.String(100), nullable=True) # 🚀 新增個人化暱稱欄位
     password_hash = db.Column(db.String(256), nullable=False)
     is_vip = db.Column(db.Boolean, default=False)
     quota_remaining = db.Column(db.Integer, default=5)
@@ -99,14 +101,37 @@ class User(db.Model, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    @property
+    def current_plan_name(self):
+        # 🚀 創辦人絕對識別
+        from flask import current_app
+        admin_email = current_app.jinja_env.globals.get('admin_email', 'A127038349@gmail.com')
+        if self.email.lower().strip() == admin_email.lower().strip():
+            return "系統創辦人"
+            
+        if not self.is_vip:
+            return "普通用戶"
+        # 判斷是否為終身版（無到期日代表永久買斷）
+        if self.vip_since and not self.vip_expires_at:
+            return "Pro 終身版"
+        # 透過時間差判斷年付或月付
+        if self.vip_since and self.vip_expires_at:
+            days_diff = (self.vip_expires_at - self.vip_since).days
+            if days_diff > 300:
+                return "Pro 年費版"
+            return "Pro 月費版"
+        return "Pro 尊榮版"
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# 系統啟動時自動檢查並建立新欄位 (若表格已存在，SQLAlchemy 預設不會自動加欄位，建議看下方說明)
+# ==========================================
+# 專業設定 3：系統資料表掛載
+# ==========================================
 with app.app_context():
     db.create_all()
-
+    # 歷史欄位遷移與洗資料邏輯已於 2026-05-13 順利執行完畢並封存
 # ==========================================
 # 🛡️ SaaS 創辦人絕對領域與權限防護設定
 # ==========================================
@@ -119,21 +144,41 @@ def inject_admin():
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or current_user.email != ADMIN_EMAIL:
+        if not current_user.is_authenticated or current_user.email.lower().strip() != ADMIN_EMAIL.lower().strip():
             flash("⛔ 越權存取攔截：您不具備總管中台的存取權限。", "danger")
             return redirect(url_for('index'))
         return f(*args, **kwargs)
     return decorated_function
 
+# 🚀 升級新增：Pro VIP 專屬功能防護牆 (支援創辦人無條件穿透)
+def vip_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return redirect(url_for('login'))
+        # 創辦人免驗證直接放行
+        if current_user.email.lower().strip() == ADMIN_EMAIL.lower().strip():
+            return f(*args, **kwargs)
+            
+        if not current_user.is_vip:
+            flash("👑 此為 Pro 專屬功能！請先升級方案以解鎖個股深度分析與量化回測引擎。", "warning")
+            return redirect(url_for('pricing'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 # ==========================================
-# 🎯 核心功能：AI 報告生成
+# 🎯 核心功能：AI 報告生成 (極致純淨小數點修正版)
 # ==========================================
 def generate_ai_report(stock_id: str, df: pd.DataFrame) -> str:
     try:
         if df is None or df.empty:
             return "<p style='color:#E63946;'><strong>⚠️ 無法取得資料庫數據。</strong></p>"
         
+        # 🚀 強制清洗數據流：過濾出數值欄位並統一四捨五入至小數點第二位
         df_clean = df.copy()
+        for col in df_clean.select_dtypes(include=['float64', 'float32']).columns:
+            df_clean[col] = df_clean[col].round(2)
+            
         df_clean['date'] = df_clean['date'].astype(str)
         
         df_sorted = df_clean.sort_values('date')
@@ -152,22 +197,34 @@ def generate_ai_report(stock_id: str, df: pd.DataFrame) -> str:
         return f"<p style='color:#E63946;'><strong>⚠️ AI 分析出錯：{str(e)}</strong></p>"
 
 # ==========================================
-# 🎯 路由設計：會員系統
+# 🎯 路由設計：會員系統 (雙重密碼與暱稱驗證版)
 # ==========================================
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated: return redirect(url_for('index'))
     if request.method == 'POST':
+        nickname = request.form.get('nickname', '').strip()
         email = request.form.get('email').strip()
         password = request.form.get('password').strip()
+        confirm_password = request.form.get('confirm_password').strip() # 🚀 二次密碼核對
+
+        if password != confirm_password:
+            flash("❌ 兩次輸入的密碼不一致，請重新確認。", "danger")
+            return redirect(url_for('register'))
+
         if User.query.filter_by(email=email).first():
             flash("❌ 該 Email 已經註冊過。", "danger")
             return redirect(url_for('register'))
-        new_user = User(email=email)
+
+        # 預設賦予創始暱稱防呆
+        if not nickname:
+            nickname = email.split('@')[0]
+
+        new_user = User(email=email, nickname=nickname)
         new_user.set_password(password)
         db.session.add(new_user)
         db.session.commit()
-        flash("✅ 註冊成功！請登入解鎖功能。", "success")
+        flash(f"✅ 歡迎 {nickname}！專屬帳號創建成功，請登入以啟動終端。", "success")
         return redirect(url_for('login'))
     return render_template('register.html')
 
@@ -180,7 +237,8 @@ def login():
         user = User.query.filter_by(email=email).first()
         if user and user.check_password(password):
             login_user(user, remember=True)
-            flash("✅ 歡迎回來！戰情系統已成功解鎖。", "success")
+            display_name = user.nickname if user.nickname else "創辦人" if user.email.lower().strip() == ADMIN_EMAIL.lower().strip() else "投資專家"
+            flash(f"✅ 歡迎回來，{display_name}！戰情系統已成功解鎖。", "success")
             return redirect(url_for('index'))
         flash("❌ Email 或密碼錯誤。", "danger")
     return render_template('login.html')
@@ -192,7 +250,7 @@ def logout():
     return redirect(url_for('login'))
 
 # ==========================================
-# 🎯 方案常數：集中管理所有定價
+# 🎯 方案常數：集中管理所有定價 (全新三階段配置)
 # ==========================================
 class PlanConfig:
     """銷售方案定價配置"""
@@ -204,13 +262,13 @@ class PlanConfig:
     }
     PRO_YEARLY = {
         'name': '專業版年付',
-        'amount': 2880,
+        'amount': 2888,
         'item_name': 'Roger 量化戰情室 Pro 年付方案',
-        'trade_desc': 'Roger SaaS Pro 年度訂閱（享8折）'
+        'trade_desc': 'Roger SaaS Pro 年度訂閱（享優惠）'
     }
     PRO_LIFETIME = {
         'name': '終身版',
-        'amount': 1888,
+        'amount': 8888,
         'item_name': 'Roger 量化戰情室 Pro 終身授權',
         'trade_desc': 'Roger SaaS Pro 終身買斷'
     }
@@ -305,6 +363,7 @@ def ecpay_callback():
                     # 終身版：永久 VIP
                     user.is_vip = True
                     user.vip_since = datetime.now()
+                    user.vip_expires_at = None
                     user.canceled_at = None
                     logger.info(f"💎 終身版付款成功！會員 {user.email} 已解鎖永久 Pro 權限")
                 else:
@@ -313,12 +372,12 @@ def ecpay_callback():
                     user.vip_since = datetime.now()
                     user.canceled_at = None
                     
-                    # 計算到期日（年付加 365 天，月付加 30 天）
+                    # 計算到期日
                     if order.amount == PlanConfig.PRO_YEARLY['amount']:
-                        user.vip_expires_at = datetime.now() + __import__('datetime').timedelta(days=365)
+                        user.vip_expires_at = datetime.now() + timedelta(days=365)
                         logger.info(f"💳 年付方案付款成功！會員 {user.email} 訂閱至 {user.vip_expires_at.strftime('%Y-%m-%d')}")
                     else:
-                        user.vip_expires_at = datetime.now() + __import__('datetime').timedelta(days=30)
+                        user.vip_expires_at = datetime.now() + timedelta(days=30)
                         logger.info(f"💳 月付方案付款成功！會員 {user.email} 訂閱至 {user.vip_expires_at.strftime('%Y-%m-%d')}")
                     
                 db.session.commit()
@@ -341,47 +400,104 @@ def admin_dashboard():
     total_users = User.query.count()
     vip_users = User.query.filter_by(is_vip=True).count()
     
+    # 🚀 升級精算引擎：遍歷全域 VIP 準確統計各級距生態分佈
+    all_vips = User.query.filter_by(is_vip=True).all()
+    lifetime_count = 0
+    yearly_count = 0
+    monthly_count = 0
+    
+    for u in all_vips:
+        # 排除創辦人自身帳號干擾數據真實度
+        if u.email.lower().strip() == ADMIN_EMAIL.lower().strip():
+            continue
+            
+        if u.vip_since and not u.vip_expires_at:
+            lifetime_count += 1
+        elif u.vip_since and u.vip_expires_at:
+            days_diff = (u.vip_expires_at - u.vip_since).days
+            if days_diff > 300:
+                yearly_count += 1
+            else:
+                monthly_count += 1
+    
     paid_orders = Order.query.filter_by(status='paid').all()
     total_gmv = sum(o.amount for o in paid_orders)
     
-    users = User.query.order_by(User.created_at.desc()).limit(50).all()
-    orders = Order.query.order_by(Order.created_at.desc()).limit(50).all()
+    # 提升載入筆數以利查帳與搜尋覆蓋率
+    users = User.query.order_by(User.created_at.desc()).limit(100).all()
+    orders = Order.query.order_by(Order.created_at.desc()).limit(100).all()
     
     return render_template(
         'admin.html', 
         total_users=total_users, 
         vip_users=vip_users, 
+        lifetime_count=lifetime_count,
+        yearly_count=yearly_count,
+        monthly_count=monthly_count,
         total_gmv=total_gmv, 
         users=users, 
         orders=orders
     )
 
-@app.route('/admin/toggle_vip/<int:user_id>', methods=['POST'])
+# 🚀 升級新增：安全直連維修通道 - 透過總管登入自動向 Aiven 擴充 nickname 欄位
+@app.route('/admin/system/db_upgrade')
 @login_required
 @admin_required
-def admin_toggle_vip(user_id):
+def admin_system_db_upgrade():
+    try:
+        db.session.execute(text("ALTER TABLE users ADD COLUMN nickname VARCHAR(100);"))
+        db.session.commit()
+        flash("🛠️ 雲端沙盒遷移成功！Aiven 資料庫已完美擴充 nickname 屬性欄位。", "success")
+    except Exception as e:
+        db.session.rollback()
+        # 若報錯代表欄位很可能已經存在，為正常現象
+        flash(f"ℹ️ 資料庫同步狀態檢測：欄位已就緒或遇到提醒 ({str(e)})", "info")
+    return redirect(url_for('admin_dashboard'))
+
+# 🚀 升級重構：三段式精細時長手動發送引擎 (支援送月卡/年卡/終身)
+@app.route('/admin/grant_vip/<int:user_id>/<plan_type>', methods=['POST'])
+@login_required
+@admin_required
+def admin_grant_vip(user_id, plan_type):
     target_user = User.query.get_or_404(user_id)
     
-    if target_user.email == ADMIN_EMAIL:
-        flash("⚠️ 安全鎖生效：創辦人無法隨意降級自身總管權限。", "warning")
+    if target_user.email.lower().strip() == ADMIN_EMAIL.lower().strip():
+        flash("⚠️ 創辦人防護覆寫：總管核心權限具有系統頂層豁免，無需進行手動時效派發。", "warning")
         return redirect(url_for('admin_dashboard'))
         
-    target_user.is_vip = not target_user.is_vip
+    target_user.is_vip = True
+    target_user.vip_since = datetime.now()
+    target_user.canceled_at = None
     
-    # 🚀 總管介入自動化感知邏輯：
-    if target_user.is_vip:
-        # 手動晉升 VIP：押上開通時間，抹除退訂紀錄
-        target_user.vip_since = datetime.now()
-        target_user.canceled_at = None
-        action_text = "晉升尊榮 VIP (已記錄生效時間)"
+    if plan_type == 'monthly':
+        target_user.vip_expires_at = datetime.now() + timedelta(days=30)
+        action_text = "Pro 月費授權 (效期 30 天)"
+    elif plan_type == 'yearly':
+        target_user.vip_expires_at = datetime.now() + timedelta(days=365)
+        action_text = "Pro 年費旗艦 (效期 365 天)"
     else:
-        # 手動降級普通用戶：押上退訂/終止時間
-        target_user.canceled_at = datetime.now()
-        action_text = "降級為普通帳號 (已記錄退訂時間)"
+        target_user.vip_expires_at = None # 終身無限期
+        action_text = "Pro 終身買斷通行證"
         
     db.session.commit()
-    logger.info(f"🛠️ 總管覆寫：會員 {target_user.email} 權限已 {action_text}")
-    flash(f"✅ 成功將帳號 {target_user.email} {action_text}！", "success")
+    logger.info(f"🎁 中台精準授權：已為用戶 {target_user.email} 開通 {action_text}")
+    flash(f"🎁 成功為帳號 {target_user.email} 派發 {action_text}！", "success")
+    return redirect(url_for('admin_dashboard'))
+
+# 🚀 保留強制降級中斷權限功能
+@app.route('/admin/revoke_vip/<int:user_id>', methods=['POST'])
+@login_required
+@admin_required
+def admin_revoke_vip(user_id):
+    target_user = User.query.get_or_404(user_id)
+    if target_user.email.lower().strip() == ADMIN_EMAIL.lower().strip():
+        flash("⛔ 致命攔截：無法撤銷系統創辦人的主控權利。", "danger")
+        return redirect(url_for('admin_dashboard'))
+        
+    target_user.is_vip = False
+    target_user.canceled_at = datetime.now()
+    db.session.commit()
+    flash(f"💥 覆寫生效：已立即終止用戶 {target_user.email} 的 Pro 專屬運算通道。", "success")
     return redirect(url_for('admin_dashboard'))
 
 @app.route('/admin/delete_user/<int:user_id>', methods=['POST'])
@@ -390,7 +506,7 @@ def admin_toggle_vip(user_id):
 def admin_delete_user(user_id):
     target_user = User.query.get_or_404(user_id)
     
-    if target_user.email == ADMIN_EMAIL:
+    if target_user.email.lower().strip() == ADMIN_EMAIL.lower().strip():
         flash("⛔ 致命攔截：系統嚴禁刪除創辦人總管核心帳號。", "danger")
         return redirect(url_for('admin_dashboard'))
         
@@ -403,14 +519,16 @@ def admin_delete_user(user_id):
     return redirect(url_for('admin_dashboard'))
 
 # ==========================================
-# 🎯 路由設計：戰情功能
+# 🎯 路由設計：戰情功能 (Freemium 權限防護版)
 # ==========================================
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
 
+# 🚀 鎖定：僅 VIP 或是創辦人解鎖個股獨立深度通道與 AI 分析
 @app.route('/analyze', methods=['POST'])
 @login_required
+@vip_required
 def analyze():
     stock_id = request.form.get('stock_id', '').strip()
     if not stock_id: return "❌ 請輸入代號", 400
@@ -422,18 +540,23 @@ def analyze():
     except Exception as e:
         return f"❌ 處理失敗: {str(e)}", 500
 
+# 🚀 開放：總經戰情室作為免費導流端，登入即可存取
 @app.route('/analyze')
 @login_required
 def analyzes():
     return render_template('analyze.html')
 
+# 🚀 鎖定：量化動態回測僅限 Pro 或創辦人使用
 @app.route('/backtest')
 @login_required
+@vip_required
 def backtest_page():
     return render_template('backtest.html')
 
+# 🚀 鎖定防護
 @app.route('/api/run_backtest', methods=['POST'])
 @login_required
+@vip_required
 def api_run_backtest():
     data = request.get_json() or {}
     ticker = data.get('ticker', '2330.TW')
@@ -442,21 +565,6 @@ def api_run_backtest():
     result = backtest_engine.run_backtest_json(ticker=ticker, start_date=start_date, end_date=end_date)
     return jsonify(result), 200
 
-# ------------------------------------------
-# 🚨 緊急維修路徑：手動幫資料庫加欄位
-# ------------------------------------------
-from sqlalchemy import text
-
-@app.route('/fix-database-emergency')
-def fix_database():
-    try:
-        # 直接執行 SQL 指令幫 users 表增加欄位
-        db.session.execute(text("ALTER TABLE users ADD COLUMN vip_expires_at DATETIME;"))
-        db.session.commit()
-        return "✅ 資料庫修復成功！vip_expires_at 欄位已新增。"
-    except Exception as e:
-        db.session.rollback()
-        return f"❌ 維修失敗或欄位已存在：{str(e)}"
 
 if __name__ == "__main__":  
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))

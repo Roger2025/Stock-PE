@@ -159,13 +159,25 @@
 
             <form action="/register" method="POST" id="registerForm">
                 <div class="mb-3">
-                    <label for="email" class="form-label fw-bold fs-7" style="color: #ff5e62;"><i class="fa-solid fa-envelope me-1"></i> 設定登入 Email</label>
-                    <input type="email" class="form-control-custom w-100" id="email" name="email" placeholder="name@example.com" required autofocus>
+                    <label for="nickname" class="form-label fw-bold fs-7" style="color: #ff5e62;"><i class="fa-solid fa-user-tag me-1"></i> 設定顯示暱稱 (選填)</label>
+                    <input type="text" class="form-control-custom w-100" id="nickname" name="nickname" placeholder="範例：價值操盤手、Roger鐵粉" autocomplete="off" autofocus>
                 </div>
-                <div class="mb-4">
+
+                <div class="mb-3">
+                    <label for="email" class="form-label fw-bold fs-7" style="color: #ff5e62;"><i class="fa-solid fa-envelope me-1"></i> 設定登入 Email</label>
+                    <input type="email" class="form-control-custom w-100" id="email" name="email" placeholder="name@example.com" required autocomplete="off">
+                </div>
+                
+                <div class="mb-3">
                     <label for="password" class="form-label fw-bold fs-7" style="color: #ff5e62;"><i class="fa-solid fa-lock me-1"></i> 設定高強度密碼</label>
                     <input type="password" class="form-control-custom w-100" id="password" name="password" placeholder="建議 8 碼以上英數字混合" required>
                 </div>
+
+                <div class="mb-4">
+                    <label for="confirm_password" class="form-label fw-bold fs-7" style="color: #ff5e62;"><i class="fa-solid fa-circle-check me-1"></i> 再次確認密碼</label>
+                    <input type="password" class="form-control-custom w-100" id="confirm_password" name="confirm_password" placeholder="請再次輸入相同的密碼核對" required>
+                </div>
+
                 <div class="d-grid mb-3">
                     <button type="submit" class="btn-danger-custom" id="submitBtn">✨ 免費開通・領取推廣期 VIP</button>
                 </div>
