@@ -2,7 +2,7 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import logging
 import random
@@ -89,6 +89,7 @@ class User(db.Model, UserMixin):
     # 🚀 升級新增：精準追蹤會員付費與退訂生命週期
     vip_since = db.Column(db.DateTime, nullable=True)     # 開通 VIP 的準確時間
     canceled_at = db.Column(db.DateTime, nullable=True)   # 取消/降級 VIP 的準確時間
+    vip_expires_at = db.Column(db.DateTime, nullable=True)  # 訂閱到期日（月付/年付用)
     
     orders = db.relationship('Order', backref='user', lazy=True, cascade="all, delete-orphan")
 
@@ -191,6 +192,30 @@ def logout():
     return redirect(url_for('login'))
 
 # ==========================================
+# 🎯 方案常數：集中管理所有定價
+# ==========================================
+class PlanConfig:
+    """銷售方案定價配置"""
+    PRO_MONTHLY = {
+        'name': '專業版月付',
+        'amount': 299,
+        'item_name': 'Roger 量化戰情室 Pro 月付方案',
+        'trade_desc': 'Roger SaaS Pro 月度訂閱'
+    }
+    PRO_YEARLY = {
+        'name': '專業版年付',
+        'amount': 2880,
+        'item_name': 'Roger 量化戰情室 Pro 年付方案',
+        'trade_desc': 'Roger SaaS Pro 年度訂閱（享8折）'
+    }
+    PRO_LIFETIME = {
+        'name': '終身版',
+        'amount': 1888,
+        'item_name': 'Roger 量化戰情室 Pro 終身授權',
+        'trade_desc': 'Roger SaaS Pro 終身買斷'
+    }
+
+# ==========================================
 # 🎯 路由設計：金流變現系統 (ECPay)
 # ==========================================
 @app.route('/pricing')
@@ -205,10 +230,24 @@ def checkout():
     ECPAY_HASH_KEY = os.getenv("ECPAY_HASH_KEY", "5294y06JbISpM5x9").strip()
     ECPAY_HASH_IV = os.getenv("ECPAY_HASH_IV", "v77hoKGq4kWxNNIS").strip()
 
-    trade_no = "RG" + datetime.now().strftime("%Y%m%d%H%M%S") + "".join(random.choices(string.ascii_uppercase, k=2))
-    amount = 888 
+    # 取得用戶選擇的方案
+    plan_type = request.form.get('plan', 'pro_lifetime').strip()
     
-    new_order = Order(user_id=current_user.id, merchant_trade_no=trade_no, amount=amount)
+    # 根據方案選擇對應設定
+    if plan_type == 'pro_monthly':
+        plan = PlanConfig.PRO_MONTHLY
+    elif plan_type == 'pro_yearly':
+        plan = PlanConfig.PRO_YEARLY
+    else:
+        plan = PlanConfig.PRO_LIFETIME
+
+    trade_no = "RG" + datetime.now().strftime("%Y%m%d%H%M%S") + "".join(random.choices(string.ascii_uppercase, k=2))
+    
+    new_order = Order(
+        user_id=current_user.id, 
+        merchant_trade_no=trade_no, 
+        amount=plan['amount']
+    )
     db.session.add(new_order)
     db.session.commit()
     
@@ -222,9 +261,9 @@ def checkout():
         'MerchantTradeNo': trade_no,
         'MerchantTradeDate': datetime.now().strftime("%Y/%m/%d %H:%M:%S"),
         'PaymentType': 'aio',
-        'TotalAmount': amount,
-        'TradeDesc': 'Roger SaaS VIP 尊榮開通方案',
-        'ItemName': '量化戰情室 Pro 終身權限',
+        'TotalAmount': plan['amount'],
+        'TradeDesc': plan['trade_desc'],
+        'ItemName': plan['item_name'],
         'ReturnURL': f"{BASE_URL}/ecpay_callback",       
         'OrderResultURL': f"{BASE_URL}/payment_result",   
         'ChoosePayment': 'ALL',
@@ -260,12 +299,29 @@ def ecpay_callback():
             if order and order.status == 'pending':
                 order.status = 'paid'
                 user = User.query.get(order.user_id)
-                user.is_vip = True
-                # 🚀 自動化進帳監控：綠界確認收款當下，精準押上 VIP 生效時間戳記，並清空退訂紀錄
-                user.vip_since = datetime.now()
-                user.canceled_at = None
+                
+                # 根據訂單金額判斷方案類型
+                if order.amount == PlanConfig.PRO_LIFETIME['amount']:
+                    # 終身版：永久 VIP
+                    user.is_vip = True
+                    user.vip_since = datetime.now()
+                    user.canceled_at = None
+                    logger.info(f"💎 終身版付款成功！會員 {user.email} 已解鎖永久 Pro 權限")
+                else:
+                    # 月付/年付：設定 VIP 和到期日
+                    user.is_vip = True
+                    user.vip_since = datetime.now()
+                    user.canceled_at = None
+                    
+                    # 計算到期日（年付加 365 天，月付加 30 天）
+                    if order.amount == PlanConfig.PRO_YEARLY['amount']:
+                        user.vip_expires_at = datetime.now() + __import__('datetime').timedelta(days=365)
+                        logger.info(f"💳 年付方案付款成功！會員 {user.email} 訂閱至 {user.vip_expires_at.strftime('%Y-%m-%d')}")
+                    else:
+                        user.vip_expires_at = datetime.now() + __import__('datetime').timedelta(days=30)
+                        logger.info(f"💳 月付方案付款成功！會員 {user.email} 訂閱至 {user.vip_expires_at.strftime('%Y-%m-%d')}")
+                    
                 db.session.commit()
-                logger.info(f"💰 訂單 {trade_no} 成功收款！會員 {user.email} 於 {user.vip_since} 啟用 Pro 權限！")
         return '1|OK'
     return '0|Error'
 
@@ -385,6 +441,22 @@ def api_run_backtest():
     end_date = data.get('end_date', datetime.now().strftime('%Y-%m-%d'))
     result = backtest_engine.run_backtest_json(ticker=ticker, start_date=start_date, end_date=end_date)
     return jsonify(result), 200
+
+# ------------------------------------------
+# 🚨 緊急維修路徑：手動幫資料庫加欄位
+# ------------------------------------------
+from sqlalchemy import text
+
+@app.route('/fix-database-emergency')
+def fix_database():
+    try:
+        # 直接執行 SQL 指令幫 users 表增加欄位
+        db.session.execute(text("ALTER TABLE users ADD COLUMN vip_expires_at DATETIME;"))
+        db.session.commit()
+        return "✅ 資料庫修復成功！vip_expires_at 欄位已新增。"
+    except Exception as e:
+        db.session.rollback()
+        return f"❌ 維修失敗或欄位已存在：{str(e)}"
 
 if __name__ == "__main__":  
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))
