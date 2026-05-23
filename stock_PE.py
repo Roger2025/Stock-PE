@@ -184,7 +184,7 @@ def write_stock_db(stock_id, date_str, stock_map):
     
 # 新增Echart功能 先抓數據 (極致純淨小數點修正版)
 def get_echarts_data(stock_id, start_date='2006-01-01', end_date='2027-12-31', 
-                     smooth_days=5, std_high=3.0, std_mid=1.0):
+                     smooth_days=5, std_high=1.5, std_mid=0.5):
     """
     計算河流圖數據，並以 Dictionary (JSON) 格式回傳。
     強制將所有輸出的標準差區間與數值流精確鎖定至小數點後兩位。
@@ -209,7 +209,7 @@ def get_echarts_data(stock_id, start_date='2006-01-01', end_date='2027-12-31',
     # 3. 計算平滑線與估值門檻
     pe_smooth = df['pe_ratio'].rolling(window=smooth_days, min_periods=1).mean()
     avg_pe = float(df['pe_ratio'].mean())
-    std_pe = float(df['pe_ratio'].std())
+    std_pe = float(df['pe_ratio'].std(ddof=0))
     
     # 🚀 建立門檻值：完整覆蓋前端樣板所有可能的標籤取用名稱，嚴格鎖定兩位小數
     lv = {
@@ -234,7 +234,11 @@ def get_echarts_data(stock_id, start_date='2006-01-01', end_date='2027-12-31',
         "stock_id": stock_id,
         "dates": df.index.strftime('%Y-%m-%d').tolist(), 
         "pe_smooth": clean_pe_smooth, 
-        "levels": lv 
+        "levels": lv,
+        "config": {
+            "high_multiplier": std_high,
+            "mid_multiplier": std_mid
+        }
     }
     
     return chart_data
