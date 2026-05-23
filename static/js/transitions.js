@@ -7,11 +7,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 攔截所有普通連結點擊，注入 React 級淡出觸感
     document.querySelectorAll("a").forEach(link => {
-        link.addEventListener("click", function(e) {
+        link.addEventListener("click", function (e) {
             const href = this.getAttribute("href");
             const target = this.getAttribute("target");
-            
-            // 排除另開視窗 (_blank)、錨點跳轉 (#) 或純 JS 觸發按鈕
+
+            // 排除另開視窗 (_target)、錨點跳轉 (#) 或純 JS 觸發按鈕
             if (target === "_blank" || !href || href.startsWith("#") || href.startsWith("javascript")) {
                 return;
             }
@@ -22,12 +22,17 @@ document.addEventListener("DOMContentLoaded", () => {
             // 等待淡出動畫執行完畢後，再優雅切換網址
             setTimeout(() => {
                 window.location.href = href;
-            }, 200); 
+            }, 200);
         });
     });
 
-    // 攔截表單送出 (如登入、註冊、搜股分析)，按下瞬間畫面平滑淡出
+    // 攔截表單送出 (如登入、註冊)，按下瞬間畫面下沉淡出
+    // 但排除分析表單（避免報告頁面變黑）
     document.querySelectorAll("form").forEach(form => {
+        // 如果表單有 id="analyzeForm"，則不添加 page-is-changing 類
+        if (form.id === 'analyzeForm') {
+            return;
+        }
         form.addEventListener("submit", () => {
             document.body.classList.add("page-is-changing");
         });

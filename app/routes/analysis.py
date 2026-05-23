@@ -1,10 +1,11 @@
 # ==========================================
 # 分析路由（PE 分析/回測）
 # ==========================================
-from flask import Blueprint, render_template, request, redirect, url_for, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, jsonify, flash
 from flask_login import login_required, current_user
 
 from app.services.ai_report import generate_ai_report
+from app.decorators import vip_required
 import stock_PE
 import backtest_engine
 
@@ -12,7 +13,7 @@ analysis_bp = Blueprint('analysis', __name__)
 
 
 @analysis_bp.route('/analyze', methods=['POST'])
-@login_required
+@vip_required
 def analyze():
     """執行個股分析（VIP 功能）"""
     stock_id = request.form.get('stock_id', '').strip()
@@ -36,14 +37,14 @@ def analyzes():
 
 
 @analysis_bp.route('/backtest')
-@login_required
+@vip_required
 def backtest_page():
     """回測頁面（VIP 功能）"""
     return render_template('backtest.html')
 
 
 @analysis_bp.route('/api/run_backtest', methods=['POST'])
-@login_required
+@vip_required
 def api_run_backtest():
     """執行回測 API"""
     from datetime import datetime

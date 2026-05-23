@@ -145,4 +145,4 @@ def ecpay_callback():
 @login_required
 def payment_result():
     flash("🎉 綠界付款流程完成！系統正透過專屬加密通道同步升級您的帳號，請稍候刷新頁面。", "success")
-    return redirect(url_for('index'))
+    return redirect(url_for('main.index'))

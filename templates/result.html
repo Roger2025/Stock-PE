@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-TW">
 
 <head>
@@ -8,219 +8,482 @@
   <script src="https://cdn.jsdelivr.net/npm/script@0.1.4/index.min.js"></script>
   <title>{{ stock_id }} 價值分析報告</title>
 
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
   <style>
-    /* 🚀 修正：排版擠壓與重疊問題 */
-    .cheat-sheet {
-      background: #fff;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      padding: 15px 20px;
-      margin-top: 20px;
-      margin-bottom: 30px;
-      display: flex;
-      justify-content: space-around;
-      flex-wrap: wrap;
-      gap: 10px;
-      font-size: 0.95rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    }
-
-    .cheat-item {
-      display: flex;
-      align-items: center;
-      white-space: nowrap;
-    }
-
-    /* 🚀 完美物理虛線 */
-    .cheat-item span {
-      display: inline-block;
-      width: 18px;
-      height: 0;
-      border-top: 3px dashed;
-      vertical-align: middle;
-      margin-right: 8px;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
     body {
-      font-family: "Microsoft JhengHei", sans-serif;
-      background-color: #f4f7f6;
+      font-family: "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      background-color: #0a0b14;
+      color: #e4e7eb;
       margin: 0;
-      padding: 20px 10px;
-      color: #333;
+      padding: 0;
+      min-height: 100vh;
+      background: radial-gradient(ellipse at top, #1a1f35 0%, #0a0b14 70%);
     }
 
-    .container {
-      max-width: 900px;
+    /* 🚀 報告頁面等待 overlay */
+    #reportLoadingOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
       width: 100%;
-      margin: auto;
-      background: white;
-      padding: 40px;
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    }
-
-    h1 {
-      text-align: center;
-      color: #1d3557;
-      border-bottom: 3px solid #457b9d;
-      padding-bottom: 15px;
-      margin-bottom: 30px;
-      font-size: 2rem;
-    }
-
-    .chart-section {
-      text-align: center;
-      margin-bottom: 40px;
-      width: 100%;
-    }
-
-    .chart-section img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-    }
-
-    .ai-section {
-      background-color: #f1faee;
-      padding: 25px;
-      border-radius: 8px;
-      border-left: 6px solid #a8dadc;
-      line-height: 1.8;
-      font-size: 1.1em;
-      overflow-wrap: break-word;
-    }
-
-    .ai-section h2 {
-      color: #1d3557;
-      margin-top: 0;
+      height: 100%;
+      background: rgba(10, 11, 20, 0.95);
+      backdrop-filter: blur(10px);
       display: flex;
       align-items: center;
-      font-size: 1.6rem;
+      justify-content: center;
+      z-index: 99999;
+      opacity: 1;
+      transition: opacity 0.5s ease;
     }
 
-    .ai-section h2::before {
-      content: "🤖";
-      margin-right: 10px;
+    #reportLoadingOverlay.fade-out {
+      opacity: 0;
+      pointer-events: none;
     }
 
-    .ai-section table {
-      width: 100%;
-      display: block;
-      overflow-x: auto;
-      border-collapse: collapse;
-      white-space: nowrap;
-    }
-
-    .ai-section th,
-    .ai-section td {
-      padding: 8px 12px;
-      border: 1px solid #ccc;
-    }
-
-    .btn-group {
+    .report-loading-content {
       text-align: center;
-      margin-top: 40px;
+      color: #ffffff;
+    }
+
+    .report-loading-spinner {
+      width: 80px;
+      height: 80px;
+      border: 5px solid rgba(79, 172, 254, 0.2);
+      border-top: 5px solid #4facfe;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 30px;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .report-loading-content h3 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+      background: linear-gradient(135deg, #ffffff 30%, #4facfe 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .report-loading-content p {
+      color: #8b9bb4;
+      font-size: 1.1rem;
+    }
+
+    .top-bar {
+      background: rgba(10, 11, 20, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(79, 172, 254, 0.2);
+      padding: 15px 0;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .top-bar .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stock-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0;
     }
 
     .back-btn {
-      display: inline-block;
-      width: 100%;
-      max-width: 300px;
-      background-color: #e63946;
-      color: white;
-      padding: 15px 20px;
-      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #1d3557 0%, #4facfe 100%);
+      color: #ffffff;
+      padding: 10px 24px;
       border-radius: 25px;
-      font-weight: bold;
-      font-size: 1.1rem;
-      transition: background 0.3s;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(79, 172, 254, 0.3);
+      box-shadow: 0 4px 15px rgba(79, 172, 254, 0.2);
     }
 
     .back-btn:hover {
-      background-color: #c1121f;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+      color: #ffffff;
     }
 
-    @media (max-width: 600px) {
-      body {
-        padding: 10px 5px;
+    .report-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 30px 20px 60px;
+    }
+
+    .report-header {
+      text-align: center;
+      padding: 40px 20px;
+      margin-bottom: 30px;
+      background: linear-gradient(135deg, rgba(29, 53, 87, 0.3) 0%, rgba(10, 11, 20, 0.8) 100%);
+      border-radius: 20px;
+      border: 1px solid rgba(79, 172, 254, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .report-header h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #ffffff 30%, #4facfe 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .report-header .subtitle {
+      color: #8b9bb4;
+      font-size: 1.1rem;
+    }
+
+    .chart-card {
+      background: rgba(19, 21, 36, 0.8);
+      border: 1px solid rgba(79, 172, 254, 0.2);
+      border-radius: 16px;
+      padding: 25px;
+      margin-bottom: 30px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(10px);
+    }
+
+    .chart-card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(79, 172, 254, 0.1);
+    }
+
+    .chart-card-header i {
+      font-size: 1.5rem;
+      color: #4facfe;
+    }
+
+    .chart-card-header h3 {
+      margin: 0;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    #river_chart {
+      width: 100%;
+      height: 550px;
+    }
+
+    .legend-sheet {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(79, 172, 254, 0.15);
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 25px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+
+    .legend-line {
+      width: 20px;
+      height: 0;
+      border-top: 3px dashed;
+    }
+
+    .legend-item b {
+      color: #ffffff;
+      margin-right: 4px;
+    }
+
+    .legend-item span {
+      color: #8b9bb4;
+    }
+
+    .ai-report-section {
+      background: rgba(19, 21, 36, 0.8);
+      border: 1px solid rgba(79, 172, 254, 0.2);
+      border-radius: 16px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(10px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ai-report-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #4facfe 0%, #00f2fe 50%, #4facfe 100%);
+    }
+
+    .ai-report-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(79, 172, 254, 0.1);
+    }
+
+    .ai-icon {
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+    }
+
+    .ai-report-header h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .ai-report-content {
+      color: #b0c0d0;
+      line-height: 1.8;
+      font-size: 1.05rem;
+    }
+
+    .ai-report-content h1,
+    .ai-report-content h2,
+    .ai-report-content h3 {
+      color: #ffffff;
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
+
+    .ai-report-content p {
+      margin-bottom: 15px;
+    }
+
+    .ai-report-content ul,
+    .ai-report-content ol {
+      padding-left: 20px;
+      margin-bottom: 15px;
+    }
+
+    .ai-report-content li {
+      margin-bottom: 8px;
+    }
+
+    .ai-report-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .ai-report-content th {
+      background: rgba(79, 172, 254, 0.15);
+      color: #4facfe;
+      padding: 12px 15px;
+      text-align: left;
+      font-weight: 700;
+    }
+
+    .ai-report-content td {
+      padding: 10px 15px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .ai-report-content strong {
+      color: #ffffff;
+    }
+
+    .ai-report-content blockquote {
+      border-left: 4px solid #4facfe;
+      padding: 15px 20px;
+      margin: 20px 0;
+      background: rgba(79, 172, 254, 0.05);
+      border-radius: 0 8px 8px 0;
+      font-style: italic;
+    }
+
+    .action-bar {
+      text-align: center;
+      padding: 30px 0;
+      border-top: 1px solid rgba(79, 172, 254, 0.1);
+    }
+
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, #1d3557 0%, #4facfe 100%);
+      color: #ffffff;
+      padding: 14px 32px;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(79, 172, 254, 0.3);
+      box-shadow: 0 4px 15px rgba(79, 172, 254, 0.2);
+    }
+
+    .action-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
+      color: #ffffff;
+    }
+
+    @media (max-width: 768px) {
+      .report-header h1 {
+        font-size: 1.8rem;
       }
 
-      .container {
-        padding: 20px 15px;
+      #river_chart {
+        height: 400px;
       }
 
-      h1 {
-        font-size: 1.5rem;
+      .legend-sheet {
+        flex-direction: column;
+        align-items: stretch;
       }
 
-      .ai-section {
-        padding: 15px;
-        font-size: 1rem;
-        line-height: 1.6;
+      .legend-item {
+        justify-content: flex-start;
       }
 
-      .ai-section h2 {
-        font-size: 1.3rem;
+      .ai-report-section {
+        padding: 20px;
       }
 
-      .ai-section ul {
-        padding-left: 15px;
+      .stock-title {
+        font-size: 1.2rem;
       }
     }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <h1>📊 {{ stock_id }} 專業價值河流圖報告</h1>
+  <div class="top-bar">
+    <div class="container">
+      <h1 class="stock-title">📊 {{ stock_id }}</h1>
+      <a href="/" class="back-btn">
+        <i class="fa-solid fa-arrow-left"></i>
+        返回查詢
+      </a>
+    </div>
+  </div>
 
-    <div class="chart-section">
-      <div class="card shadow mb-4">
-        <div class="card-header py-3">
-          <h6 class="m-0 font-weight-bold text-primary">
-            本益比河流圖 (互動版)
-          </h6>
+  <div class="report-container">
+    <div class="report-header">
+      <h1>專業價值河流圖報告</h1>
+      <p class="subtitle">深度本益比分析・AI 智能診斷建議</p>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <i class="fa-solid fa-chart-line"></i>
+        <h3>本益比河流圖 (互動版)</h3>
+      </div>
+      <div id="river_chart"></div>
+
+      <div class="legend-sheet">
+        <div class="legend-item">
+          <div class="legend-line" style="border-color: #ff595e"></div>
+          <b>危險區</b>
+          <span>：極高估值，建議獲利了結</span>
         </div>
-        <div class="card-body">
-          <div id="river_chart" style="width: 100%; height: 500px"></div>
-
-          <div class="cheat-sheet">
-            <div class="cheat-item">
-              <span style="border-color: #ff595e"></span><b>危險區</b>：極高估值，建議獲利了結
-            </div>
-            <div class="cheat-item">
-              <span style="border-color: #ffca3a"></span><b>昂貴區</b>：估值偏高，停止追高
-            </div>
-            <div class="cheat-item">
-              <span style="border-color: #8ac926"></span><b>平均價</b>：合理估值，持股續抱
-            </div>
-            <div class="cheat-item">
-              <span style="border-color: #1982c4"></span><b>便宜區</b>：估值偏低，分批佈局
-            </div>
-            <div class="cheat-item">
-              <span style="border-color: #4267b2"></span><b>超跌區</b>：極低估值，價值浮現
-            </div>
-          </div>
+        <div class="legend-item">
+          <div class="legend-line" style="border-color: #ffca3a"></div>
+          <b>昂貴區</b>
+          <span>：估值偏高，停止追高</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-line" style="border-color: #8ac926"></div>
+          <b>平均價</b>
+          <span>：合理估值，持股續抱</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-line" style="border-color: #1982c4"></div>
+          <b>便宜區</b>
+          <span>：估值偏低，分批佈局</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-line" style="border-color: #4267b2"></div>
+          <b>超跌區</b>
+          <span>：極低估值，價值浮現</span>
         </div>
       </div>
     </div>
 
-    <div class="ai-section">
-      <h2>AI 投資診斷建議</h2>
-      {{ ai_report | safe }}
+    <div class="ai-report-section">
+      <div class="ai-report-header">
+        <div class="ai-icon">🤖</div>
+        <h2>AI 投資診斷建議</h2>
+      </div>
+      <div class="ai-report-content">
+        {{ ai_report | safe }}
+      </div>
     </div>
 
-    <div class="btn-group">
-      <a href="/" class="back-btn">← 返回重新查詢</a>
+    <div class="action-bar">
+      <a href="/" class="action-btn">
+        <i class="fa-solid fa-rotate-right"></i>
+        重新查詢分析
+      </a>
     </div>
   </div>
 </body>
+
+<!-- 🚀 報告頁面等待 overlay -->
+<div id="reportLoadingOverlay">
+  <div class="report-loading-content">
+    <div class="report-loading-spinner"></div>
+    <h3>正在調取獨立通道生成報告</h3>
+    <p>AI 智能診斷與深度分析中...</p>
+  </div>
+</div>
 
 <script type="text/javascript">
   var chartDom = document.getElementById('river_chart');
@@ -273,34 +536,34 @@
     var option = {
       color: colors,
       title: [
-        { text: serverData.stock_name + ' (' + serverData.stock_id + ') 價值河流圖', left: 'center', top: '2%', textStyle: { color: '#1D3557', fontSize: 18 } },
-        { id: 'statBadge', text: '📊 區間分佈計算中...', left: 'center', top: '8%', textStyle: { color: '#495057', fontSize: layout.badgeFontSize, fontWeight: '500' }, backgroundColor: '#F8F9FA', borderColor: '#DEE2E6', borderWidth: 1, borderRadius: 20, padding: [6, 15] }
+        { text: serverData.stock_name + ' (' + serverData.stock_id + ') 價值河流圖', left: 'center', top: '2%', textStyle: { color: '#4facfe', fontSize: 18, fontWeight: 'bold' } },
+        { id: 'statBadge', text: '📊 區間分佈計算中...', left: 'center', top: '8%', textStyle: { color: '#8b9bb4', fontSize: layout.badgeFontSize, fontWeight: '500' }, backgroundColor: 'rgba(255, 255, 255, 0.05)', borderColor: 'rgba(79, 172, 254, 0.3)', borderWidth: 1, borderRadius: 20, padding: [6, 15] }
       ],
-      tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+      tooltip: { trigger: 'axis', axisPointer: { type: 'cross' }, backgroundColor: 'rgba(19, 21, 36, 0.95)', borderColor: 'rgba(79, 172, 254, 0.3)', textStyle: { color: '#e4e7eb' } },
       legend: {
         data: [
           { name: '本益比', icon: 'rect' }, { name: '危險區', icon: 'rect' }, { name: '昂貴區', icon: 'rect' }, { name: '合理區', icon: 'rect' }, { name: '便宜區', icon: 'rect' }, { name: '超跌區', icon: 'rect' }
         ],
         bottom: '8%', itemWidth: 24, itemHeight: 3, itemGap: 15,
-        textStyle: { fontSize: layout.legendFontSize, padding: [3, 0, 0, 0] }
+        textStyle: { fontSize: layout.legendFontSize, padding: [3, 0, 0, 0], color: '#8b9bb4' }
       },
       grid: { left: '3%', right: layout.gridRight, top: layout.gridTop, bottom: layout.gridBottom, containLabel: true },
-      xAxis: { type: 'category', boundaryGap: false, data: serverData.dates },
-      yAxis: { type: 'value', scale: true, splitLine: { lineStyle: { type: 'dashed', opacity: 0.3 } } },
+      xAxis: { type: 'category', boundaryGap: false, data: serverData.dates, axisLine: { lineStyle: { color: 'rgba(79, 172, 254, 0.3)' } }, axisLabel: { color: '#8b9bb4' } },
+      yAxis: { type: 'value', scale: true, splitLine: { lineStyle: { type: 'dashed', color: 'rgba(79, 172, 254, 0.1)' } }, axisLabel: { color: '#8b9bb4' } },
       series: [
-        { name: '本益比', type: 'line', data: serverData.pe_smooth, symbol: 'none', lineStyle: { width: 3 }, zIndex: 10, itemStyle: { color: colors[0] } },
+        { name: '本益比', type: 'line', data: serverData.pe_smooth, symbol: 'none', lineStyle: { width: 3, color: '#4facfe' }, zIndex: 10, itemStyle: { color: '#4facfe' } },
         createBandSeries('危險區', '危險', 1, serverData.levels.極高),
         createBandSeries('昂貴區', '昂貴', 2, serverData.levels.偏高),
         createBandSeries('合理區', '合理', 3, serverData.levels.合理),
         createBandSeries('便宜區', '便宜', 4, serverData.levels.偏低),
         createBandSeries('超跌區', '超跌', 5, serverData.levels.極低)
       ],
-      dataZoom: [{ type: 'slider', start: 80, end: 100, bottom: '2%', height: 25 }, { type: 'inside' }]
+      dataZoom: [{ type: 'slider', start: 80, end: 100, bottom: '2%', height: 25, backgroundColor: 'rgba(0, 0, 0, 0.3)', fillerColor: 'rgba(79, 172, 254, 0.2)', handleStyle: { color: '#4facfe' }, dataBackground: { lineStyle: { color: '#4facfe' }, areaStyle: { color: 'rgba(79, 172, 254, 0.1)' } } }, { type: 'inside' }]
     };
 
     myChart.setOption(option);
 
-    // 動態更新 markLine
+    // 🚀 動態更新 markLine - 原版白底頁面的核心邏輯
     function updateBandSeries(value) {
       return {
         data: Array(serverData.dates.length).fill(value),
@@ -309,67 +572,63 @@
     }
 
     myChart.on('dataZoom', function () {
-      var axis = myChart.getModel().getComponent('xAxis', 0).axis;
-      var range = axis.scale._extent;
-      if (range && range.length === 2) {
-        var startIndex = Math.floor(range[0]), endIndex = Math.ceil(range[1]);
-        var activeData = serverData.pe_smooth.slice(startIndex, endIndex + 1).filter(v => v !== null);
-        if (activeData.length > 0) {
-          var sum = activeData.reduce((a, b) => a + b, 0), newAvg = sum / activeData.length;
-          var squareDiffs = activeData.map(v => Math.pow(v - newAvg, 2));
-          var newStd = Math.sqrt(squareDiffs.reduce((a, b) => a + b, 0) / activeData.length);
+      try {
+        var axis = myChart.getModel().getComponent('xAxis', 0).axis;
+        var range = axis.scale._extent;
+        if (range && range.length === 2) {
+          var startIndex = Math.floor(range[0]), endIndex = Math.ceil(range[1]);
+          var activeData = serverData.pe_smooth.slice(startIndex, endIndex + 1).filter(v => v !== null);
+          if (activeData.length > 0) {
+            var sum = activeData.reduce((a, b) => a + b, 0), newAvg = sum / activeData.length;
+            var squareDiffs = activeData.map(v => Math.pow(v - newAvg, 2));
+            var newStd = Math.sqrt(squareDiffs.reduce((a, b) => a + b, 0) / activeData.length);
+            var counts = { h2: 0, h1: 0, f: 0, l1: 0, l2: 0 };
+            activeData.forEach(pe => {
+              if (pe > newAvg + 1.5 * newStd) counts.h2++;
+              else if (pe > newAvg + 0.5 * newStd) counts.h1++;
+              else if (pe >= newAvg - 0.5 * newStd) counts.f++;
+              else if (pe >= newAvg - 1.5 * newStd) counts.l1++;
+              else counts.l2++;
+            });
+            var total = activeData.length;
+            var formatPct = (c) => ((c / total) * 100).toFixed(0) + '%';
+            var statStr = `分佈: 危險 ${formatPct(counts.h2)} ｜ 昂貴 ${formatPct(counts.h1)} ｜ 合理 ${formatPct(counts.f)} ｜ 便宜 ${formatPct(counts.l1)} ｜ 超跌 ${formatPct(counts.l2)}`;
 
-          // 🚀 核心升級：從後端抓取策略參數 (防呆：如果沒抓到預設給 1.5 和 0.5)
-          var highMult = (serverData.config && serverData.config.high_multiplier) ? serverData.config.high_multiplier : 1.5;
-          var midMult = (serverData.config && serverData.config.mid_multiplier) ? serverData.config.mid_multiplier : 0.5;
-
-          var counts = { h2: 0, h1: 0, f: 0, l1: 0, l2: 0 };
-          activeData.forEach(pe => {
-            // 🚀 替換成變數 highMult 與 midMult
-            if (pe > newAvg + highMult * newStd) counts.h2++;
-            else if (pe > newAvg + midMult * newStd) counts.h1++;
-            else if (pe >= newAvg - midMult * newStd) counts.f++;
-            else if (pe >= newAvg - highMult * newStd) counts.l1++;
-            else counts.l2++;
-          });
-
-          var total = activeData.length;
-          var formatPct = (c) => ((c / total) * 100).toFixed(0) + '%';
-          var statStr = `分佈: 危險 ${formatPct(counts.h2)} ｜ 昂貴 ${formatPct(counts.h1)} ｜ 合理 ${formatPct(counts.f)} ｜ 便宜 ${formatPct(counts.l1)} ｜ 超跌 ${formatPct(counts.l2)}`;
-
-          myChart.setOption({
-            title: [{}, { id: 'statBadge', text: statStr }],
-            series: [
-              {}, // pe_smooth 不動
-              updateBandSeries(newAvg + highMult * newStd), // 🚀 替換成變數
-              updateBandSeries(newAvg + midMult * newStd),  // 🚀 替換成變數
-              updateBandSeries(newAvg),                     // 均線不動
-              updateBandSeries(newAvg - midMult * newStd),  // 🚀 替換成變數
-              updateBandSeries(newAvg - highMult * newStd)  // 🚀 替換成變數
-            ]
-          });
+            myChart.setOption({
+              title: [{}, { id: 'statBadge', text: statStr }],
+              series: [
+                {}, // pe_smooth 不動
+                { markLine: { data: [{ yAxis: newAvg + 1.5 * newStd }] } },
+                { markLine: { data: [{ yAxis: newAvg + 0.5 * newStd }] } },
+                { markLine: { data: [{ yAxis: newAvg }] } },
+                { markLine: { data: [{ yAxis: newAvg - 0.5 * newStd }] } },
+                { markLine: { data: [{ yAxis: newAvg - 1.5 * newStd }] } }
+              ]
+            });
+          }
         }
+      } catch (e) {
+        console.error('dataZoom error:', e);
       }
     });
-    myChart.dispatchAction({ type: 'dataZoom', start: 80, end: 100 });
-  }
+    // 🚀 初始觸發一次 dataZoom 事件來計算初始狀態
+    setTimeout(function () {
+      myChart.dispatchAction({ type: 'dataZoom', start: 80, end: 100 });
 
-  window.addEventListener('resize', function () {
-    var newWidth = chartDom.offsetWidth;
-    var newLayout = getResponsiveConfig(newWidth);
-    myChart.setOption({
-      grid: { right: newLayout.gridRight, top: newLayout.gridTop, bottom: newLayout.gridBottom },
-      series: [
-        {},
-        { markLine: { label: { distance: newLayout.labelDistance } } },
-        { markLine: { label: { distance: newLayout.labelDistance } } },
-        { markLine: { label: { distance: newLayout.labelDistance } } },
-        { markLine: { label: { distance: newLayout.labelDistance } } },
-        { markLine: { label: { distance: newLayout.labelDistance } } }
-      ]
+      // 🚀 圖表加載完成後隱藏 overlay
+      var overlay = document.getElementById('reportLoadingOverlay');
+      if (overlay) {
+        overlay.classList.add('fade-out');
+        setTimeout(function () {
+          overlay.style.display = 'none';
+        }, 500);
+      }
+    }, 100);
+
+    window.addEventListener('resize', function () {
+      myChart.resize();
     });
-    myChart.resize();
-  });
+  }
 </script>
 
 </html>

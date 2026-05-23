@@ -15,8 +15,10 @@ login_manager = LoginManager()
 def create_app():
     """Flask 應用工廠函數"""
     
-    # 創建應用
-    app = Flask(__name__)
+    # 創建應用（指定模板和靜態文件目錄）
+    app = Flask(__name__, 
+                template_folder='../templates',
+                static_folder='../static')
     app.config.from_object(Config)
     
     # 初始化擴展
