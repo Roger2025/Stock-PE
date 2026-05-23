@@ -98,23 +98,35 @@ def checkout():
         return "金流系統連接異常，請檢查伺服器日誌。", 500
 
 
-@payment_bp.route('/ecpay_callback', methods=['POST'])
+@payment_bp.route('/ecpay_callback', methods=['GET', 'POST'])
 def ecpay_callback():
-    data = request.form.to_dict()
+    # 同時支持 GET 和 POST，測試環境用 GET，正式環境用 POST
+    data = request.form.to_dict() if request.method == 'POST' else request.args.to_dict()
     ecpay_sdk = ecpay_payment_sdk.ECPayPaymentSdk(
         MerchantID=Config.ECPAY_MERCHANT_ID,
         HashKey=Config.ECPAY_HASH_KEY,
         HashIV=Config.ECPAY_HASH_IV
     )
     
+    if not data.get('CheckMacValue'):
+        return '0|Error', 400
+    
     if ecpay_sdk.generate_check_mac_value(data) == data.get('CheckMacValue'):
+        # DEBUG: 記錄回調數據
+        print(f"[PAYMENT DEBUG] RtnCode={data.get('RtnCode')}, MerchantTradeNo={data.get('MerchantTradeNo')}")
+        print(f"[PAYMENT DEBUG] All data keys: {list(data.keys())}")
+        
         if data.get('RtnCode') == '1':
             trade_no = data.get('MerchantTradeNo')
             order = Order.query.filter_by(merchant_trade_no=trade_no).first()
             
+            print(f"[PAYMENT DEBUG] Order found: {order}, status: {order.status if order else 'N/A'}")
+            
             if order and order.status == 'pending':
                 order.status = 'paid'
                 user = User.query.get(order.user_id)
+                
+                print(f"[PAYMENT DEBUG] Upgrading user {user.id} to VIP")
                 
                 # 根據訂單金額判斷方案類型
                 if order.amount == PlanConfig.PRO_LIFETIME['amount']:
@@ -135,14 +147,53 @@ def ecpay_callback():
                         user.vip_expires_at = datetime.now() + timedelta(days=30)
                 
                 db.session.commit()
-        
-        return '1|OK'
+                print(f"[PAYMENT DEBUG] User VIP status updated: is_vip={user.is_vip}, vip_since={user.vip_since}")
+            elif order:
+                print(f"[PAYMENT DEBUG] Order already paid, skipping")
+        else:
+            print(f"[PAYMENT DEBUG] RtnCode is not 1, value: {data.get('RtnCode')}")
+    
+    return '1|OK'
     
     return '0|Error'
 
 
-@payment_bp.route('/payment_result')
+@payment_bp.route('/payment_result', methods=['GET', 'POST'])
 @login_required
 def payment_result():
+    # 開發環境：如果 ECPay 沒有 callback，這裡手動升級訂單
+    # 正式環境請註解這段
+    from flask import current_app
+    
+    if current_app.debug:  # 只在開發環境啟用
+        # 查找用戶最近的 pending 訂單
+        pending_order = Order.query.filter_by(
+            user_id=current_user.id,
+            status='pending'
+        ).order_by(Order.created_at.desc()).first()
+        
+        if pending_order:
+            pending_order.status = 'paid'
+            user = User.query.get(pending_order.user_id)
+            
+            # 根據訂單金額判斷方案類型
+            if pending_order.amount == PlanConfig.PRO_LIFETIME['amount']:
+                user.is_vip = True
+                user.vip_since = datetime.now()
+                user.vip_expires_at = None
+                user.canceled_at = None
+            else:
+                user.is_vip = True
+                user.vip_since = datetime.now()
+                user.canceled_at = None
+                
+                if pending_order.amount == PlanConfig.PRO_YEARLY['amount']:
+                    user.vip_expires_at = datetime.now() + timedelta(days=365)
+                else:
+                    user.vip_expires_at = datetime.now() + timedelta(days=30)
+            
+            db.session.commit()
+            print(f"[DEV MODE] 手動升級用戶 {user.id} VIP 狀態")
+    
     flash("🎉 綠界付款流程完成！系統正透過專屬加密通道同步升級您的帳號，請稍候刷新頁面。", "success")
     return redirect(url_for('main.index'))
