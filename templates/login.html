@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,15 +18,19 @@
             flex-direction: column;
             margin: 0;
         }
-        
+
         /* 導覽列身分感知優化 */
         .navbar {
             background: rgba(10, 11, 20, 0.9) !important;
             backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
-        .navbar-brand { letter-spacing: 1px; font-weight: 800; }
-        
+
+        .navbar-brand {
+            letter-spacing: 1px;
+            font-weight: 800;
+        }
+
         /* 登入專屬尊榮級深色卡片設計 */
         .auth-wrapper {
             flex-grow: 1;
@@ -34,6 +39,7 @@
             justify-content: center;
             padding: 100px 20px 40px;
         }
+
         .auth-card {
             background: #131524;
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -45,7 +51,7 @@
             display: flex;
             flex-wrap: wrap;
         }
-        
+
         /* 左側品牌宣傳欄 (深藍科技光暈) */
         .auth-sidebar {
             background: radial-gradient(circle at top left, rgba(29, 53, 87, 0.8) 0%, rgba(10, 11, 20, 0.9) 100%);
@@ -56,10 +62,26 @@
             justify-content: center;
             border-right: 1px solid rgba(255, 255, 255, 0.05);
         }
-        .auth-sidebar h3 { font-weight: 800; letter-spacing: 1px; color: #ffffff; }
-        .bullet-item { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; font-size: 0.95rem; }
-        .bullet-item i { color: #4facfe; font-size: 1.3rem; }
-        
+
+        .auth-sidebar h3 {
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #ffffff;
+        }
+
+        .bullet-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        .bullet-item i {
+            color: #4facfe;
+            font-size: 1.3rem;
+        }
+
         /* 右側表單操作欄 */
         .auth-form-area {
             padding: 50px 40px;
@@ -68,6 +90,7 @@
             justify-content: center;
             background: #131524;
         }
+
         .form-control-custom {
             background-color: rgba(10, 11, 20, 0.8);
             border: 1px solid rgba(255, 255, 255, 0.15);
@@ -77,6 +100,7 @@
             font-size: 0.95rem;
             transition: all 0.3s ease;
         }
+
         .form-control-custom:focus {
             border-color: #4facfe;
             background-color: #0a0b14;
@@ -84,8 +108,11 @@
             box-shadow: 0 0 15px rgba(79, 172, 254, 0.3);
             color: #ffffff;
         }
-        .form-control-custom::placeholder { color: #5c6a7e; }
-        
+
+        .form-control-custom::placeholder {
+            color: #5c6a7e;
+        }
+
         /* 按鈕升級 */
         .btn-primary-custom {
             background: linear-gradient(135deg, #1d3557 0%, #4facfe 100%);
@@ -99,95 +126,115 @@
             box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
             cursor: pointer;
         }
+
         .btn-primary-custom:hover {
             background: linear-gradient(135deg, #4facfe 0%, #1d3557 100%);
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(79, 172, 254, 0.5);
         }
-        .link-custom { color: #4facfe; text-decoration: none; font-weight: 600; font-size: 0.9rem; }
-        .link-custom:hover { color: #ffffff; text-decoration: underline; }
+
+        .link-custom {
+            color: #4facfe;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .link-custom:hover {
+            color: #ffffff;
+            text-decoration: underline;
+        }
     </style>
 </head>
+
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-sm">
-    <div class="container">
-        <a class="navbar-brand fw-bold" href="/">🚀 ROGER 投資分析終端</a>
-        <div class="d-flex align-items-center ms-auto">
-            <a href="/register" class="btn btn-danger btn-sm fw-bold px-3 py-1" style="border-radius: 6px; background: #e63946;">加入免費會員</a>
-        </div>
-    </div>
-</nav>
-
-<div class="auth-wrapper">
-    <div class="auth-card">
-        <div class="col-12 col-md-5 auth-sidebar">
-            <h3 class="mb-4">量化終端・安全解鎖</h3>
-            <p class="mb-4" style="color: #8b9bb4; line-height: 1.6;">登入以存取您的個人化設定與機構級全動態分析模組。</p>
-            
-            <div class="bullet-item">
-                <i class="fa-solid fa-chart-pie"></i>
-                <span class="text-light">12 格全動態量化回撤雷達</span>
-            </div>
-            <div class="bullet-item">
-                <i class="fa-solid fa-water" style="color: #00f2c3;"></i>
-                <span class="text-light">五階段 PE 估值河流圖引擎</span>
-            </div>
-            <div class="bullet-item">
-                <i class="fa-solid fa-shield-halved" style="color: #ff5e62;"></i>
-                <span class="text-light">軍規級 PBKDF2 安全加密防護</span>
-            </div>
-            
-            <div class="mt-5 pt-3" style="border-top: 1px solid rgba(255,255,255,0.05); font-size: 0.8rem; color: #5c6a7e;">
-                © 2026 Roger SaaS. 連線已受 SSL 保護。
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">🚀 ROGER 投資分析終端</a>
+            <div class="d-flex align-items-center ms-auto">
+                <a href="/register" class="btn btn-danger btn-sm fw-bold px-3 py-1"
+                    style="border-radius: 6px; background: #e63946;">加入免費會員</a>
             </div>
         </div>
+    </nav>
 
-        <div class="col-12 col-md-7 auth-form-area">
-            <h4 class="fw-bold mb-2 text-light">登入數位資產帳號</h4>
-            <p class="mb-4 fs-7" style="color: #8b9bb4;">輸入您的註冊信箱與密碼以接管終端</p>
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <div class="col-12 col-md-5 auth-sidebar">
+                <h3 class="mb-4">量化終端・安全解鎖</h3>
+                <p class="mb-4" style="color: #8b9bb4; line-height: 1.6;">登入以存取您的個人化設定與機構級全動態分析模組。</p>
 
-            {% with messages = get_flashed_messages(with_categories=true) %}
+                <div class="bullet-item">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span class="text-light">12 格全動態量化回撤雷達</span>
+                </div>
+                <div class="bullet-item">
+                    <i class="fa-solid fa-water" style="color: #00f2c3;"></i>
+                    <span class="text-light">五階段 PE 估值河流圖引擎</span>
+                </div>
+                <div class="bullet-item">
+                    <i class="fa-solid fa-shield-halved" style="color: #ff5e62;"></i>
+                    <span class="text-light">軍規級 PBKDF2 安全加密防護</span>
+                </div>
+
+                <div class="mt-5 pt-3"
+                    style="border-top: 1px solid rgba(255,255,255,0.05); font-size: 0.8rem; color: #5c6a7e;">
+                    © 2026 Roger SaaS. 連線已受 SSL 保護。
+                </div>
+            </div>
+
+            <div class="col-12 col-md-7 auth-form-area">
+                <h4 class="fw-bold mb-2 text-light">登入數位資產帳號</h4>
+                <p class="mb-4 fs-7" style="color: #8b9bb4;">輸入您的註冊信箱與密碼以接管終端</p>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm text-start" role="alert" style="border-radius: 8px;">
-                            <strong>提示：</strong> {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    {% endfor %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm text-start" role="alert"
+                    style="border-radius: 8px;">
+                    <strong>提示：</strong> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
                 {% endif %}
-            {% endwith %}
+                {% endwith %}
 
-            <form action="/login" method="POST" id="loginForm">
-                <div class="mb-3">
-                    <label for="email" class="form-label fw-bold fs-7" style="color: #4facfe;"><i class="fa-solid fa-envelope me-1"></i> 電子信箱 Email</label>
-                    <input type="email" class="form-control-custom w-100" id="email" name="email" placeholder="name@example.com" required autofocus>
-                </div>
-                <div class="mb-4">
-                    <label for="password" class="form-label fw-bold fs-7" style="color: #4facfe;"><i class="fa-solid fa-lock me-1"></i> 帳號密碼 Password</label>
-                    <input type="password" class="form-control-custom w-100" id="password" name="password" placeholder="••••••••" required>
-                </div>
-                <div class="d-grid mb-3">
-                    <button type="submit" class="btn-primary-custom" id="submitBtn">🚀 驗證並登入戰情室</button>
-                </div>
-            </form>
+                <form action="/login" method="POST" id="loginForm" onsubmit="triggerPageTransition()">
+                    <div class="mb-3">
+                        <label for="email" class="form-label fw-bold fs-7" style="color: #4facfe;"><i
+                                class="fa-solid fa-envelope me-1"></i> 電子信箱 Email</label>
+                        <input type="email" class="form-control-custom w-100" id="email" name="email"
+                            placeholder="name@example.com" required autofocus>
+                    </div>
+                    <div class="mb-4">
+                        <label for="password" class="form-label fw-bold fs-7" style="color: #4facfe;"><i
+                                class="fa-solid fa-lock me-1"></i> 帳號密碼 Password</label>
+                        <input type="password" class="form-control-custom w-100" id="password" name="password"
+                            placeholder="••••••••" required>
+                    </div>
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn-primary-custom" id="submitBtn">🚀 驗證並登入戰情室</button>
+                    </div>
+                </form>
 
-            <div class="text-center mt-3">
-                <span class="fs-7" style="color: #5c6a7e;">尚未擁有數位資產帳號？</span> 
-                <a href="/register" class="link-custom ms-1">立即免費註冊解鎖</a>
+                <div class="text-center mt-3">
+                    <span class="fs-7" style="color: #5c6a7e;">尚未擁有數位資產帳號？</span>
+                    <a href="/register" class="link-custom ms-1">立即免費註冊解鎖</a>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    document.getElementById('loginForm').addEventListener('submit', function() {
-        const btn = document.getElementById('submitBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>安全驗證中...';
-    });
-</script>
-<script src="{{ url_for('static', filename='js/transitions.js') }}?v=1.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function () {
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>安全驗證中...';
+        });
+    </script>
+    <script src="{{ url_for('static', filename='js/transitions.js') }}?v=1.0"></script>
 </body>
+
 </html>

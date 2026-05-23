@@ -1,6 +1,12 @@
 // ==========================================
 // 🚀 攔截白屏跳轉邏輯 (SPA 轉場觸感)
 // ==========================================
+
+// 全局函數：供 HTML onsubmit 直接呼叫
+window.triggerPageTransition = function () {
+    document.body.classList.add("page-is-changing");
+};
+
 document.addEventListener("DOMContentLoaded", () => {
     // 進入頁面瞬間確保極速平滑呈現
     document.body.classList.remove("page-is-changing");
@@ -33,6 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (form.id === 'analyzeForm') {
             return;
         }
+        // 使用事件委派，確保即使表單是動態加入也能生效
         form.addEventListener("submit", () => {
             document.body.classList.add("page-is-changing");
         });

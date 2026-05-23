@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,12 +9,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/transitions.css') }}?v=1.0">
     <style>
-        body { 
-            background-color: #0a0b14; 
-            color: #e4e7eb; 
-            padding-top: 100px; 
+        body {
+            background-color: #0a0b14;
+            color: #e4e7eb;
+            padding-top: 100px;
             padding-bottom: 70px;
-            font-family: "Microsoft JhengHei", "Noto Sans TC", sans-serif; 
+            font-family: "Microsoft JhengHei", "Noto Sans TC", sans-serif;
             overflow-x: hidden;
         }
 
@@ -22,7 +23,11 @@
             backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
-        .navbar-brand { letter-spacing: 1px; font-weight: 800; }
+
+        .navbar-brand {
+            letter-spacing: 1px;
+            font-weight: 800;
+        }
 
         /* 方案卡片科技玻璃擬真設計 */
         .pricing-card {
@@ -38,9 +43,10 @@
             position: relative;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
         }
-        .pricing-card:hover { 
-            transform: translateY(-8px); 
-            box-shadow: 0 25px 50px rgba(79, 172, 254, 0.15); 
+
+        .pricing-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px rgba(79, 172, 254, 0.15);
             border-color: rgba(79, 172, 254, 0.4);
         }
 
@@ -50,6 +56,7 @@
             border: 2px solid #4facfe;
             box-shadow: 0 20px 45px rgba(79, 172, 254, 0.25);
         }
+
         .popular-badge {
             position: absolute;
             top: -15px;
@@ -65,40 +72,77 @@
             box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
         }
 
-        .plan-title { font-size: 1.4rem; font-weight: 700; color: #ffffff; margin-top: 10px; }
-        .price { font-size: 3rem; font-weight: 800; color: #4facfe; margin: 15px 0; }
-        .price span { font-size: 1rem; color: #8b9bb4; font-weight: 500; }
-        
-        .pricing-card.popular .price { color: #00f2c3; }
+        .plan-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-top: 10px;
+        }
 
-        .desc-highlight { 
-            color: #a0aec0; 
-            font-size: 0.95rem; 
-            font-weight: 500; 
+        .price {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #4facfe;
+            margin: 15px 0;
+        }
+
+        .price span {
+            font-size: 1rem;
+            color: #8b9bb4;
+            font-weight: 500;
+        }
+
+        .pricing-card.popular .price {
+            color: #00f2c3;
+        }
+
+        .desc-highlight {
+            color: #a0aec0;
+            font-size: 0.95rem;
+            font-weight: 500;
             margin-bottom: 25px;
             min-height: 45px;
         }
 
-        .feature-list { list-style: none; padding: 0; margin: 20px 0 auto; text-align: left; border-top: 1px solid rgba(255,255,255,0.05); pt-4; }
-        .feature-list li { margin-bottom: 14px; font-size: 0.95rem; color: #d1dbe5; display: flex; align-items: center; }
-        .feature-icon { font-size: 1rem; width: 25px; }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0 auto;
+            text-align: left;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            pt-4;
+        }
 
-        .btn-pay { 
-            background: rgba(255, 255, 255, 0.05); 
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-            padding: 14px; 
-            font-weight: 700; 
-            font-size: 1.05rem; 
-            border-radius: 12px; 
-            width: 100%; 
-            color: #ffffff; 
+        .feature-list li {
+            margin-bottom: 14px;
+            font-size: 0.95rem;
+            color: #d1dbe5;
+            display: flex;
+            align-items: center;
+        }
+
+        .feature-icon {
+            font-size: 1rem;
+            width: 25px;
+        }
+
+        .btn-pay {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 14px;
+            font-weight: 700;
+            font-size: 1.05rem;
+            border-radius: 12px;
+            width: 100%;
+            color: #ffffff;
             cursor: pointer;
             transition: all 0.3s ease;
             margin-top: 25px;
         }
-        .btn-pay:hover { 
-            background: rgba(255, 255, 255, 0.1); 
-            border-color: #ffffff; 
+
+        .btn-pay:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #ffffff;
         }
 
         .pricing-card.popular .btn-pay {
@@ -106,6 +150,7 @@
             border: none;
             box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
         }
+
         .pricing-card.popular .btn-pay:hover {
             background: linear-gradient(135deg, #4facfe 0%, #1d3557 100%);
             box-shadow: 0 8px 20px rgba(79, 172, 254, 0.5);
@@ -118,24 +163,33 @@
             color: white;
             box-shadow: 0 4px 15px rgba(255, 94, 98, 0.3);
         }
+
         .pricing-card.lifetime .btn-pay:hover {
             transform: scale(1.02);
             box-shadow: 0 8px 20px rgba(255, 94, 98, 0.6);
         }
-        .pricing-card.lifetime .price { color: #ff5e62; }
 
-        .back-portal { 
-            color: #5c6a7e; 
-            font-weight: 600; 
-            text-decoration: none; 
-            transition: color 0.2s; 
-            font-size: 1rem; 
+        .pricing-card.lifetime .price {
+            color: #ff5e62;
+        }
+
+        .back-portal {
+            color: #5c6a7e;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.2s;
+            font-size: 1rem;
             display: inline-block;
             margin-top: 40px;
         }
-        .back-portal:hover { color: #ffffff; text-decoration: underline; }
+
+        .back-portal:hover {
+            color: #ffffff;
+            text-decoration: underline;
+        }
     </style>
 </head>
+
 <body>
 
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-sm">
@@ -152,23 +206,23 @@
             <h2 class="fw-bold text-light mb-2" style="letter-spacing: 1px; font-size: 2.2rem;">解鎖機構級量化算力通道</h2>
             <p class="text-muted fs-6">選擇最適合您的戰鬥配置，即刻啟動五階段估值與全自動回測雷達</p>
         </div>
-        
+
         <div class="row g-4 justify-content-center">
-            
+
             <div class="col-12 col-md-6 col-lg-4">
                 <div class="pricing-card">
                     <div class="plan-title">Pro 月費版</div>
                     <div class="price">NT$ 299<span> / 月</span></div>
                     <div class="desc-highlight">小資入門無負擔，適合短期專案測試與市場水位探勘</div>
-                    
+
                     <ul class="feature-list mt-3 pt-4">
                         <li><i class="fa-solid fa-check feature-icon text-secondary"></i> 解鎖個股深度分析通道</li>
                         <li><i class="fa-solid fa-check feature-icon text-secondary"></i> 無限次調用 AI 投資展望報告</li>
                         <li><i class="fa-solid fa-check feature-icon text-secondary"></i> 啟動量化動態回測系統</li>
                         <li><i class="fa-solid fa-check feature-icon text-secondary"></i> 獨立 Session 資料庫連線防護</li>
                     </ul>
-                    
-                    <form action="/checkout" method="POST" class="mt-auto">
+
+                    <form action="/checkout" method="POST" class="mt-auto" onsubmit="triggerPageTransition()">
                         <input type="hidden" name="plan" value="pro_monthly">
                         <button type="submit" class="btn-pay">選擇月費方案</button>
                     </form>
@@ -181,15 +235,18 @@
                     <div class="plan-title">Pro 年費版</div>
                     <div class="price">NT$ 2,888<span> / 年</span></div>
                     <div class="desc-highlight">買 10 個月送 2 個月，價值型長期投資者的最愛配備</div>
-                    
+
                     <ul class="feature-list mt-3 pt-4">
-                        <li><i class="fa-solid fa-wand-magic-sparkles feature-icon" style="color: #00f2c3;"></i> 完整包含 Pro 版所有頂級權限</li>
-                        <li><i class="fa-solid fa-bolt feature-icon" style="color: #00f2c3;"></i> 優先分配 Aiven 雲端專用執行緒</li>
-                        <li><i class="fa-solid fa-chart-line feature-icon" style="color: #00f2c3;"></i> 解鎖 12 格全動態勝率回測雷達</li>
+                        <li><i class="fa-solid fa-wand-magic-sparkles feature-icon" style="color: #00f2c3;"></i> 完整包含
+                            Pro 版所有頂級權限</li>
+                        <li><i class="fa-solid fa-bolt feature-icon" style="color: #00f2c3;"></i> 優先分配 Aiven 雲端專用執行緒
+                        </li>
+                        <li><i class="fa-solid fa-chart-line feature-icon" style="color: #00f2c3;"></i> 解鎖 12 格全動態勝率回測雷達
+                        </li>
                         <li><i class="fa-solid fa-crown feature-icon text-warning"></i> 取得 Pro 專屬黃金發光頭銜</li>
                     </ul>
-                    
-                    <form action="/checkout" method="POST" class="mt-auto">
+
+                    <form action="/checkout" method="POST" class="mt-auto" onsubmit="triggerPageTransition()">
                         <input type="hidden" name="plan" value="pro_yearly">
                         <button type="submit" class="btn-pay">🚀 立即開通專屬通道</button>
                     </form>
@@ -201,15 +258,17 @@
                     <div class="plan-title">Pro 終身買斷</div>
                     <div class="price">NT$ 8,888<span> / 永久</span></div>
                     <div class="desc-highlight">一次性支持 Roger 研發，永久免繳月費，未來新功能直接繼承</div>
-                    
+
                     <ul class="feature-list mt-3 pt-4">
                         <li><i class="fa-solid fa-gem feature-icon" style="color: #ff5e62;"></i> 永久解鎖當前與未來所有高級模組</li>
-                        <li><i class="fa-solid fa-infinity feature-icon" style="color: #ff5e62;"></i> 終身免續約，防禦未來通膨漲價</li>
-                        <li><i class="fa-solid fa-shield-halved feature-icon" style="color: #ff5e62;"></i> 獲得創辦人核心鐵粉終身支援資格</li>
+                        <li><i class="fa-solid fa-infinity feature-icon" style="color: #ff5e62;"></i> 終身免續約，防禦未來通膨漲價
+                        </li>
+                        <li><i class="fa-solid fa-shield-halved feature-icon" style="color: #ff5e62;"></i>
+                            獲得創辦人核心鐵粉終身支援資格</li>
                         <li><i class="fa-solid fa-crown feature-icon text-warning"></i> 尊榮紅金鑽石級專屬視覺識別</li>
                     </ul>
-                    
-                    <form action="/checkout" method="POST" class="mt-auto">
+
+                    <form action="/checkout" method="POST" class="mt-auto" onsubmit="triggerPageTransition()">
                         <input type="hidden" name="plan" value="pro_lifetime">
                         <button type="submit" class="btn-pay">💎 永久買斷無限算力</button>
                     </form>
@@ -225,4 +284,5 @@
 
     <script src="{{ url_for('static', filename='js/transitions.js') }}?v=1.0"></script>
 </body>
+
 </html>
