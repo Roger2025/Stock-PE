@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自選股日報</title>
+</head>
+
+<body
+    style="margin:0; padding:0; background-color:#f4f4f7; font-family:'Segoe UI','Microsoft JhengHei',Arial,sans-serif;">
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+        style="background-color:#f4f4f7; padding:20px 0;">
+        <tr>
+            <td align="center">
+
+                <table role="presentation" width="640" cellpadding="0" cellspacing="0"
+                    style="background-color:#ffffff; border-radius:12px; overflow:hidden; max-width:640px; box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+
+                    <!-- 品牌區 -->
+                    <tr>
+                        <td
+                            style="background:linear-gradient(135deg, #0a1628 0%, #1d3557 100%); padding:28px 40px; text-align:center;">
+                            <h1 style="margin:0; color:#00d4ff; font-size:26px; font-weight:800; letter-spacing:2px;">
+                                ROGER QUANT
+                            </h1>
+                            <p style="margin:6px 0 0; color:#a8b2c1; font-size:13px;">
+                                每日自選股估值報告
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- 報告標題 -->
+                    <tr>
+                        <td style="padding:28px 40px 8px; text-align:center;">
+                            <h2 style="margin:0; color:#1a1a2e; font-size:20px; font-weight:700;">
+                                📋 自選股日報
+                            </h2>
+                            <p style="margin:6px 0 0; color:#9ca3af; font-size:13px;">
+                                {{ now.strftime('%Y年%m月%d日 %H:%M') }} 更新
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- 摘要區 -->
+                    <tr>
+                        <td style="padding:16px 40px 24px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                                style="background:linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius:8px; border:1px solid #bbf7d0;">
+                                <tr>
+                                    <td style="padding:16px 20px;">
+                                        <p style="margin:0; font-size:14px; font-weight:700; color:#166534;">
+                                            📊 摘要
+                                        </p>
+                                        <p style="margin:4px 0 0; font-size:13px; color:#15803d;">
+                                            追蹤 {{ items|length }} 支股票 · {{
+                                            items|selectattr('pe_ratio','defined')|list|length }} 支有 PE 數據
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- 股票列表 -->
+                    <tr>
+                        <td style="padding:0 40px 24px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                                style="border:1px solid #e5e7eb; border-radius:8px; overflow:hidden;">
+
+                                <!-- 表頭 -->
+                                <tr style="background-color:#f8f9fa;">
+                                    <td
+                                        style="padding:12px 16px; font-size:11px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid #e5e7eb;">
+                                        股票</td>
+                                    <td
+                                        style="padding:12px 16px; font-size:11px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid #e5e7eb; text-align:center;">
+                                        PE</td>
+                                    <td
+                                        style="padding:12px 16px; font-size:11px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid #e5e7eb; text-align:center;">
+                                        等級</td>
+                                </tr>
+
+                                {% for item in items %}
+                                <tr {% if loop.index % 2==0 %}style="background-color:#fafbfc;" {% endif %}>
+                                    <td
+                                        style="padding:12px 16px; font-size:14px; color:#1a1a2e; border-bottom:1px solid #f0f0f0;">
+                                        <strong>{{ item.stock_code }}</strong>
+                                        {% if item.stock_name %}
+                                        <span style="color:#6b7280; font-size:12px;"> — {{ item.stock_name }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="padding:12px 16px; font-size:16px; font-weight:700; text-align:center; border-bottom:1px solid #f0f0f0;
+                    {% if item.pe_ratio is not none %}
+                      {% if item.pe_ratio < 15 %}color:#10b981;
+                      {% elif item.pe_ratio < 25 %}color:#f59e0b;
+                      {% else %}color:#ef4444;
+                      {% endif %}
+                    {% else %}color:#d1d5db;
+                    {% endif %}">
+                                        {% if item.pe_ratio is not none %}
+                                        {{ "%.2f"|format(item.pe_ratio) }}
+                                        {% else %}
+                                        --
+                                        {% endif %}
+                                    </td>
+                                    <td
+                                        style="padding:12px 16px; font-size:13px; text-align:center; border-bottom:1px solid #f0f0f0;">
+                                        {% if item.pe_grade != 'N/A' %}
+                                        <span style="display:inline-block; padding:2px 10px; border-radius:12px; font-weight:700; font-size:12px;
+                      {% if item.pe_grade|upper == 'A' %}background-color:#d1fae5; color:#065f46;
+                      {% elif item.pe_grade|upper == 'B' %}background-color:#d1fae5; color:#047857;
+                      {% elif item.pe_grade|upper == 'C' %}background-color:#fef3c7; color:#92400e;
+                      {% elif item.pe_grade|upper == 'D' %}background-color:#fed7aa; color:#c2410c;
+                      {% else %}background-color:#fee2e2; color:#b91c1c;{% endif %}">
+                                            {{ item.pe_grade }}級
+                                        </span>
+                                        {% else %}
+                                        <span style="color:#d1d5db; font-size:12px;">--</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- 最佳選擇區 -->
+                    {% set good_picks = items|selectattr('pe_ratio','defined')|selectattr('pe_ratio','lt',15)|list %}
+                    {% if good_picks %}
+                    <tr>
+                        <td style="padding:0 40px 24px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                                style="background:linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius:8px; border-left:4px solid #10b981;">
+                                <tr>
+                                    <td style="padding:16px 20px;">
+                                        <p style="margin:0 0 8px; font-size:14px; font-weight:700; color:#065f46;">
+                                            🌟 低估股票推薦
+                                        </p>
+                                        {% for pick in good_picks %}
+                                        <p style="margin:4px 0; font-size:13px; color:#047857;">
+                                            <strong>{{ pick.stock_code }}</strong>
+                                            {% if pick.stock_name %} — {{ pick.stock_name }}{% endif %}
+                                            &nbsp; PE={{ "%.2f"|format(pick.pe_ratio) }} ({{ pick.pe_grade }}級)
+                                        </p>
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+
+                    <!-- 底部署名 -->
+                    <tr>
+                        <td
+                            style="background-color:#f8f9fa; padding:24px 40px; text-align:center; border-top:1px solid #e5e7eb;">
+                            <p style="margin:0; font-size:12px; color:#9ca3af;">
+                                此為自動發送郵件，請勿直接回覆。<br>
+                                © 2026 Roger Quant. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+
+            </td>
+        </tr>
+    </table>
+
+</body>
+
+</html>

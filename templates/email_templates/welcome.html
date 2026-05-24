@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>歡迎加入 Roger Quant</title>
+</head>
+
+<body
+    style="margin:0; padding:0; background-color:#f4f4f7; font-family:'Segoe UI','Microsoft JhengHei',Arial,sans-serif;">
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+        style="background-color:#f4f4f7; padding:20px 0;">
+        <tr>
+            <td align="center">
+
+                <table role="presentation" width="560" cellpadding="0" cellspacing="0"
+                    style="background-color:#ffffff; border-radius:12px; overflow:hidden; max-width:560px; box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+
+                    <!-- 品牌區 -->
+                    <tr>
+                        <td
+                            style="background:linear-gradient(135deg, #0a1628 0%, #1d3557 100%); padding:36px 40px; text-align:center;">
+                            <h1 style="margin:0; color:#00d4ff; font-size:28px; font-weight:800; letter-spacing:2px;">
+                                ROGER QUANT
+                            </h1>
+                            <p style="margin:8px 0 0; color:#a8b2c1; font-size:13px;">
+                                智能估值分析系統
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- 歡迎內容 -->
+                    <tr>
+                        <td style="padding:36px 40px; text-align:center;">
+                            <h2 style="margin:0 0 16px; color:#1a1a2e; font-size:24px;">
+                                歡迎加入，{{ nickname }}！🎉
+                            </h2>
+                            <p style="margin:0 0 20px; color:#4a5568; font-size:15px; line-height:1.8;">
+                                感謝您加入 <strong>Roger Quant</strong> 智能估值分析系統。<br>
+                                您的投資戰情室已準備就緒！
+                            </p>
+
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                                style="text-align:left; margin:24px 0;">
+                                <tr>
+                                    <td style="padding:8px 0; font-size:14px; color:#334155;">
+                                        ✅ <strong>PE 估值分析</strong> — 即時掌握股票低估/高估狀態
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:8px 0; font-size:14px; color:#334155;">
+                                        ✅ <strong>AI 洞察報告</strong> — 深度數據分析與建議
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:8px 0; font-size:14px; color:#334155;">
+                                        ✅ <strong>回測系統</strong> — 驗證您的交易策略
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:8px 0; font-size:14px; color:#334155;">
+                                        ✅ <strong>自選股監控</strong> — 每日 PE 日報自動推送
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <a href="{{ url_for('analysis.analyzes', _external=True) }}"
+                                style="display:inline-block; padding:14px 36px; background:linear-gradient(135deg, #00d4ff, #0070b8); color:#ffffff; text-decoration:none; border-radius:8px; font-weight:700; font-size:15px; margin-top:12px;">
+                                立即開始使用 →
+                            </a>
+                        </td>
+                    </tr>
+
+                    <!-- 底部署名 -->
+                    <tr>
+                        <td
+                            style="background-color:#f8f9fa; padding:24px 40px; text-align:center; border-top:1px solid #e5e7eb;">
+                            <p style="margin:0; font-size:12px; color:#9ca3af;">
+                                此為自動發送郵件，請勿直接回覆。<br>
+                                © 2026 Roger Quant. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+
+            </td>
+        </tr>
+    </table>
+
+</body>
+
+</html>

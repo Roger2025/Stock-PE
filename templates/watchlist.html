@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>自選股戰情室 | Roger Quant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/transitions.css') }}?v=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/watchlist.css') }}?v=1.0">
+</head>
+
+<body>
+    {% include 'partials/navbar.html' %}
+
+    <div class="hero-section">
+        <div class="container-fluid py-4">
+            <h1 class="hero-title mb-2">
+                <i class="fas fa-eye me-2"></i>自選股戰情室
+            </h1>
+            <p class="hero-subtitle text-muted">即時 PE 估值追蹤 · AI 洞察分析</p>
+
+            <!-- 新增股票表單 -->
+            <div class="add-stock-card mt-4">
+                <form action="{{ url_for('watchlist.add_watchlist') }}" method="POST"
+                    onsubmit="triggerPageTransition()">
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text"><i class="fas fa-plus-circle"></i></span>
+                        <input type="text" name="stock_code" class="form-control" placeholder="輸入股票代碼，例如：2330" required
+                            pattern="[0-9]{4,6}" title="請輸入 4-6 位數字股票代碼">
+                        <button type="submit" class="btn btn-add-stock">
+                            <i class="fas fa-plus me-1"></i>加入追蹤
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-messages mt-3">
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+
+    <!-- 自選股卡片區域 -->
+    <div class="container-fluid py-4">
+        {% if items %}
+        <div class="row g-4" id="watchlist-cards">
+            {% for item in items %}
+            <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+                <div class="stock-card">
+                    <div class="card-header-row">
+                        <div class="stock-info">
+                            <span class="stock-code">{{ item.stock_code }}</span>
+                            <span class="stock-name">{{ item.stock_name }}</span>
+                        </div>
+                        <form action="{{ url_for('watchlist.remove_watchlist', item_id=item.id) }}" method="POST"
+                            class="remove-form" onsubmit="return confirm('確定要移除 {{ item.stock_code }} 嗎？')">
+                            <button type="submit" class="btn-remove" title="移除">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="card-body">
+                        {% if item.pe_ratio is not none %}
+                        <div class="pe-display">
+                            <span class="pe-label">PE 比率</span>
+                            <span
+                                class="pe-value {{ 'pe-low' if item.pe_ratio < 15 else ('pe-mid' if item.pe_ratio < 25 else 'pe-high') }}">
+                                {{ "%.2f"|format(item.pe_ratio) }}
+                            </span>
+                        </div>
+
+                        <div class="grade-display">
+                            <span class="grade-badge grade-{{ item.pe_grade|lower }}">
+                                {{ item.pe_grade }}級
+                            </span>
+                            <span class="grade-label">
+                                {% if item.pe_grade|upper == 'A' %}極度低估
+                                {% elif item.pe_grade|upper == 'B' %}低估
+                                {% elif item.pe_grade|upper == 'C' %}合理
+                                {% elif item.pe_grade|upper == 'D' %}高估
+                                {% elif item.pe_grade|upper == 'E' %}極度高估
+                                {% else %}無數據{% endif %}
+                            </span>
+                        </div>
+
+                        {% if item.ai_insight %}
+                        <div class="ai-insight">
+                            <i class="fas fa-robot me-1"></i>
+                            {{ item.ai_insight[:100] }}{% if item.ai_insight|length > 100 %}...{% endif %}
+                        </div>
+                        {% endif %}
+                        {% else %}
+                        <div class="no-data">
+                            <i class="fas fa-spinner fa-spin me-2"></i>
+                            正在取得 PE 數據...
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- ECharts 圖表 -->
+        <div class="chart-section mt-5">
+            <div class="chart-card">
+                <h5 class="chart-title"><i class="fas fa-chart-bar me-2"></i>PE 比率比較</h5>
+                <div id="pe-chart" style="width: 100%; height: 400px;"></div>
+            </div>
+        </div>
+
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <h4>自選股是空的</h4>
+            <p class="text-muted">輸入股票代碼開始追蹤您的關注清單</p>
+        </div>
+        {% endif %}
+    </div>
+
+    {% include 'partials/footer.html' %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="{{ url_for('static', filename='js/transitions.js') }}"></script>
+    <script>
+        // 渲染 PE 比較圖表
+        document.addEventListener('DOMContentLoaded', function () {
+            var chartDiv = document.getElementById('pe-chart');
+            if (!chartDiv) return;
+
+            var chart = echarts.init(chartDiv);
+
+            var stockCodes = [];
+            var peValues = [];
+            {% for item in items %}
+            {% if item.pe_ratio is not none %}
+            stockCodes.push('{{ item.stock_code }}');
+            peValues.push({{ item.pe_ratio }});
+        {% endif %}
+        {% endfor %}
+
+        var option = {
+            backgroundColor: 'transparent',
+            tooltip: {
+                trigger: 'axis',
+                backgroundColor: 'rgba(10, 11, 20, 0.9)',
+                borderColor: '#1d3557',
+                textStyle: { color: '#e4e7eb' }
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: stockCodes,
+                axisLabel: { color: '#a8b2c1', rotate: 45 },
+                axisLine: { lineStyle: { color: '#1d3557' } }
+            },
+            yAxis: {
+                type: 'value',
+                axisLabel: { color: '#a8b2c1' },
+                splitLine: { lineStyle: { color: 'rgba(29, 53, 87, 0.3)' } }
+            },
+            series: [{
+                name: 'PE',
+                type: 'bar',
+                data: peValues,
+                itemStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: '#00d4ff' },
+                        { offset: 1, color: '#0a2e5c' }
+                    ])
+                },
+                emphasis: {
+                    itemStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: '#ff6b6b' },
+                            { offset: 1, color: '#5c0a0a' }
+                        ])
+                    }
+                }
+            }]
+        };
+
+        chart.setOption(option);
+        window.addEventListener('resize', function () { chart.resize(); });
+    });
+    </script>
+</body>
+
+</html>

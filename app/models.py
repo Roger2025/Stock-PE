@@ -66,3 +66,39 @@ class User(db.Model, UserMixin):
             return "Pro 月費版"
         
         return "Pro 尊榮版"
+
+
+class WatchlistItem(db.Model):
+    """自選股監控股票"""
+    __tablename__ = 'watchlist_items'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    stock_code = db.Column(db.String(20), nullable=False)  # 股票代碼，如 "2330"
+    stock_name = db.Column(db.String(100), nullable=True)   # 股票名稱
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+    
+    user = db.relationship('User', backref='watchlist_items')
+    
+    def __repr__(self):
+        return f'<WatchlistItem {self.stock_code}>'
+
+
+class EmailLog(db.Model):
+    """郵件發送記錄"""
+    __tablename__ = 'email_logs'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    email_type = db.Column(db.String(50), nullable=False)  # 'pe_alert', 'backtest_alert', 'welcome'
+    recipient = db.Column(db.String(120), nullable=False)
+    subject = db.Column(db.String(200), nullable=False)
+    sent_at = db.Column(db.DateTime, default=datetime.now)
+    status = db.Column(db.String(20), default='sent')  # 'sent', 'failed'
+    
+    user = db.relationship('User', backref='email_logs')
+    
+    def __repr__(self):
+        return f'<EmailLog {self.email_type} -> {self.recipient}>'
+

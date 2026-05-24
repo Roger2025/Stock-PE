@@ -5,11 +5,13 @@ import logging
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from flask_mail import Mail
 from config import Config
 
 # 初始化擴展實例
 db = SQLAlchemy()
 login_manager = LoginManager()
+mail = Mail()
 
 
 def create_app():
@@ -27,6 +29,7 @@ def create_app():
     login_manager.login_view = 'auth.login'
     login_manager.login_message = "⚠️ 偵測到未登入，請先進入會員系統以解鎖戰情室。"
     login_manager.login_message_category = "warning"
+    mail.init_app(app)
     
     # 設定日誌
     logging.basicConfig(
@@ -42,12 +45,14 @@ def create_app():
     from app.routes.analysis import analysis_bp
     from app.routes.payment import payment_bp
     from app.routes.admin import admin_bp
+    from app.routes.watchlist import watchlist_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(analysis_bp)
     app.register_blueprint(payment_bp)
     app.register_blueprint(admin_bp, url_prefix='')
+    app.register_blueprint(watchlist_bp)
     
     # 上下文處理器（注入變數到所有模板）
     @app.context_processor
@@ -64,6 +69,11 @@ def create_app():
     # 建立資料表
     with app.app_context():
         db.create_all()
+    
+    # 啟動排程器 (開發環境)
+    from app.push_scheduler import start_scheduler
+    if app.config.get('MAILGUN_API_KEY'):
+        start_scheduler()
     
     logger.info("✅ Roger Quant SaaS 應用已啟動")
     

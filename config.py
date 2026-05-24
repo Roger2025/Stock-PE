@@ -38,3 +38,8 @@ class Config:
     ECPAY_MERCHANT_ID = os.getenv("ECPAY_MERCHANT_ID", "2000132").strip()
     ECPAY_HASH_KEY = os.getenv("ECPAY_HASH_KEY", "5294y06JbISpM5x9").strip()
     ECPAY_HASH_IV = os.getenv("ECPAY_HASH_IV", "v77hoKGq4kWxNNIS").strip()
+    
+    # Mailgun 郵件服務
+    MAILGUN_API_KEY = os.getenv("MAILGUN_API_KEY", "").strip()
+    MAILGUN_DOMAIN = os.getenv("MAILGUN_DOMAIN", "").strip()
+    MAIL_DEFAULT_SENDER = os.getenv("MAIL_DEFAULT_SENDER", "").strip()

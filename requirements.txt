@@ -10,4 +10,6 @@ yfinance
 pymysql
 flask-sqlalchemy
 flask-login
+flask-mail
 werkzeug
+apscheduler

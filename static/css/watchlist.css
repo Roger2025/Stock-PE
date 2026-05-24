@@ -1,0 +1,297 @@
+/* ==========================================
+   自選股頁面樣式
+   ========================================== */
+
+/* 卡片基本樣式 */
+.stock-card {
+    background: linear-gradient(145deg, rgba(15, 17, 33, 0.95), rgba(20, 24, 48, 0.95));
+    border: 1px solid rgba(29, 53, 87, 0.5);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+    cursor: default;
+}
+
+.stock-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(0, 212, 255, 0.5);
+    box-shadow: 0 12px 40px rgba(0, 212, 255, 0.15),
+        0 0 20px rgba(0, 212, 255, 0.05);
+}
+
+/* 卡片標題列 */
+.card-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: rgba(29, 53, 87, 0.2);
+    border-bottom: 1px solid rgba(29, 53, 87, 0.3);
+}
+
+.stock-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.stock-code {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #00d4ff;
+    letter-spacing: 1px;
+}
+
+.stock-name {
+    font-size: 0.8rem;
+    color: #a8b2c1;
+}
+
+/* 移除按鈕 */
+.btn-remove {
+    background: transparent;
+    border: none;
+    color: #6b7280;
+    font-size: 1rem;
+    padding: 4px 8px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-remove:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+/* 卡片內容 */
+.card-body {
+    padding: 20px;
+}
+
+/* PE 顯示 */
+.pe-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+}
+
+.pe-label {
+    font-size: 0.85rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.pe-value {
+    font-size: 2rem;
+    font-weight: 800;
+    transition: all 0.3s ease;
+}
+
+.pe-low {
+    color: #10b981;
+    text-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
+.pe-mid {
+    color: #f59e0b;
+    text-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+}
+
+.pe-high {
+    color: #ef4444;
+    text-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+}
+
+/* 等級徽章 */
+.grade-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.grade-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.grade-a {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+    border: 2px solid #10b981;
+}
+
+.grade-b {
+    background: rgba(74, 222, 128, 0.15);
+    color: #4ade80;
+    border: 2px solid #4ade80;
+}
+
+.grade-c {
+    background: rgba(250, 204, 21, 0.15);
+    color: #facc15;
+    border: 2px solid #facc15;
+}
+
+.grade-d {
+    background: rgba(251, 146, 60, 0.15);
+    color: #fb923c;
+    border: 2px solid #fb923c;
+}
+
+.grade-e {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 2px solid #ef4444;
+}
+
+.grade-label {
+    font-size: 0.85rem;
+    color: #a8b2c1;
+}
+
+/* AI 洞察 */
+.ai-insight {
+    font-size: 0.8rem;
+    color: #7dd3fc;
+    background: rgba(125, 211, 252, 0.05);
+    padding: 10px 12px;
+    border-radius: 8px;
+    border-left: 3px solid #00d4ff;
+    line-height: 1.5;
+}
+
+/* 無數據狀態 */
+.no-data {
+    text-align: center;
+    padding: 30px 20px;
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+/* 新增股票卡片 */
+.add-stock-card {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.add-stock-card .input-group {
+    background: rgba(15, 17, 33, 0.8);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(29, 53, 87, 0.5);
+}
+
+.add-stock-card .form-control {
+    background: transparent;
+    border: none;
+    color: #e4e7eb;
+    padding: 12px 16px;
+}
+
+.add-stock-card .form-control::placeholder {
+    color: #4a5568;
+}
+
+.add-stock-card .form-control:focus {
+    box-shadow: none;
+    background: transparent;
+    color: #e4e7eb;
+}
+
+.add-stock-card .input-group-text {
+    background: transparent;
+    border: none;
+    color: #00d4ff;
+}
+
+.btn-add-stock {
+    background: linear-gradient(135deg, #00d4ff, #0070b8);
+    border: none;
+    color: #fff;
+    font-weight: 700;
+    padding: 12px 24px;
+    transition: all 0.3s ease;
+}
+
+.btn-add-stock:hover {
+    background: linear-gradient(135deg, #00b8e6, #005a94);
+    color: #fff;
+}
+
+/* 空狀態 */
+.empty-state {
+    text-align: center;
+    padding: 80px 20px;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: #1d3557;
+    margin-bottom: 20px;
+}
+
+.empty-state h4 {
+    color: #a8b2c1;
+    font-weight: 600;
+}
+
+/* 圖表區域 */
+.chart-section {
+    padding: 0 10px;
+}
+
+.chart-card {
+    background: linear-gradient(145deg, rgba(15, 17, 33, 0.95), rgba(20, 24, 48, 0.95));
+    border: 1px solid rgba(29, 53, 87, 0.5);
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.chart-title {
+    color: #e4e7eb;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .stock-code {
+        font-size: 1.1rem;
+    }
+
+    .pe-value {
+        font-size: 1.6rem;
+    }
+
+    .chart-card {
+        padding: 16px;
+    }
+
+    #pe-chart {
+        height: 300px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .card-header-row {
+        padding: 12px 16px;
+    }
+
+    .card-body {
+        padding: 16px;
+    }
+
+    .pe-value {
+        font-size: 1.4rem;
+    }
+}

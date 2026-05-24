@@ -135,6 +135,57 @@ def close_db():
 # 2. 爬蟲與資料清洗模組
 # ==========================================
 # 透過API抓取所有股票代號跟名稱
+def get_pe_data(stock_id):
+    """
+    取得股票最新 PE 數據與等級
+    
+    Args:
+        stock_id: 股票代碼
+    
+    Returns:
+        dict: 包含 pe_ratio, grade, insight 等資訊，失敗回傳 None
+    """
+    try:
+        df = get_stock_data(stock_id)
+        if df is None or df.empty:
+            return None
+        
+        # 取得最新 PE
+        df['pe_ratio'] = pd.to_numeric(df['pe_ratio'], errors='coerce')
+        latest = df.dropna(subset=['pe_ratio']).iloc[-1] if len(df.dropna(subset=['pe_ratio'])) > 0 else None
+        
+        if latest is None:
+            return None
+        
+        pe_ratio = float(latest['pe_ratio'])
+        
+        # 計算等級（調整為台灣股市標準，台積電正常 PE 約 20-25）
+        if pe_ratio < 15:
+            grade = 'A'
+            insight = f'{stock_id} PE={pe_ratio:.2f}，處於極度低估區間，具備長期佈局價值。'
+        elif pe_ratio < 20:
+            grade = 'B'
+            insight = f'{stock_id} PE={pe_ratio:.2f}，低估區間，適度關注。'
+        elif pe_ratio < 25:
+            grade = 'C'
+            insight = f'{stock_id} PE={pe_ratio:.2f}，估值合理，維持觀察。'
+        elif pe_ratio < 35:
+            grade = 'D'
+            insight = f'{stock_id} PE={pe_ratio:.2f}，偏高估，注意風險。'
+        else:
+            grade = 'E'
+            insight = f'{stock_id} PE={pe_ratio:.2f}，極度高估，建議謹慎操作。'
+        
+        return {
+            'pe_ratio': pe_ratio,
+            'grade': grade,
+            'insight': insight,
+        }
+    except Exception as e:
+        print(f"❌ 取得 {stock_id} PE 數據失敗: {e}")
+        return None
+
+
 def get_stock_map():
     url = "https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL"
     try:
