@@ -4,44 +4,586 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>自選股戰情室 | Roger Quant</title>
+    <title>自選股戰情室 | Roger 投資分析終端</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/transitions.css') }}?v=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/watchlist.css') }}?v=1.0">
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+            background-color: #0a0b14;
+            color: #e4e7eb;
+            overflow-x: hidden;
+            margin: 0;
+            padding-bottom: 60px;
+        }
+
+        .navbar {
+            background: rgba(10, 11, 20, 0.9) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 載入畫面樣式 */
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 11, 20, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        #loading-overlay.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(79, 172, 254, 0.2);
+            border-top: 4px solid #4facfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-text {
+            color: #ffffff;
+            font-size: 1.2rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+
+        .loading-subtext {
+            color: #8b9bb4;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        .hero-section {
+            padding: 120px 15px 40px;
+            background: radial-gradient(circle at center, rgba(29, 53, 87, 0.5) 0%, rgba(10, 11, 20, 1) 80%);
+            text-align: center;
+        }
+
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #ffffff 30%, #4facfe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            color: #8b9bb4;
+            font-size: 1.1rem;
+            max-width: 650px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .search-container {
+            max-width: 520px;
+            width: 100%;
+            margin: 30px auto 0;
+            background: #131524;
+            padding: 25px 30px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .search-container:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 25px 60px rgba(79, 172, 254, 0.15);
+            border-color: rgba(79, 172, 254, 0.4);
+        }
+
+        .search-container h3 {
+            color: #ffffff;
+            font-weight: 700;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        input[type="text"] {
+            padding: 14px 18px;
+            width: 100%;
+            font-size: 1rem;
+            font-weight: 600;
+            background-color: rgba(10, 11, 20, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            border-color: #4facfe;
+            background-color: #0a0b14;
+            outline: none;
+            box-shadow: 0 0 15px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn-add-stock {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: #ffffff;
+            font-weight: 700;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 10px;
+            width: 100%;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn-add-stock:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.5);
+        }
+
+        .watchlist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .stock-card {
+            background: #131524;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            cursor: grab;
+            user-select: none;
+            position: relative;
+        }
+
+        .stock-card:active {
+            cursor: grabbing;
+        }
+
+        .stock-card.dragging {
+            opacity: 1;
+            transform: scale(1.06) rotate(2deg);
+            box-shadow: 0 25px 60px rgba(79, 172, 254, 0.6);
+            border-color: #4facfe;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .stock-card.drag-over {
+            border-color: #4facfe;
+            border-width: 3px;
+            transform: scale(1.04);
+            box-shadow: 0 15px 35px rgba(79, 172, 254, 0.4);
+            animation: pulseBorder 1s ease infinite;
+        }
+
+        .stock-card .drag-ghost {
+            position: fixed;
+            pointer-events: none;
+            z-index: 10000;
+            opacity: 0.98;
+            transform: rotate(4deg) scale(1.08);
+            transition: none;
+            filter: drop-shadow(0 20px 40px rgba(79, 172, 254, 0.5));
+        }
+
+        @keyframes pulseBorder {
+
+            0%,
+            100% {
+                border-color: rgba(79, 172, 254, 0.6);
+            }
+
+            50% {
+                border-color: rgba(79, 172, 254, 1);
+            }
+        }
+
+        .drag-handle {
+            cursor: grab;
+            color: #4facfe;
+            font-size: 1.2rem;
+            padding: 5px;
+            margin-right: 10px;
+            user-select: none;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .stock-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(79, 172, 254, 0.2);
+            border-color: rgba(79, 172, 254, 0.4);
+        }
+
+        .card-header-custom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            background: rgba(29, 53, 87, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .stock-code {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #8b9bb4;
+            letter-spacing: 1px;
+            line-height: 1.2;
+        }
+
+        .stock-name-display {
+            font-size: 0.95rem;
+            color: #a8b2c1;
+            margin-top: 5px;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .stock-name {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #4facfe;
+            margin-top: 2px;
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+        }
+
+        .btn-remove {
+            background: transparent;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-remove:hover {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: #ef4444;
+        }
+
+        .card-body-custom {
+            padding: 25px;
+            min-height: 200px;
+        }
+
+        .pe-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .pe-label {
+            color: #8b9bb4;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .pe-value {
+            font-size: 2rem;
+            font-weight: 800;
+        }
+
+        .pe-value.pe-low {
+            color: #10b981;
+        }
+
+        .pe-value.pe-mid {
+            color: #f59e0b;
+        }
+
+        .pe-value.pe-high {
+            color: #ef4444;
+        }
+
+        .grade-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .grade-A {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .grade-B {
+            background: rgba(52, 211, 153, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(52, 211, 153, 0.3);
+        }
+
+        .grade-C {
+            background: rgba(251, 191, 36, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        .grade-D {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .grade-E {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .ai-insight {
+            background: rgba(79, 172, 254, 0.08);
+            border-left: 3px solid #4facfe;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: #a8b2c1;
+            line-height: 1.6;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            margin-top: 10px;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 30px;
+            color: #8b9bb4;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #8b9bb4;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .chart-card {
+            background: #131524;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            margin-top: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .chart-title {
+            color: #ffffff;
+            font-weight: 700;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 1.8rem;
+            }
+
+            .watchlist-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    {% include 'partials/navbar.html' %}
+    <!-- 載入畫面 -->
+    <div id="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">載入自選股戰情室</div>
+        <div class="loading-subtext">正在取得您的股票數據...</div>
+    </div>
 
-    <div class="hero-section">
-        <div class="container-fluid py-4">
-            <h1 class="hero-title mb-2">
-                <i class="fas fa-eye me-2"></i>自選股戰情室
-            </h1>
-            <p class="hero-subtitle text-muted">即時 PE 估值追蹤 · AI 洞察分析</p>
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                🚀 {{ current_user.nickname if current_user.is_authenticated and current_user.nickname else "ROGER" }}
+                投資分析終端
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-            <!-- 新增股票表單 -->
-            <div class="add-stock-card mt-4">
-                <form action="{{ url_for('watchlist.add_watchlist') }}" method="POST"
-                    onsubmit="triggerPageTransition()">
-                    <div class="input-group input-group-lg">
-                        <span class="input-group-text"><i class="fas fa-plus-circle"></i></span>
-                        <input type="text" name="stock_code" class="form-control" placeholder="輸入股票代碼，例如：2330" required
-                            pattern="[0-9]{4,6}" title="請輸入 4-6 位數字股票代碼">
-                        <button type="submit" class="btn btn-add-stock">
-                            <i class="fas fa-plus me-1"></i>加入追蹤
-                        </button>
-                    </div>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/"><i class="fa-solid fa-house me-1"></i>首頁</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/analyze"><i class="fa-solid fa-satellite-dish me-1"></i>總經戰情室</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/backtest"><i class="fa-solid fa-chart-line me-1"></i>量化回測</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active fw-bold" href="/watchlist" style="color: #4facfe;"><i
+                                class="fa-solid fa-eye me-1"></i>自選股</a>
+                    </li>
+                </ul>
+
+                <ul class="navbar-nav ms-auto align-items-center gap-2">
+                    {% if current_user.is_authenticated %}
+                    {% if current_user.email|string|lower|trim == admin_email|string|lower|trim %}
+                    <li class="nav-item my-1">
+                        <span class="nav-link text-info fw-bold px-3 py-1"
+                            style="background: rgba(79,172,254,0.08); border-radius: 50px; border: 1px solid rgba(79,172,254,0.2);">
+                            <i class="fa-solid fa-wand-magic-sparkles me-1"></i> 創辦人絕對權限啟用
+                        </span>
+                    </li>
+                    {% elif current_user.is_vip %}
+                    <li class="nav-item my-1">
+                        <span class="nav-link text-warning fw-bold px-3 py-1"
+                            style="background: rgba(255,255,255,0.05); border-radius: 50px;">
+                            <i class="fa-solid fa-crown me-1"></i> Pro 頂級算限已啟用
+                        </span>
+                    </li>
+                    {% else %}
+                    <li class="nav-item my-1">
+                        <a class="nav-link btn-upgrade-portal text-center px-4 py-1" href="/pricing">
+                            <i class="fa-solid fa-gem me-1"></i> 升級尊榮 Pro 算限
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% endif %}
+                </ul>
+
+                <ul class="navbar-nav ms-auto align-items-center gap-2">
+                    {% if current_user.is_authenticated %}
+                    {% if current_user.email|string|lower|trim == admin_email|string|lower|trim %}
+                    <li class="nav-item me-1">
+                        <a class="btn btn-admin-portal btn-sm fw-bold px-3 py-1" href="/admin">
+                            <i class="fa-solid fa-shield-halved me-1"></i> 總管中台
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <span class="nav-link text-success fw-bold fs-7"><i class="fa-solid fa-circle-check me-1"></i>
+                            會員在線</span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-outline-danger btn-sm fw-bold px-3 py-1 me-2" href="/logout"
+                            style="border-radius: 6px;">登出系統</a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item"><a class="nav-link" href="/login">會員登入</a></li>
+                    <li class="nav-item">
+                        <a class="btn btn-danger btn-sm fw-bold px-3 py-1" href="/register"
+                            style="border-radius: 6px; background: #e63946;">免費開通 VIP</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 頁面載入完成後，隱藏載入提示，顯示股票卡片
+        window.addEventListener('load', function () {
+            var loadingOverlay = document.getElementById('loading-overlay');
+            var loadingData = document.getElementById('loading-data');
+            var stockCards = document.getElementById('stock-cards-section');
+
+            // 隱藏全頁加載屏幕
+            if (loadingOverlay) {
+                loadingOverlay.classList.add('fade-out');
+                setTimeout(function () {
+                    loadingOverlay.style.display = 'none';
+                }, 500);
+            }
+
+            // 隱藏 hero-section 中的加載提示
+            if (loadingData) loadingData.style.display = 'none';
+
+            // 顯示股票卡片（資料已經在服務端渲染好了）
+            if (stockCards) stockCards.style.display = 'block';
+        });
+    </script>
+
+    <section class="hero-section">
+        <div class="container">
+            <h1 class="hero-title">自選股戰情室</h1>
+            <p class="hero-subtitle">即時 PE 估值追蹤 · AI 洞察分析</p>
+
+            <!-- 郵件訂閱按鈕 -->
+            <div class="mt-3 mb-3">
+                <a href="{{ url_for('email.email_settings') }}" class="btn"
+                    style="background: linear-gradient(135deg, #4facfe 0%, #00f2c3 100%); color: #0a0b14; font-weight: 700; border-radius: 8px;">
+                    <i class="fa-solid fa-envelope me-2"></i>郵件通知設定
+                </a>
+            </div>
+
+            <!-- 讀取資料中提示 -->
+            <div id="loading-data" class="text-center py-4">
+                <div class="loading-spinner mx-auto"></div>
+                <div class="loading-text mt-3">讀取資料中</div>
+                <div class="loading-subtext">正在取得您的自選股數據...</div>
+            </div>
+
+            <div class="search-container">
+                <h3><i class="fa-solid fa-plus-circle me-2"></i>加入追蹤股票</h3>
+                <form action="{{ url_for('watchlist.add_watchlist') }}" method="POST">
+                    <input type="text" name="stock_code" placeholder="輸入股票代碼，例如：2330" required pattern="[0-9]{4,6}"
+                        title="請輸入 4-6 位數字股票代碼">
+                    <button type="submit" class="btn-add-stock">
+                        <i class="fa-solid fa-plus me-2"></i>加入追蹤
+                    </button>
                 </form>
             </div>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-            <div class="flash-messages mt-3">
+            <div class="mt-4">
                 {% for category, message in messages %}
                 <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                    {{ message }}
+                    <strong>系統通知：</strong> {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
                 {% endfor %}
@@ -49,86 +591,71 @@
             {% endif %}
             {% endwith %}
         </div>
-    </div>
+    </section>
 
-    <!-- 自選股卡片區域 -->
-    <div class="container-fluid py-4">
+    <section class="container py-4" id="stock-cards-section" style="display: none;">
         {% if items %}
-        <div class="row g-4" id="watchlist-cards">
+        <div class="watchlist-grid">
             {% for item in items %}
-            <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
-                <div class="stock-card">
-                    <div class="card-header-row">
-                        <div class="stock-info">
-                            <span class="stock-code">{{ item.stock_code }}</span>
-                            <span class="stock-name">{{ item.stock_name }}</span>
+            <div class="stock-card" data-stock-code="{{ item.stock_code }}">
+                <div class="card-header-custom">
+                    <div style="display: flex; align-items: center;">
+                        <i class="fa-solid fa-grip-vertical drag-handle"></i>
+                        <div>
+                            <div class="stock-name">{{ item.stock_name if item.stock_name else item.stock_code }}</div>
+                            <div class="stock-code">{{ item.stock_code }}</div>
                         </div>
-                        <form action="{{ url_for('watchlist.remove_watchlist', item_id=item.id) }}" method="POST"
-                            class="remove-form" onsubmit="return confirm('確定要移除 {{ item.stock_code }} 嗎？')">
-                            <button type="submit" class="btn-remove" title="移除">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </form>
+                    </div>
+                    <form action="{{ url_for('watchlist.remove_watchlist', item_id=item.id) }}" method="POST"
+                        style="display:inline;" onsubmit="return confirm('確定要移除 {{ item.stock_code }} 嗎？')">
+                        <button type="submit" class="btn-remove">
+                            <i class="fa-solid fa-trash me-1"></i>移除
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card-body-custom">
+                    {% if item.pe_ratio is not none %}
+                    <div class="pe-display">
+                        <span class="pe-label">PE 比率</span>
+                        <span
+                            class="pe-value {{ 'pe-low' if item.pe_ratio < 20 else ('pe-mid' if item.pe_ratio < 25 else 'pe-high') }}">
+                            {{ "%.2f"|format(item.pe_ratio) }}
+                        </span>
                     </div>
 
-                    <div class="card-body">
-                        {% if item.pe_ratio is not none %}
-                        <div class="pe-display">
-                            <span class="pe-label">PE 比率</span>
-                            <span
-                                class="pe-value {{ 'pe-low' if item.pe_ratio < 15 else ('pe-mid' if item.pe_ratio < 25 else 'pe-high') }}">
-                                {{ "%.2f"|format(item.pe_ratio) }}
-                            </span>
-                        </div>
-
-                        <div class="grade-display">
-                            <span class="grade-badge grade-{{ item.pe_grade|lower }}">
-                                {{ item.pe_grade }}級
-                            </span>
-                            <span class="grade-label">
-                                {% if item.pe_grade|upper == 'A' %}極度低估
-                                {% elif item.pe_grade|upper == 'B' %}低估
-                                {% elif item.pe_grade|upper == 'C' %}合理
-                                {% elif item.pe_grade|upper == 'D' %}高估
-                                {% elif item.pe_grade|upper == 'E' %}極度高估
-                                {% else %}無數據{% endif %}
-                            </span>
-                        </div>
-
-                        {% if item.ai_insight %}
-                        <div class="ai-insight">
-                            <i class="fas fa-robot me-1"></i>
-                            {{ item.ai_insight[:100] }}{% if item.ai_insight|length > 100 %}...{% endif %}
-                        </div>
-                        {% endif %}
-                        {% else %}
-                        <div class="no-data">
-                            <i class="fas fa-spinner fa-spin me-2"></i>
-                            正在取得 PE 數據...
-                        </div>
-                        {% endif %}
+                    <div class="grade-badge grade-{{ item.pe_grade|upper }}">
+                        {{ item.pe_grade }}級
                     </div>
+
+                    <div class="ai-insight">
+                        <i class="fa-solid fa-robot me-1"></i>
+                        {{ item.ai_insight }}
+                    </div>
+                    {% else %}
+                    <div class="no-data">
+                        <i class="fa-solid fa-spinner fa-spin me-2"></i>
+                        正在取得 PE 數據...
+                    </div>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}
         </div>
 
-        <!-- ECharts 圖表 -->
-        <div class="chart-section mt-5">
-            <div class="chart-card">
-                <h5 class="chart-title"><i class="fas fa-chart-bar me-2"></i>PE 比率比較</h5>
-                <div id="pe-chart" style="width: 100%; height: 400px;"></div>
-            </div>
+        <div class="chart-card">
+            <h5 class="chart-title"><i class="fa-solid fa-chart-bar me-2"></i>PE 比率比較</h5>
+            <div id="pe-chart" style="width: 100%; height: 400px;"></div>
         </div>
 
         {% else %}
         <div class="empty-state">
-            <i class="fas fa-inbox"></i>
+            <i class="fa-solid fa-inbox"></i>
             <h4>自選股是空的</h4>
             <p class="text-muted">輸入股票代碼開始追蹤您的關注清單</p>
         </div>
         {% endif %}
-    </div>
+    </section>
 
     {% include 'partials/footer.html' %}
 
@@ -136,7 +663,18 @@
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <script src="{{ url_for('static', filename='js/transitions.js') }}"></script>
     <script>
-        // 渲染 PE 比較圖表
+        // 頁面載入完成後，隱藏載入提示，顯示股票卡片
+        window.addEventListener('load', function () {
+            var loadingData = document.getElementById('loading-data');
+            var stockCards = document.getElementById('stock-cards-section');
+
+            // 立即顯示股票卡片（資料已經在服务端渲染好了）
+            if (loadingData) loadingData.style.display = 'none';
+            if (stockCards) stockCards.style.display = 'block';
+        });
+    </script>
+
+    <script>
         document.addEventListener('DOMContentLoaded', function () {
             var chartDiv = document.getElementById('pe-chart');
             if (!chartDiv) return;
@@ -156,7 +694,7 @@
             backgroundColor: 'transparent',
             tooltip: {
                 trigger: 'axis',
-                backgroundColor: 'rgba(10, 11, 20, 0.9)',
+                backgroundColor: 'rgba(19, 21, 36, 0.95)',
                 borderColor: '#1d3557',
                 textStyle: { color: '#e4e7eb' }
             },
@@ -183,8 +721,8 @@
                 data: peValues,
                 itemStyle: {
                     color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                        { offset: 0, color: '#00d4ff' },
-                        { offset: 1, color: '#0a2e5c' }
+                        { offset: 0, color: '#4facfe' },
+                        { offset: 1, color: '#1d3557' }
                     ])
                 },
                 emphasis: {
@@ -200,7 +738,258 @@
 
         chart.setOption(option);
         window.addEventListener('resize', function () { chart.resize(); });
-    });
+        });
+    </script>
+
+    <script>
+        // 改進的拖放排序功能 - 使用 Pointer Events API
+        document.addEventListener('DOMContentLoaded', function () {
+            let draggedCard = null;
+            let ghostElement = null;
+            let startX = 0;
+            let startY = 0;
+            let currentDropTarget = null;
+            let isDragging = false;
+            let hasMoved = false;
+
+            function handlePointerDown(e) {
+                // 檢查是否點擊拖放圖標
+                const dragHandle = e.target.closest('.drag-handle');
+                if (!dragHandle) return;
+
+                e.preventDefault();
+                draggedCard = dragHandle.closest('.stock-card');
+                if (!draggedCard) return;
+
+                // 計算偏移量
+                const rect = draggedCard.getBoundingClientRect();
+                startX = e.clientX - rect.left;
+                startY = e.clientY - rect.top;
+                isDragging = true;
+                hasMoved = false;
+
+                // 添加 dragging 樣式
+                draggedCard.classList.add('dragging');
+
+                // 創建浮動影分身
+                ghostElement = draggedCard.cloneNode(true);
+                ghostElement.classList.add('drag-ghost');
+                ghostElement.style.width = rect.width + 'px';
+                ghostElement.style.height = rect.height + 'px';
+                ghostElement.style.left = rect.left + 'px';
+                ghostElement.style.top = rect.top + 'px';
+                document.body.appendChild(ghostElement);
+
+                // 隱藏原卡片
+                draggedCard.style.opacity = '0.3';
+
+                // 添加移動和結束事件
+                document.addEventListener('pointermove', handlePointerMove, { passive: false });
+                document.addEventListener('pointerup', handlePointerUp);
+                document.addEventListener('pointercancel', handlePointerUp);
+            }
+
+            function handlePointerMove(e) {
+                if (!isDragging || !ghostElement) return;
+
+                e.preventDefault();
+                hasMoved = true;
+
+                // 更新影分身位置
+                const x = e.clientX - startX;
+                const y = e.clientY - startY;
+                ghostElement.style.left = x + 'px';
+                ghostElement.style.top = y + 'px';
+
+                // 檢測下方的卡片
+                ghostElement.style.display = 'none';
+                const elementBelow = document.elementFromPoint(e.clientX, e.clientY);
+                ghostElement.style.display = '';
+
+                if (!elementBelow) return;
+
+                const dropTarget = elementBelow.closest('.stock-card');
+
+                // 更新 drag-over 樣式
+                if (currentDropTarget && currentDropTarget !== dropTarget) {
+                    currentDropTarget.classList.remove('drag-over');
+                }
+
+                if (dropTarget && dropTarget !== draggedCard) {
+                    dropTarget.classList.add('drag-over');
+                    currentDropTarget = dropTarget;
+                } else {
+                    currentDropTarget = null;
+                }
+            }
+
+            function handlePointerUp(e) {
+                if (!draggedCard || !ghostElement) return;
+
+                // 移除事件監聽
+                document.removeEventListener('pointermove', handlePointerMove);
+                document.removeEventListener('pointerup', handlePointerUp);
+                document.removeEventListener('pointercancel', handlePointerUp);
+
+                // 只有當有移動過才執行交換
+                if (!hasMoved) {
+                    cleanup();
+                    return;
+                }
+
+                // 檢測放置目標
+                ghostElement.style.display = 'none';
+                const elementBelow = document.elementFromPoint(e.clientX, e.clientY);
+                ghostElement.style.display = '';
+
+                if (elementBelow) {
+                    const dropTarget = elementBelow.closest('.stock-card');
+
+                    if (dropTarget && dropTarget !== draggedCard) {
+                        // 交換位置
+                        reorderCards(draggedCard, dropTarget);
+                    }
+                }
+
+                cleanup();
+
+                function cleanup() {
+                    // 清理影分身
+                    if (ghostElement) {
+                        ghostElement.remove();
+                        ghostElement = null;
+                    }
+
+                    // 清理原卡片樣式
+                    if (draggedCard) {
+                        draggedCard.style.opacity = '1';
+                        draggedCard.classList.remove('dragging');
+                    }
+
+                    // 移除所有 drag-over 樣式
+                    document.querySelectorAll('.stock-card').forEach(card => {
+                        card.classList.remove('drag-over');
+                    });
+
+                    draggedCard = null;
+                    currentDropTarget = null;
+                    isDragging = false;
+                }
+            }
+
+            function reorderCards(sourceCard, targetCard) {
+                const cards = Array.from(document.querySelectorAll('.stock-card'));
+                const sourceIndex = cards.indexOf(sourceCard);
+                const targetIndex = cards.indexOf(targetCard);
+
+                if (sourceIndex === -1 || targetIndex === -1 || sourceIndex === targetIndex) return;
+
+                // 使用更可靠的交換方法
+                const parent = sourceCard.parentNode;
+
+                // 創建包裝容器來幫助交換
+                const sourceWrapper = document.createElement('div');
+                const targetWrapper = document.createElement('div');
+
+                if (sourceCard.nextSibling) {
+                    parent.insertBefore(sourceWrapper, sourceCard.nextSibling);
+                } else {
+                    parent.appendChild(sourceWrapper);
+                }
+
+                parent.insertBefore(sourceWrapper, targetCard);
+                parent.insertBefore(targetCard, sourceCard);
+                parent.insertBefore(sourceCard, sourceWrapper);
+
+                parent.removeChild(sourceWrapper);
+
+                // 顯示通知
+                showReorderNotification();
+
+                // 更新資料庫
+                updateOrder();
+            }
+
+            function updateOrder() {
+                const cards = document.querySelectorAll('.stock-card');
+                const stockCodes = Array.from(cards).map(card => card.dataset.stockCode);
+
+                fetch('/watchlist/reorder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ stock_codes: stockCodes }),
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            console.log('✅ 排序已更新');
+                        } else {
+                            console.error('❌ 排序更新失敗:', data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('❌ 請求錯誤:', error);
+                    });
+            }
+
+            function showReorderNotification() {
+                const existingNotification = document.querySelector('.reorder-notification');
+                if (existingNotification) {
+                    existingNotification.remove();
+                }
+
+                const notification = document.createElement('div');
+                notification.className = 'reorder-notification';
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                    color: white;
+                    padding: 15px 25px;
+                    border-radius: 10px;
+                    box-shadow: 0 10px 30px rgba(79, 172, 254, 0.4);
+                    z-index: 10000;
+                    font-weight: 600;
+                    animation: slideIn 0.3s ease;
+                `;
+                notification.textContent = '✅ 排序已更新';
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    notification.style.animation = 'slideOut 0.3s ease';
+                    setTimeout(() => notification.remove(), 300);
+                }, 2000);
+            }
+
+            // 添加動畫 CSS
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from {
+                        transform: translateX(400px);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                }
+                @keyframes slideOut {
+                    from {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                    to {
+                        transform: translateX(400px);
+                        opacity: 0;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        });
     </script>
 </body>
 

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拖放功能測試</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", sans-serif;
+            background: #0a0b14;
+            color: white;
+            padding: 20px;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .test-card {
+            background: #131524;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            cursor: grab;
+            user-select: none;
+            transition: all 0.15s ease;
+        }
+
+        .test-card:active {
+            cursor: grabbing;
+        }
+
+        .test-card.dragging {
+            opacity: 1;
+            transform: scale(1.06) rotate(2deg);
+            box-shadow: 0 25px 60px rgba(79, 172, 254, 0.6);
+            border-color: #4facfe;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .test-card.drag-over {
+            border-color: #4facfe;
+            border-width: 3px;
+            transform: scale(1.04);
+            animation: pulseBorder 1s ease infinite;
+        }
+
+        .test-card .drag-ghost {
+            position: fixed;
+            pointer-events: none;
+            z-index: 10000;
+            opacity: 0.98;
+            transform: rotate(4deg) scale(1.08);
+        }
+
+        @keyframes pulseBorder {
+
+            0%,
+            100% {
+                border-color: rgba(79, 172, 254, 0.6);
+            }
+
+            50% {
+                border-color: rgba(79, 172, 254, 1);
+            }
+        }
+
+        .test-card h3 {
+            margin: 0 0 10px 0;
+            color: #4facfe;
+        }
+
+        .test-card p {
+            margin: 0;
+            color: #8b9bb4;
+            font-size: 14px;
+        }
+
+        .drag-handle {
+            color: #4facfe;
+            font-size: 1.2rem;
+            margin-right: 10px;
+            cursor: grab;
+        }
+
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(79, 172, 254, 0.1);
+            border-radius: 10px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🧪 拖放功能測試頁面</h1>
+    <p>請嘗試拖動卡片來測試拖放功能是否順暢</p>
+
+    <div class="test-grid" id="testGrid">
+        <div class="test-card" data-id="1">
+            <div style="display: flex; align-items: center;">
+                <span class="drag-handle">⠿</span>
+                <h3>卡片 1 - 台積電</h3>
+            </div>
+            <p>股票代碼: 2330</p>
+        </div>
+
+        <div class="test-card" data-id="2">
+            <div style="display: flex; align-items: center;">
+                <span class="drag-handle">⠿</span>
+                <h3>卡片 2 - 聯發科</h3>
+            </div>
+            <p>股票代碼: 2454</p>
+        </div>
+
+        <div class="test-card" data-id="3">
+            <div style="display: flex; align-items: center;">
+                <span class="drag-handle">⠿</span>
+                <h3>卡片 3 - 卜蜂</h3>
+            </div>
+            <p>股票代碼: 1215</p>
+        </div>
+
+        <div class="test-card" data-id="4">
+            <div style="display: flex; align-items: center;">
+                <span class="drag-handle">⠿</span>
+                <h3>卡片 4 - 欣興</h3>
+            </div>
+            <p>股票代碼: 3037</p>
+        </div>
+
+        <div class="test-card" data-id="5">
+            <div style="display: flex; align-items: center;">
+                <span class="drag-handle">⠿</span>
+                <h3>卡片 5 - 大成</h3>
+            </div>
+            <p>股票代碼: 1210</p>
+        </div>
+    </div>
+
+    <div id="result"></div>
+
+    <script>
+        let draggedCard = null;
+        let ghostElement = null;
+        let startX = 0;
+        let startY = 0;
+        let currentDropTarget = null;
+        let isDragging = false;
+        let hasMoved = false;
+
+        function handlePointerDown(e) {
+            const dragHandle = e.target.closest('.drag-handle');
+            if (!dragHandle) return;
+
+            e.preventDefault();
+            draggedCard = dragHandle.closest('.test-card');
+            if (!draggedCard) return;
+
+            const rect = draggedCard.getBoundingClientRect();
+            startX = e.clientX - rect.left;
+            startY = e.clientY - rect.top;
+            isDragging = true;
+            hasMoved = false;
+
+            draggedCard.classList.add('dragging');
+
+            ghostElement = draggedCard.cloneNode(true);
+            ghostElement.classList.add('drag-ghost');
+            ghostElement.style.width = rect.width + 'px';
+            ghostElement.style.height = rect.height + 'px';
+            ghostElement.style.left = rect.left + 'px';
+            ghostElement.style.top = rect.top + 'px';
+            document.body.appendChild(ghostElement);
+
+            draggedCard.style.opacity = '0.3';
+
+            document.addEventListener('pointermove', handlePointerMove, { passive: false });
+            document.addEventListener('pointerup', handlePointerUp);
+            document.addEventListener('pointercancel', handlePointerUp);
+
+            showResult('✅ 開始拖動...');
+        }
+
+        function handlePointerMove(e) {
+            if (!isDragging || !ghostElement) return;
+
+            e.preventDefault();
+            hasMoved = true;
+
+            const x = e.clientX - startX;
+            const y = e.clientY - startY;
+            ghostElement.style.left = x + 'px';
+            ghostElement.style.top = y + 'px';
+
+            ghostElement.style.display = 'none';
+            const elementBelow = document.elementFromPoint(e.clientX, e.clientY);
+            ghostElement.style.display = '';
+
+            if (!elementBelow) return;
+
+            const dropTarget = elementBelow.closest('.test-card');
+
+            if (currentDropTarget && currentDropTarget !== dropTarget) {
+                currentDropTarget.classList.remove('drag-over');
+            }
+
+            if (dropTarget && dropTarget !== draggedCard) {
+                dropTarget.classList.add('drag-over');
+                currentDropTarget = dropTarget;
+                showResult(`🎯 目標: ${dropTarget.querySelector('h3').textContent}`);
+            } else {
+                currentDropTarget = null;
+            }
+        }
+
+        function handlePointerUp(e) {
+            if (!draggedCard || !ghostElement) return;
+
+            document.removeEventListener('pointermove', handlePointerMove);
+            document.removeEventListener('pointerup', handlePointerUp);
+            document.removeEventListener('pointercancel', handlePointerUp);
+
+            if (!hasMoved) {
+                cleanup();
+                return;
+            }
+
+            ghostElement.style.display = 'none';
+            const elementBelow = document.elementFromPoint(e.clientX, e.clientY);
+            ghostElement.style.display = '';
+
+            if (elementBelow) {
+                const dropTarget = elementBelow.closest('.test-card');
+
+                if (dropTarget && dropTarget !== draggedCard) {
+                    reorderCards(draggedCard, dropTarget);
+                    showResult(`✅ 成功交換: ${draggedCard.querySelector('h3').textContent} ↔ ${dropTarget.querySelector('h3').textContent}`);
+                } else {
+                    showResult('⚠️ 沒有有效的目標');
+                }
+            }
+
+            cleanup();
+        }
+
+        function cleanup() {
+            if (ghostElement) {
+                ghostElement.remove();
+                ghostElement = null;
+            }
+
+            if (draggedCard) {
+                draggedCard.style.opacity = '1';
+                draggedCard.classList.remove('dragging');
+            }
+
+            document.querySelectorAll('.test-card').forEach(card => {
+                card.classList.remove('drag-over');
+            });
+
+            draggedCard = null;
+            currentDropTarget = null;
+            isDragging = false;
+        }
+
+        function reorderCards(sourceCard, targetCard) {
+            const cards = Array.from(document.querySelectorAll('.test-card'));
+            const sourceIndex = cards.indexOf(sourceCard);
+            const targetIndex = cards.indexOf(targetCard);
+
+            if (sourceIndex === -1 || targetIndex === -1 || sourceIndex === targetIndex) return;
+
+            const parent = sourceCard.parentNode;
+
+            const sourceWrapper = document.createElement('div');
+
+            if (sourceCard.nextSibling) {
+                parent.insertBefore(sourceWrapper, sourceCard.nextSibling);
+            } else {
+                parent.appendChild(sourceWrapper);
+            }
+
+            parent.insertBefore(sourceWrapper, targetCard);
+            parent.insertBefore(targetCard, sourceCard);
+            parent.insertBefore(sourceCard, sourceWrapper);
+
+            parent.removeChild(sourceWrapper);
+
+            console.log(`✅ 交換成功: ${sourceIndex} ↔ ${targetIndex}`);
+        }
+
+        function showResult(message) {
+            const result = document.getElementById('result');
+            result.textContent = message;
+            result.style.display = 'block';
+        }
+
+        // 添加事件監聽
+        document.querySelectorAll('.test-card').forEach(card => {
+            card.addEventListener('pointerdown', handlePointerDown);
+        });
+
+        console.log('🧪 測試頁面已就緒，請嘗試拖放卡片');
+    </script>
+</body>
+
+</html>

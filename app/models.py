@@ -76,6 +76,7 @@ class WatchlistItem(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     stock_code = db.Column(db.String(20), nullable=False)  # 股票代碼，如 "2330"
     stock_name = db.Column(db.String(100), nullable=True)   # 股票名稱
+    order_index = db.Column(db.Integer, default=0)  # 排序順序
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
     
@@ -98,6 +99,24 @@ class EmailLog(db.Model):
     status = db.Column(db.String(20), default='sent')  # 'sent', 'failed'
     
     user = db.relationship('User', backref='email_logs')
+
+
+class EmailSubscription(db.Model):
+    """郵件訂閱管理"""
+    __tablename__ = 'email_subscriptions'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    subscription_type = db.Column(db.String(50), nullable=False)  # 'watchlist_digest', 'pe_alert', 'backtest_alert'
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+    
+    user = db.relationship('User', backref='email_subscriptions')
+    
+    def __repr__(self):
+        return f'<EmailSubscription {self.subscription_type} for user {self.user_id}>'
+
     
     def __repr__(self):
         return f'<EmailLog {self.email_type} -> {self.recipient}>'

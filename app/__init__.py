@@ -46,6 +46,7 @@ def create_app():
     from app.routes.payment import payment_bp
     from app.routes.admin import admin_bp
     from app.routes.watchlist import watchlist_bp
+    from app.routes.email_settings import email_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
@@ -53,6 +54,7 @@ def create_app():
     app.register_blueprint(payment_bp)
     app.register_blueprint(admin_bp, url_prefix='')
     app.register_blueprint(watchlist_bp)
+    app.register_blueprint(email_bp)
     
     # 上下文處理器（注入變數到所有模板）
     @app.context_processor

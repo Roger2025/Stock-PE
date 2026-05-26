@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>郵件通知中心 | Roger Quant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/transitions.css') }}?v=1.0">
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+            background-color: #0a0b14;
+            color: #e4e7eb;
+            overflow-x: hidden;
+            padding-top: 80px;
+        }
+
+        .navbar {
+            background: rgba(10, 11, 20, 0.9) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .navbar-brand {
+            letter-spacing: 1px;
+            font-weight: 800;
+        }
+
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #ffffff 30%, #4facfe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            color: #8b9bb4;
+            font-size: 1.1rem;
+            max-width: 650px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .card {
+            background: #131524;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(79, 172, 254, 0.2);
+        }
+
+        .table-dark {
+            background: #131524;
+        }
+
+        .table-dark th {
+            border-color: rgba(255, 255, 255, 0.05);
+            color: #4facfe;
+        }
+
+        .table-dark td {
+            border-color: rgba(255, 255, 255, 0.05);
+            color: #e4e7eb;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 導航列 -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                🚀 Roger Quant 投資分析終端
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center gap-2">
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/"><i class="fa-solid fa-house me-1"></i>系統首頁</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/analyze"><i class="fa-solid fa-satellite-dish me-1"></i>總經戰情室</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/backtest"><i class="fa-solid fa-chart-line me-1"></i>量化動態回測</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/watchlist"><i class="fa-solid fa-eye me-1"></i>自選股</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/email/settings" style="color: #4facfe;"><i
+                                class="fa-solid fa-envelope me-1"></i>郵件設定</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-outline-danger btn-sm fw-bold px-3 py-1" href="/logout"
+                            style="border-radius: 6px;">登出系統</a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item"><a class="nav-link" href="/login">會員登入</a></li>
+                    <li class="nav-item">
+                        <a class="btn btn-danger btn-sm fw-bold px-3 py-1" href="/register"
+                            style="border-radius: 6px; background: #e63946;">免費開通 VIP</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="text-center mb-5">
+            <h1 class="hero-title">📧 郵件通知中心</h1>
+            <p class="hero-subtitle">
+                自訂您的投資日報推送服務，掌握市場動態與個股異動
+            </p>
+        </div>
+
+        <!-- 訂閱管理 -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card p-4 mb-4">
+                    <h4 class="text-light mb-4">
+                        <i class="fa-solid fa-bell me-2" style="color: #4facfe;"></i>訂閱管理
+                    </h4>
+
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category if category != 'message' else 'info' }} d-flex align-items-center"
+                        role="alert">
+                        <i
+                            class="fa-solid fa-{{ 'check-circle' if category == 'success' else 'info-circle' }} me-2"></i>
+                        <div>{{ message }}</div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+
+                    <form action="{{ url_for('email.subscribe') }}" method="POST" class="mb-4">
+                        <div class="mb-3">
+                            <label class="form-label text-light">電子郵件地址</label>
+                            <input type="email" name="email" class="form-control" placeholder="your@email.com" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label text-light">訂閱類型</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="subscription_type"
+                                    value="daily_watchlist" id="daily_watchlist" checked>
+                                <label class="form-check-label text-light" for="daily_watchlist">
+                                    每日自選股日報 (08:00 推送)
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="subscription_type"
+                                    value="market_alerts" id="market_alerts">
+                                <label class="form-check-label text-light" for="market_alerts">
+                                    市場異動警報 (即時推送)
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fa-solid fa-paper-plane me-2"></i>立即訂閱
+                        </button>
+                    </form>
+
+                    <hr class="border-secondary">
+
+                    <div class="text-center">
+                        <p class="text-muted mb-3">已經訂閱？在此取消訂閱</p>
+                        <form action="{{ url_for('email.unsubscribe') }}" method="POST" class="d-inline">
+                            <div class="input-group">
+                                <input type="email" name="email" class="form-control" placeholder="your@email.com"
+                                    required>
+                                <button class="btn btn-outline-danger" type="submit">
+                                    <i class="fa-solid fa-bell-slash me-2"></i>取消訂閱
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 發送測試 -->
+                <div class="card p-4 mb-4">
+                    <h4 class="text-light mb-4">
+                        <i class="fa-solid fa-paper-plane me-2" style="color: #4facfe;"></i>立即發送
+                    </h4>
+                    <button type="button" class="btn btn-warning w-100" data-bs-toggle="modal"
+                        data-bs-target="#sendNowModal">
+                        <i class="fa-solid fa-send me-2"></i>立即發送日報
+                    </button>
+                </div>
+
+                <!-- 預覽 -->
+                <div class="card p-4 mb-4">
+                    <h4 class="text-light mb-4">
+                        <i class="fa-solid fa-eye me-2" style="color: #4facfe;"></i>預覽日報
+                    </h4>
+                    <button type="button" class="btn btn-info w-100" id="previewBtn">
+                        <i class="fa-solid fa-eye me-2"></i>查看日報範本
+                    </button>
+                </div>
+
+                <!-- 發送記錄 -->
+                <div class="card p-4 mb-4">
+                    <h4 class="text-light mb-4">
+                        <i class="fa-solid fa-clock me-2" style="color: #4facfe;"></i>發送記錄
+                    </h4>
+
+                    {% if email_logs %}
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover">
+                            <thead>
+                                <tr>
+                                    <th>發送時間</th>
+                                    <th>郵件類型</th>
+                                    <th>收件人</th>
+                                    <th>主旨</th>
+                                    <th>狀態</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in email_logs %}
+                                <tr>
+                                    <td>{{ log.sent_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        <span
+                                            class="badge bg-{{ 'primary' if log.email_type == 'watchlist_digest' else 'warning' }}">
+                                            {{ log.email_type }}
+                                        </span>
+                                    </td>
+                                    <td>{{ log.recipient }}</td>
+                                    <td class="text-truncate" style="max-width: 200px;">{{ log.subject }}</td>
+                                    <td>
+                                        {% if log.status == 'sent' %}
+                                        <span class="badge bg-success">已發送</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">發送失敗</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fa-solid fa-inbox fa-2x mb-3" style="color: #4facfe; opacity: 0.3;"></i>
+                        <p class="text-muted">尚無發送記錄</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 立即發送 Modal -->
+    <div class="modal fade" id="sendNowModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content" style="background: #131524; border: 1px solid rgba(79, 172, 254, 0.2);">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title text-light">
+                        <i class="fa-solid fa-paper-plane me-2" style="color: #4facfe;"></i>立即發送日報
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info d-flex align-items-center"
+                        style="background: rgba(79, 172, 254, 0.1); border: 1px solid rgba(79, 172, 254, 0.3);">
+                        <i class="fa-solid fa-info-circle me-2"></i>
+                        <div>郵件將發送到您的帳號信箱</div>
+                    </div>
+                    <p class="text-light mb-0"><strong>{{ current_user.email }}</strong></p>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="sendNowBtn">
+                        <i class="fa-solid fa-send me-2"></i>立即發送
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 預覽 Modal -->
+    <div class="modal fade" id="previewModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" style="background: #131524; border: 1px solid rgba(79, 172, 254, 0.2);">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title text-light">
+                        <i class="fa-solid fa-eye me-2" style="color: #4facfe;"></i>自選股日報預覽
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="previewContent">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="text-muted mt-3">載入中...</p>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 預覽日報
+        document.getElementById('previewBtn').addEventListener('click', function () {
+            const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+            modal.show();
+
+            fetch('/email/preview-digest', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('previewContent').innerHTML = data.html;
+                })
+                .catch(error => {
+                    document.getElementById('previewContent').innerHTML =
+                        '<div class="text-center text-danger py-3">預覽載入失敗</div>';
+                });
+        });
+
+        // 立即發送
+        document.getElementById('sendNowBtn').addEventListener('click', function () {
+            this.disabled = true;
+            this.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>發送中...';
+
+            fetch('/email/send-now', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('✅ ' + data.message);
+                        bootstrap.Modal.getInstance(document.getElementById('sendNowModal')).hide();
+                        // 重新整理頁面以更新發送記錄
+                        location.reload();
+                    } else {
+                        alert('❌ 發送失敗：' + data.error);
+                        this.disabled = false;
+                        this.innerHTML = '<i class="fa-solid fa-send me-2"></i>立即發送';
+                    }
+                })
+                .catch(error => {
+                    alert('❌ 發送失敗：' + error);
+                    this.disabled = false;
+                    this.innerHTML = '<i class="fa-solid fa-send me-2"></i>立即發送';
+                });
+        });
+    </script>
+</body>
+
+</html>

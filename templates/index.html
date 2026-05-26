@@ -349,6 +349,11 @@
             <span class="nav-link text-success fw-bold fs-7"><i class="fa-solid fa-circle-check me-1"></i> 會員在線</span>
           </li>
           <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('email.email_settings') }}">
+              <i class="fa-solid fa-envelope me-1" style="color: #4facfe;"></i>郵件設定
+            </a>
+          </li>
+          <li class="nav-item">
             <a class="btn btn-outline-danger btn-sm fw-bold px-3 py-1 me-2" href="/logout"
               style="border-radius: 6px;">登出系統</a>
           </li>
@@ -429,9 +434,15 @@
         {% if current_user.is_authenticated and (current_user.is_vip or current_user.email|string|lower|trim ==
         admin_email|string|lower|trim) %}
         <a href="/backtest" class="btn-macro-portal danger-portal"><i class="fa-solid fa-chart-line"></i> 啟動量化動態回測</a>
+        <a href="/watchlist" class="btn-macro-portal"
+          style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"><i class="fa-solid fa-star"></i>
+          開啟自選股戰情室</a>
         {% else %}
         <a href="/pricing" class="btn-macro-portal" style="border-color: #5c6a7e; color: #5c6a7e; cursor: pointer;">
           <i class="fa-solid fa-lock me-2"></i> 量化回測 (Pro 專屬)
+        </a>
+        <a href="/pricing" class="btn-macro-portal" style="border-color: #5c6a7e; color: #5c6a7e; cursor: pointer;">
+          <i class="fa-solid fa-lock me-2"></i> 自選股戰情室 (Pro 專屬)
         </a>
         {% endif %}
       </div>

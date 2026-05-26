@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -25,7 +26,11 @@
             backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
-        .navbar-brand { letter-spacing: 1px; font-weight: 800; }
+
+        .navbar-brand {
+            letter-spacing: 1px;
+            font-weight: 800;
+        }
 
         /* 頂級深色擬真卡片容器 */
         .card-custom {
@@ -42,6 +47,7 @@
             border-radius: 12px;
             padding: 20px;
         }
+
         .form-control-custom {
             background-color: rgba(10, 11, 20, 0.8);
             border: 1px solid rgba(255, 255, 255, 0.15);
@@ -51,6 +57,7 @@
             font-weight: 700;
             transition: all 0.3s ease;
         }
+
         .form-control-custom:focus {
             border-color: #4facfe;
             background-color: #0a0b14;
@@ -71,39 +78,106 @@
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
         }
+
         .kpi-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 30px rgba(79, 172, 254, 0.15) !important;
             border-color: rgba(79, 172, 254, 0.3);
         }
-        .kpi-title { font-size: 0.85rem; color: #8b9bb4 !important; }
-        .kpi-value { font-size: 1.25rem; font-weight: 800; }
+
+        .kpi-title {
+            font-size: 0.85rem;
+            color: #8b9bb4 !important;
+        }
+
+        .kpi-value {
+            font-size: 1.25rem;
+            font-weight: 800;
+        }
 
         /* 左側發光邊框重構 (霓虹色彩對應) */
-        .border-neon-start { border-left: 5px solid #8b9bb4; }
-        .border-neon-info { border-left: 5px solid #4facfe; }
-        .border-neon-danger { border-left: 5px solid #ff5e62; }
-        .border-neon-warning { border-left: 5px solid #fde24f; }
-        .border-neon-success { border-left: 5px solid #00f2c3; }
-        .border-neon-primary { border-left: 5px solid #a855f7; }
-        .border-neon-thr10 { border-left: 5px solid #f0932b; }
-        .border-neon-thr20 { border-left: 5px solid #6ab04c; }
-        .border-neon-thr30 { border-left: 5px solid #eb4d4b; }
-        .border-neon-thr40 { border-left: 5px solid #be2edd; }
+        .border-neon-start {
+            border-left: 5px solid #8b9bb4;
+        }
+
+        .border-neon-info {
+            border-left: 5px solid #4facfe;
+        }
+
+        .border-neon-danger {
+            border-left: 5px solid #ff5e62;
+        }
+
+        .border-neon-warning {
+            border-left: 5px solid #fde24f;
+        }
+
+        .border-neon-success {
+            border-left: 5px solid #00f2c3;
+        }
+
+        .border-neon-primary {
+            border-left: 5px solid #a855f7;
+        }
+
+        .border-neon-thr10 {
+            border-left: 5px solid #f0932b;
+        }
+
+        .border-neon-thr20 {
+            border-left: 5px solid #6ab04c;
+        }
+
+        .border-neon-thr30 {
+            border-left: 5px solid #eb4d4b;
+        }
+
+        .border-neon-thr40 {
+            border-left: 5px solid #be2edd;
+        }
 
         /* 表格深色優化 */
-        .table-custom { color: #e4e7eb; border-color: rgba(255, 255, 255, 0.05); }
-        .table-custom thead th { background-color: rgba(255, 255, 255, 0.05); color: #ffffff; border-bottom: 2px solid #4facfe; }
-        .table-custom tbody td { border-color: rgba(255, 255, 255, 0.05); background-color: transparent; }
-        .table-custom tbody tr:hover td { background-color: rgba(255, 255, 255, 0.02); }
+        .table-custom {
+            color: #e4e7eb;
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .table-custom thead th {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            border-bottom: 2px solid #4facfe;
+        }
+
+        .table-custom tbody td {
+            border-color: rgba(255, 255, 255, 0.05);
+            background-color: transparent;
+        }
+
+        .table-custom tbody tr:hover td {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
 
         /* 滾動條美化 */
-        .table-responsive::-webkit-scrollbar { width: 6px; height: 6px; }
-        .table-responsive::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.2); border-radius: 3px; }
+        .table-responsive::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
 
         /* 自訂 Tooltip */
-        .custom-tooltip-icon { cursor: pointer; color: #5c6a7e; transition: color 0.2s; }
-        .custom-tooltip-icon:hover { color: #4facfe; }
+        .custom-tooltip-icon {
+            cursor: pointer;
+            color: #5c6a7e;
+            transition: color 0.2s;
+        }
+
+        .custom-tooltip-icon:hover {
+            color: #4facfe;
+        }
 
         /* 初始隱藏戰情室主體區域，漸進式揭露專用動畫 */
         #dashboardMainContent {
@@ -113,525 +187,563 @@
         }
 
         @media (max-width: 768px) {
-            .form-control-custom, .btn { width: 100% !important; margin-top: 8px; }
-            .kpi-title { font-size: 0.75rem; }
-            .kpi-value { font-size: 1.1rem !important; }
+
+            .form-control-custom,
+            .btn {
+                width: 100% !important;
+                margin-top: 8px;
+            }
+
+            .kpi-title {
+                font-size: 0.75rem;
+            }
+
+            .kpi-value {
+                font-size: 1.1rem !important;
+            }
         }
     </style>
 </head>
+
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-sm">
-    <div class="container">
-        <a class="navbar-brand fw-bold" href="/">🚀 ROGER 投資分析終端</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto align-items-center gap-2">
-                <li class="nav-item">
-                    <a class="nav-link" href="/"><i class="fa-solid fa-house ms-1 me-1"></i> 系統首頁</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/analyze"><i class="fa-solid fa-satellite-dish ms-1 me-1"></i> 總經戰情室</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link active fw-bold" href="/backtest" style="color: #4facfe;"><i class="fa-solid fa-chart-line ms-1 me-1"></i> 量化動態回測</a>
-                </li>
-                
-                {% if current_user.is_authenticated %}
-                    <li class="nav-item ms-lg-3">
-                        <span class="nav-link text-success fw-bold"><i class="fa-solid fa-circle-check me-1"></i> 尊榮會員已驗證</span>
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">🚀 ROGER 投資分析終端</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center gap-2">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/"><i class="fa-solid fa-house ms-1 me-1"></i> 系統首頁</a>
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-outline-danger btn-sm fw-bold px-3 py-1" href="/logout" style="border-radius: 6px;">登出系統</a>
+                        <a class="nav-link" href="/analyze"><i class="fa-solid fa-satellite-dish ms-1 me-1"></i>
+                            總經戰情室</a>
                     </li>
-                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link active fw-bold" href="/backtest" style="color: #4facfe;"><i
+                                class="fa-solid fa-chart-line ms-1 me-1"></i> 量化動態回測</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/watchlist"><i class="fa-solid fa-eye ms-1 me-1"></i> 自選股</a>
+                    </li>
+
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item ms-lg-3">
+                        <span class="nav-link text-success fw-bold"><i class="fa-solid fa-circle-check me-1"></i>
+                            尊榮會員已驗證</span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-outline-danger btn-sm fw-bold px-3 py-1" href="/logout"
+                            style="border-radius: 6px;">登出系統</a>
+                    </li>
+                    {% else %}
                     <li class="nav-item ms-lg-3"><a class="nav-link" href="/login">會員登入</a></li>
                     <li class="nav-item">
-                        <a class="btn btn-danger btn-sm fw-bold px-3 py-1" href="/register" style="border-radius: 6px; background: #e63946;">免費開通 VIP</a>
+                        <a class="btn btn-danger btn-sm fw-bold px-3 py-1" href="/register"
+                            style="border-radius: 6px; background: #e63946;">免費開通 VIP</a>
                     </li>
-                {% endif %}
-            </ul>
-        </div>
-    </div>
-</nav>
-
-<div class="container" style="padding-top: 100px;">
-    <h3 class="mb-4 fw-bold text-center text-light">📈 股票長線回撤雷達與策略回測終端 <span style="color: #4facfe;">(全動態旗艦版)</span></h3>
-    
-    <div class="card-custom p-4 mb-4">
-        <div class="control-panel">
-            <div class="row g-2 align-items-center justify-content-center">
-                <div class="col-12 col-md-auto text-md-end">
-                    <label for="tickerInput" class="col-form-label fw-bold text-light">股票代號：</label>
-                </div>
-                <div class="col-12 col-md-auto">
-                    <input type="text" id="tickerInput" class="form-control-custom text-center" value="2330.TW" style="width: 140px;">
-                </div>
-                <div class="col-12 col-md-auto text-md-end ms-md-2">
-                    <label for="startDateInput" class="col-form-label fw-bold text-light">起始日：</label>
-                </div>
-                <div class="col-12 col-md-auto">
-                    <input type="date" id="startDateInput" class="form-control-custom text-center" value="2000-01-01" onchange="validateDates()">
-                </div>
-                <div class="col-12 col-md-auto text-md-end ms-md-2">
-                    <label for="endDateInput" class="col-form-label fw-bold text-light">結束日：</label>
-                </div>
-                <div class="col-12 col-md-auto">
-                    <input type="date" id="endDateInput" class="form-control-custom text-center" onchange="validateDates()">
-                </div>
-                <div class="col-12 col-md-auto ms-md-3 mt-3 mt-md-0">
-                    <button id="runBacktestBtn" class="btn fw-bold px-4 py-2 shadow" onclick="executeBacktest()" style="border-radius: 8px; background: linear-gradient(135deg, #1d3557 0%, #4facfe 100%); color: white; border: none;">
-                        🚀 鎖定區間運算
-                    </button>
-                </div>
+                    {% endif %}
+                </ul>
             </div>
         </div>
-    </div>
+    </nav>
 
-    <div id="dashboardMainContent">
-        <div class="row g-3 mb-4">
-            <div class="col-6 col-lg-2">
-                <div class="kpi-card text-center p-3 border-neon-start">
-                    <h6 class="fw-bold mb-1 kpi-title">
-                        區間初價基準
-                        <i class="fa-solid fa-circle-info custom-tooltip-icon ms-1" data-bs-toggle="tooltip" data-bs-placement="top" title="國際量化標準：已扣除歷史配股與減資影響以維持技術指標連續性，呈現除權分割基準走勢。"></i>
-                    </h6>
-                    <h5 id="kpiStartPrice" class="text-light fw-bold mb-0 kpi-value">--</h5>
-                </div>
-            </div>
-            <div class="col-6 col-lg-2">
-                <div class="kpi-card text-center p-3 border-neon-info">
-                    <h6 class="fw-bold mb-1 kpi-title">
-                        全還原初價
-                        <i class="fa-solid fa-circle-info custom-tooltip-icon ms-1" data-bs-toggle="tooltip" data-bs-placement="top" title="科學回測基準：完整扣除歷史現金股利與股票分割，用於精準計算長線持股勝率與報酬。"></i>
-                    </h6>
-                    <h5 id="kpiStartPriceAdj" class="fw-bold mb-0 kpi-value" style="color: #4facfe;">--</h5>
-                </div>
-            </div>
-            <div class="col-6 col-lg-2">
-                <div class="kpi-card text-center p-3 border-neon-start">
-                    <h6 class="fw-bold mb-1 kpi-title">區間期末結價</h6>
-                    <h5 id="kpiEndPrice" class="text-light fw-bold mb-0 kpi-value">--</h5>
-                </div>
-            </div>
-            <div class="col-6 col-lg-2">
-                <div class="kpi-card text-center p-3 border-neon-danger">
-                    <h6 class="fw-bold mb-1 kpi-title">
-                        區間總報酬率
-                        <i class="fa-solid fa-circle-info custom-tooltip-icon ms-1" data-bs-toggle="tooltip" data-bs-placement="top" title="動態連動計算：基於全還原股價推算當前鎖定視窗內的總體資產成長百分比。"></i>
-                    </h6>
-                    <h5 id="kpiTotalReturn" class="fw-bold mb-0 kpi-value" style="color: #ff5e62;">-- %</h5>
-                </div>
-            </div>
-            <div class="col-6 col-lg-2">
-                <div class="kpi-card text-center p-3 border-neon-warning">
-                    <h6 class="fw-bold mb-1 kpi-title">最大回撤 (MDD)</h6>
-                    <h5 id="kpiMdd" class="fw-bold mb-0 kpi-value" style="color: #fde24f;">-- %</h5>
-                </div>
-            </div>
-            <div class="col-6 col-lg-2">
-                <div class="kpi-card text-center p-3 border-neon-success">
-                    <h6 class="fw-bold mb-1 kpi-title">總體策略勝率</h6>
-                    <h5 id="kpiWinrate" class="fw-bold mb-0 kpi-value" style="color: #00f2c3;">-- %</h5>
-                </div>
-            </div>
-
-            <div class="col-6 col-lg-2">
-                <div class="kpi-card text-center p-3 border-neon-primary">
-                    <h6 class="fw-bold mb-1 kpi-title">總觸發次數</h6>
-                    <h5 id="kpiSignals" class="fw-bold mb-0 kpi-value" style="color: #a855f7;">-- 次</h5>
-                </div>
-            </div>
-            <div class="col-6 col-lg-2">
-                <div class="kpi-card text-center p-3 border-neon-thr10">
-                    <h6 class="fw-bold mb-1 kpi-title">觸發 -10% 防線</h6>
-                    <h5 id="kpiCount10" class="fw-bold mb-0 kpi-value" style="color: #f0932b;">-- 次</h5>
-                </div>
-            </div>
-            <div class="col-6 col-lg-2">
-                <div class="kpi-card text-center p-3 border-neon-thr20">
-                    <h6 class="fw-bold mb-1 kpi-title">觸發 -20% 防線</h6>
-                    <h5 id="kpiCount20" class="fw-bold mb-0 kpi-value" style="color: #6ab04c;">-- 次</h5>
-                </div>
-            </div>
-            <div class="col-6 col-lg-2">
-                <div class="kpi-card text-center p-3 border-neon-thr30">
-                    <h6 class="fw-bold mb-1 kpi-title">觸發 -30% 防線</h6>
-                    <h5 id="kpiCount30" class="fw-bold mb-0 kpi-value" style="color: #eb4d4b;">-- 次</h5>
-                </div>
-            </div>
-            <div class="col-6 col-lg-2">
-                <div class="kpi-card text-center p-3 border-neon-thr40">
-                    <h6 class="fw-bold mb-1 kpi-title">觸發 -40% 防線</h6>
-                    <h5 id="kpiCount40" class="fw-bold mb-0 kpi-value" style="color: #be2edd;">-- 次</h5>
-                </div>
-            </div>
-            <div class="col-6 col-lg-2">
-                <div class="kpi-card text-center p-3" style="border-left: 5px solid #ffffff; background-color: rgba(255,255,255,0.05);">
-                    <h6 class="fw-bold mb-1 kpi-title" style="color: #ffffff !important;">目前最新股價</h6>
-                    <h5 id="kpiCurrentPrice" class="fw-bold mb-0 kpi-value text-light">--</h5>
-                </div>
-            </div>
-        </div>
+    <div class="container" style="padding-top: 100px;">
+        <h3 class="mb-4 fw-bold text-center text-light">📈 股票長線回撤雷達與策略回測終端 <span style="color: #4facfe;">(全動態旗艦版)</span>
+        </h3>
 
         <div class="card-custom p-4 mb-4">
-            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
-                <h5 class="fw-bold mb-1 mb-md-0 text-light" style="font-size: 1.2rem;">📈 股價走勢與回撤雷達同步圖</h5>
-                <span class="badge px-3 py-2 fs-7" style="border-radius: 8px; background: rgba(79, 172, 254, 0.15); color: #4facfe; border: 1px solid rgba(79, 172, 254, 0.3);">
-                    支援滾輪與拖曳即時連動重算
-                </span>
-            </div>
-            <div id="backtestChart" style="width: 100%; height: 550px;"></div>
-        </div>
-
-        <div class="row g-4 mb-4">
-            <div class="col-lg-6">
-                <div class="card-custom p-4 h-100">
-                    <h5 class="fw-bold mb-3 text-light">📊 各門檻平均總報酬對比圖</h5>
-                    <div id="barChart" style="width: 100%; height: 350px;"></div>
-                </div>
-            </div>
-            <div class="col-lg-6">
-                <div class="card-custom p-4 h-100">
-                    <h5 class="fw-bold mb-3 text-light">📊 回撤門檻績效歸納表</h5>
-                    <div class="table-responsive">
-                        <table class="table table-custom table-hover text-center align-middle mb-0" style="font-size: 0.95rem;">
-                            <thead>
-                                <tr>
-                                    <th>門檻</th>
-                                    <th>前瞻</th>
-                                    <th>樣本</th>
-                                    <th>平均報酬</th>
-                                    <th>勝率</th>
-                                    <th>年化</th>
-                                </tr>
-                            </thead>
-                            <tbody id="summaryTableBody">
-                                <tr><td colspan="6" class="py-4 text-muted">正在載入彙整統計...</td></tr>
-                            </tbody>
-                        </table>
+            <div class="control-panel">
+                <div class="row g-2 align-items-center justify-content-center">
+                    <div class="col-12 col-md-auto text-md-end">
+                        <label for="tickerInput" class="col-form-label fw-bold text-light">股票代號：</label>
+                    </div>
+                    <div class="col-12 col-md-auto">
+                        <input type="text" id="tickerInput" class="form-control-custom text-center" value="2330.TW"
+                            style="width: 140px;">
+                    </div>
+                    <div class="col-12 col-md-auto text-md-end ms-md-2">
+                        <label for="startDateInput" class="col-form-label fw-bold text-light">起始日：</label>
+                    </div>
+                    <div class="col-12 col-md-auto">
+                        <input type="date" id="startDateInput" class="form-control-custom text-center"
+                            value="2000-01-01" onchange="validateDates()">
+                    </div>
+                    <div class="col-12 col-md-auto text-md-end ms-md-2">
+                        <label for="endDateInput" class="col-form-label fw-bold text-light">結束日：</label>
+                    </div>
+                    <div class="col-12 col-md-auto">
+                        <input type="date" id="endDateInput" class="form-control-custom text-center"
+                            onchange="validateDates()">
+                    </div>
+                    <div class="col-12 col-md-auto ms-md-3 mt-3 mt-md-0">
+                        <button id="runBacktestBtn" class="btn fw-bold px-4 py-2 shadow" onclick="executeBacktest()"
+                            style="border-radius: 8px; background: linear-gradient(135deg, #1d3557 0%, #4facfe 100%); color: white; border: none;">
+                            🚀 鎖定區間運算
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card-custom p-4 mb-4">
-            <h5 class="fw-bold mb-3 text-light">📋 歷史觸發點位完整明細</h5>
-            <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
-                <table class="table table-custom table-hover text-center align-middle mb-0" style="font-size: 0.95rem;">
-                    <thead style="position: sticky; top: 0; z-index: 1; background-color: #1e213a;">
-                        <tr>
-                            <th>觸發日期</th>
-                            <th>回撤門檻</th>
-                            <th>前瞻區間</th>
-                            <th>區間總報酬 (%)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="detailsTableBody">
-                        <tr><td colspan="4" class="py-3 text-muted">等待資料載入中...</td></tr>
-                    </tbody>
-                </table>
+        <div id="dashboardMainContent">
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-lg-2">
+                    <div class="kpi-card text-center p-3 border-neon-start">
+                        <h6 class="fw-bold mb-1 kpi-title">
+                            區間初價基準
+                            <i class="fa-solid fa-circle-info custom-tooltip-icon ms-1" data-bs-toggle="tooltip"
+                                data-bs-placement="top" title="國際量化標準：已扣除歷史配股與減資影響以維持技術指標連續性，呈現除權分割基準走勢。"></i>
+                        </h6>
+                        <h5 id="kpiStartPrice" class="text-light fw-bold mb-0 kpi-value">--</h5>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-2">
+                    <div class="kpi-card text-center p-3 border-neon-info">
+                        <h6 class="fw-bold mb-1 kpi-title">
+                            全還原初價
+                            <i class="fa-solid fa-circle-info custom-tooltip-icon ms-1" data-bs-toggle="tooltip"
+                                data-bs-placement="top" title="科學回測基準：完整扣除歷史現金股利與股票分割，用於精準計算長線持股勝率與報酬。"></i>
+                        </h6>
+                        <h5 id="kpiStartPriceAdj" class="fw-bold mb-0 kpi-value" style="color: #4facfe;">--</h5>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-2">
+                    <div class="kpi-card text-center p-3 border-neon-start">
+                        <h6 class="fw-bold mb-1 kpi-title">區間期末結價</h6>
+                        <h5 id="kpiEndPrice" class="text-light fw-bold mb-0 kpi-value">--</h5>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-2">
+                    <div class="kpi-card text-center p-3 border-neon-danger">
+                        <h6 class="fw-bold mb-1 kpi-title">
+                            區間總報酬率
+                            <i class="fa-solid fa-circle-info custom-tooltip-icon ms-1" data-bs-toggle="tooltip"
+                                data-bs-placement="top" title="動態連動計算：基於全還原股價推算當前鎖定視窗內的總體資產成長百分比。"></i>
+                        </h6>
+                        <h5 id="kpiTotalReturn" class="fw-bold mb-0 kpi-value" style="color: #ff5e62;">-- %</h5>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-2">
+                    <div class="kpi-card text-center p-3 border-neon-warning">
+                        <h6 class="fw-bold mb-1 kpi-title">最大回撤 (MDD)</h6>
+                        <h5 id="kpiMdd" class="fw-bold mb-0 kpi-value" style="color: #fde24f;">-- %</h5>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-2">
+                    <div class="kpi-card text-center p-3 border-neon-success">
+                        <h6 class="fw-bold mb-1 kpi-title">總體策略勝率</h6>
+                        <h5 id="kpiWinrate" class="fw-bold mb-0 kpi-value" style="color: #00f2c3;">-- %</h5>
+                    </div>
+                </div>
+
+                <div class="col-6 col-lg-2">
+                    <div class="kpi-card text-center p-3 border-neon-primary">
+                        <h6 class="fw-bold mb-1 kpi-title">總觸發次數</h6>
+                        <h5 id="kpiSignals" class="fw-bold mb-0 kpi-value" style="color: #a855f7;">-- 次</h5>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-2">
+                    <div class="kpi-card text-center p-3 border-neon-thr10">
+                        <h6 class="fw-bold mb-1 kpi-title">觸發 -10% 防線</h6>
+                        <h5 id="kpiCount10" class="fw-bold mb-0 kpi-value" style="color: #f0932b;">-- 次</h5>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-2">
+                    <div class="kpi-card text-center p-3 border-neon-thr20">
+                        <h6 class="fw-bold mb-1 kpi-title">觸發 -20% 防線</h6>
+                        <h5 id="kpiCount20" class="fw-bold mb-0 kpi-value" style="color: #6ab04c;">-- 次</h5>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-2">
+                    <div class="kpi-card text-center p-3 border-neon-thr30">
+                        <h6 class="fw-bold mb-1 kpi-title">觸發 -30% 防線</h6>
+                        <h5 id="kpiCount30" class="fw-bold mb-0 kpi-value" style="color: #eb4d4b;">-- 次</h5>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-2">
+                    <div class="kpi-card text-center p-3 border-neon-thr40">
+                        <h6 class="fw-bold mb-1 kpi-title">觸發 -40% 防線</h6>
+                        <h5 id="kpiCount40" class="fw-bold mb-0 kpi-value" style="color: #be2edd;">-- 次</h5>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-2">
+                    <div class="kpi-card text-center p-3"
+                        style="border-left: 5px solid #ffffff; background-color: rgba(255,255,255,0.05);">
+                        <h6 class="fw-bold mb-1 kpi-title" style="color: #ffffff !important;">目前最新股價</h6>
+                        <h5 id="kpiCurrentPrice" class="fw-bold mb-0 kpi-value text-light">--</h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-custom p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+                    <h5 class="fw-bold mb-1 mb-md-0 text-light" style="font-size: 1.2rem;">📈 股價走勢與回撤雷達同步圖</h5>
+                    <span class="badge px-3 py-2 fs-7"
+                        style="border-radius: 8px; background: rgba(79, 172, 254, 0.15); color: #4facfe; border: 1px solid rgba(79, 172, 254, 0.3);">
+                        支援滾輪與拖曳即時連動重算
+                    </span>
+                </div>
+                <div id="backtestChart" style="width: 100%; height: 550px;"></div>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <div class="col-lg-6">
+                    <div class="card-custom p-4 h-100">
+                        <h5 class="fw-bold mb-3 text-light">📊 各門檻平均總報酬對比圖</h5>
+                        <div id="barChart" style="width: 100%; height: 350px;"></div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card-custom p-4 h-100">
+                        <h5 class="fw-bold mb-3 text-light">📊 回撤門檻績效歸納表</h5>
+                        <div class="table-responsive">
+                            <table class="table table-custom table-hover text-center align-middle mb-0"
+                                style="font-size: 0.95rem;">
+                                <thead>
+                                    <tr>
+                                        <th>門檻</th>
+                                        <th>前瞻</th>
+                                        <th>樣本</th>
+                                        <th>平均報酬</th>
+                                        <th>勝率</th>
+                                        <th>年化</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="summaryTableBody">
+                                    <tr>
+                                        <td colspan="6" class="py-4 text-muted">正在載入彙整統計...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-custom p-4 mb-4">
+                <h5 class="fw-bold mb-3 text-light">📋 歷史觸發點位完整明細</h5>
+                <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                    <table class="table table-custom table-hover text-center align-middle mb-0"
+                        style="font-size: 0.95rem;">
+                        <thead style="position: sticky; top: 0; z-index: 1; background-color: #1e213a;">
+                            <tr>
+                                <th>觸發日期</th>
+                                <th>回撤門檻</th>
+                                <th>前瞻區間</th>
+                                <th>區間總報酬 (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detailsTableBody">
+                            <tr>
+                                <td colspan="4" class="py-3 text-muted">等待資料載入中...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<footer class="py-4 text-center text-muted border-top border-secondary mt-5 fs-7" style="background-color: #0a0b14;">
-    <div class="container">
-        <p class="mb-0 fw-bold text-light">© 2026 Roger 投資分析終端. 數據研討專用，投資請自行評估風險。</p>
-    </div>
-</footer>
+    <footer class="py-4 text-center text-muted border-top border-secondary mt-5 fs-7"
+        style="background-color: #0a0b14;">
+        <div class="container">
+            <p class="mb-0 fw-bold text-light">© 2026 Roger 投資分析終端. 數據研討專用，投資請自行評估風險。</p>
+        </div>
+    </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-let myChart = null;
-let barChart = null;
-let cachedChartData = null;
-let cachedDetailsData = null;
-let currentTicker = "2330.TW";
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let myChart = null;
+        let barChart = null;
+        let cachedChartData = null;
+        let cachedDetailsData = null;
+        let currentTicker = "2330.TW";
 
-document.addEventListener("DOMContentLoaded", function() {
-    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+        document.addEventListener("DOMContentLoaded", function () {
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('endDateInput').value = today;
-});
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('endDateInput').value = today;
+        });
 
-function validateDates() {
-    let startElem = document.getElementById('startDateInput');
-    let endElem = document.getElementById('endDateInput');
-    if (startElem.value && endElem.value && startElem.value > endElem.value) {
-        let endObj = new Date(endElem.value);
-        endObj.setFullYear(endObj.getFullYear() - 1);
-        startElem.value = endObj.toISOString().split('T')[0];
-    }
-}
+        function validateDates() {
+            let startElem = document.getElementById('startDateInput');
+            let endElem = document.getElementById('endDateInput');
+            if (startElem.value && endElem.value && startElem.value > endElem.value) {
+                let endObj = new Date(endElem.value);
+                endObj.setFullYear(endObj.getFullYear() - 1);
+                startElem.value = endObj.toISOString().split('T')[0];
+            }
+        }
 
-function executeBacktest() {
-    currentTicker = document.getElementById('tickerInput').value.trim();
-    const startDate = document.getElementById('startDateInput').value;
-    const endDate = document.getElementById('endDateInput').value;
-    const btn = document.getElementById('runBacktestBtn');
-    const mainContent = document.getElementById('dashboardMainContent');
-    
-    if(!startDate || !endDate) { alert("請完整選擇日期！"); return; }
+        function executeBacktest() {
+            currentTicker = document.getElementById('tickerInput').value.trim();
+            const startDate = document.getElementById('startDateInput').value;
+            const endDate = document.getElementById('endDateInput').value;
+            const btn = document.getElementById('runBacktestBtn');
+            const mainContent = document.getElementById('dashboardMainContent');
 
-    btn.disabled = true;
-    btn.innerHTML = "⏳ 運算中...";
-    
-    fetch('/api/run_backtest', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ticker: currentTicker, start_date: startDate, end_date: endDate })
-    })
-    .then(res => res.json())
-    .then(data => {
-        btn.disabled = false; 
-        btn.innerHTML = "🚀 鎖定區間運算";
+            if (!startDate || !endDate) { alert("請完整選擇日期！"); return; }
 
-        if (data.status === 'success') {
-            mainContent.style.display = "block";
-            setTimeout(() => { mainContent.style.opacity = "1"; }, 30);
+            btn.disabled = true;
+            btn.innerHTML = "⏳ 運算中...";
 
-            if (!myChart) {
-                myChart = echarts.init(document.getElementById('backtestChart'));
-                barChart = echarts.init(document.getElementById('barChart'));
-                window.addEventListener('resize', () => { myChart.resize(); barChart.resize(); });
-                
-                myChart.on('dataZoom', function(params) {
-                    if (!cachedChartData) return;
-                    let option = myChart.getOption();
-                    let startIdx = option.dataZoom[0].startValue;
-                    let endIdx = option.dataZoom[0].endValue;
-                    recalculateKpiCards(startIdx, endIdx);
+            fetch('/api/run_backtest', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ticker: currentTicker, start_date: startDate, end_date: endDate })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    btn.disabled = false;
+                    btn.innerHTML = "🚀 鎖定區間運算";
+
+                    if (data.status === 'success') {
+                        mainContent.style.display = "block";
+                        setTimeout(() => { mainContent.style.opacity = "1"; }, 30);
+
+                        if (!myChart) {
+                            myChart = echarts.init(document.getElementById('backtestChart'));
+                            barChart = echarts.init(document.getElementById('barChart'));
+                            window.addEventListener('resize', () => { myChart.resize(); barChart.resize(); });
+
+                            myChart.on('dataZoom', function (params) {
+                                if (!cachedChartData) return;
+                                let option = myChart.getOption();
+                                let startIdx = option.dataZoom[0].startValue;
+                                let endIdx = option.dataZoom[0].endValue;
+                                recalculateKpiCards(startIdx, endIdx);
+                            });
+                        } else {
+                            myChart.resize();
+                            barChart.resize();
+                        }
+
+                        cachedChartData = data.chart_data;
+                        cachedDetailsData = data.details;
+
+                        recalculateKpiCards(0, data.chart_data.dates.length - 1);
+                        renderKLineChart(data.chart_data, data.kpi_cards.current_price);
+                        renderBarChart(data.summary_table);
+                        renderSummaryTable(data.summary_table);
+                        renderDetailsTable(data.details);
+
+                        document.getElementById('kpiCurrentPrice').innerText = data.kpi_cards.current_price;
+                    } else {
+                        mainContent.style.opacity = "0";
+                        setTimeout(() => { mainContent.style.display = "none"; }, 500);
+                        alert("運算失敗：" + data.message);
+                    }
+                })
+                .catch(err => {
+                    btn.disabled = false;
+                    btn.innerHTML = "🚀 鎖定區間運算";
+                    mainContent.style.opacity = "0";
+                    setTimeout(() => { mainContent.style.display = "none"; }, 500);
+                    alert("網路異常，請檢查伺服器日誌。"); console.error(err);
                 });
-            } else {
-                myChart.resize();
-                barChart.resize();
+        }
+
+        function recalculateKpiCards(startIdx, endIdx) {
+            if (!cachedChartData || startIdx === undefined || endIdx === undefined) return;
+
+            const dates = cachedChartData.dates;
+            const prices = cachedChartData.prices;
+            const adjPrices = cachedChartData.adj_prices;
+            const drawdowns = cachedChartData.drawdowns;
+
+            if (startIdx < 0) startIdx = 0;
+            if (endIdx >= dates.length) endIdx = dates.length - 1;
+            if (startIdx > endIdx) return;
+
+            let currentStartPriceReal = prices[startIdx];
+            let currentStartPriceAdj = adjPrices[startIdx];
+            let currentStartDate = dates[startIdx];
+            let currentEndPrice = prices[endIdx];
+
+            let dynamicTotalReturnPct = ((adjPrices[endIdx] / adjPrices[startIdx] - 1) * 100).toFixed(2);
+            let returnDisplayStr = dynamicTotalReturnPct >= 0 ? `+${dynamicTotalReturnPct} %` : `${dynamicTotalReturnPct} %`;
+            let returnColorClass = dynamicTotalReturnPct >= 0 ? 'text-danger' : 'text-success';
+
+            let subDrawdowns = drawdowns.slice(startIdx, endIdx + 1);
+            let currentMdd = Math.min(...subDrawdowns);
+
+            let validSignalsCount = 0;
+            let winCount = 0;
+            let totalEvaluated = 0;
+            let count10 = 0, count20 = 0, count30 = 0, count40 = 0;
+
+            if (cachedDetailsData) {
+                cachedDetailsData.forEach(item => {
+                    if (item.date >= currentStartDate && item.date <= dates[endIdx]) {
+                        validSignalsCount++;
+                        if (item.threshold === "-10%") count10++;
+                        else if (item.threshold === "-20%") count20++;
+                        else if (item.threshold === "-30%") count30++;
+                        else if (item.threshold === "-40%") count40++;
+
+                        if (typeof item.return_pct === 'number') {
+                            totalEvaluated++;
+                            if (item.return_pct > 0) winCount++;
+                        }
+                    }
+                });
             }
 
-            cachedChartData = data.chart_data;
-            cachedDetailsData = data.details;
+            let currentWinrate = totalEvaluated > 0 ? ((winCount / totalEvaluated) * 100).toFixed(1) : 0.0;
 
-            recalculateKpiCards(0, data.chart_data.dates.length - 1);
-            renderKLineChart(data.chart_data, data.kpi_cards.current_price);
-            renderBarChart(data.summary_table);
-            renderSummaryTable(data.summary_table);
-            renderDetailsTable(data.details);
-            
-            document.getElementById('kpiCurrentPrice').innerText = data.kpi_cards.current_price;
-        } else {
-            mainContent.style.opacity = "0";
-            setTimeout(() => { mainContent.style.display = "none"; }, 500);
-            alert("運算失敗：" + data.message);
+            document.getElementById('kpiStartPrice').innerText = `${currentStartPriceReal}\n(${currentStartDate})`;
+            document.getElementById('kpiStartPriceAdj').innerText = `${currentStartPriceAdj}\n(${currentStartDate})`;
+            document.getElementById('kpiEndPrice').innerText = currentEndPrice;
+
+            let kpiReturnElem = document.getElementById('kpiTotalReturn');
+            kpiReturnElem.innerText = returnDisplayStr;
+            kpiReturnElem.className = `fw-bold mb-0 kpi-value ${returnColorClass}`;
+
+            document.getElementById('kpiMdd').innerText = currentMdd.toFixed(2) + " %";
+            document.getElementById('kpiWinrate').innerText = currentWinrate + " %";
+
+            document.getElementById('kpiSignals').innerText = validSignalsCount + " 次";
+            document.getElementById('kpiCount10').innerText = count10 + " 次";
+            document.getElementById('kpiCount20').innerText = count20 + " 次";
+            document.getElementById('kpiCount30').innerText = count30 + " 次";
+            document.getElementById('kpiCount40').innerText = count40 + " 次";
         }
-    })
-    .catch(err => {
-        btn.disabled = false; 
-        btn.innerHTML = "🚀 鎖定區間運算";
-        mainContent.style.opacity = "0";
-        setTimeout(() => { mainContent.style.display = "none"; }, 500);
-        alert("網路異常，請檢查伺服器日誌。"); console.error(err);
-    });
-}
 
-function recalculateKpiCards(startIdx, endIdx) {
-    if (!cachedChartData || startIdx === undefined || endIdx === undefined) return;
-    
-    const dates = cachedChartData.dates;
-    const prices = cachedChartData.prices;
-    const adjPrices = cachedChartData.adj_prices;
-    const drawdowns = cachedChartData.drawdowns;
-    
-    if (startIdx < 0) startIdx = 0;
-    if (endIdx >= dates.length) endIdx = dates.length - 1;
-    if (startIdx > endIdx) return;
-    
-    let currentStartPriceReal = prices[startIdx];
-    let currentStartPriceAdj = adjPrices[startIdx];
-    let currentStartDate = dates[startIdx];
-    let currentEndPrice = prices[endIdx];
-    
-    let dynamicTotalReturnPct = ((adjPrices[endIdx] / adjPrices[startIdx] - 1) * 100).toFixed(2);
-    let returnDisplayStr = dynamicTotalReturnPct >= 0 ? `+${dynamicTotalReturnPct} %` : `${dynamicTotalReturnPct} %`;
-    let returnColorClass = dynamicTotalReturnPct >= 0 ? 'text-danger' : 'text-success';
+        /* 植入深色 ECharts 參數，消除白底突兀感 */
+        function renderKLineChart(chartData, currentPrice) {
+            const dates = chartData.dates;
+            const prices = chartData.prices;
+            const drawdowns = chartData.drawdowns;
 
-    let subDrawdowns = drawdowns.slice(startIdx, endIdx + 1);
-    let currentMdd = Math.min(...subDrawdowns);
-    
-    let validSignalsCount = 0;
-    let winCount = 0;
-    let totalEvaluated = 0;
-    let count10 = 0, count20 = 0, count30 = 0, count40 = 0;
+            let seriesArray = [
+                {
+                    name: '收盤價', type: 'line', data: prices, xAxisIndex: 0, yAxisIndex: 0,
+                    itemStyle: { color: '#ff5e62' }, showSymbol: false, lineStyle: { width: 2 },
+                    markLine: {
+                        data: [{ yAxis: currentPrice, label: { formatter: `現價: ${currentPrice}`, position: 'end', color: '#ff5e62', fontWeight: 'bold' } }],
+                        lineStyle: { color: '#ff5e62', type: 'dashed', width: 1.2 }, symbol: ['none', 'none']
+                    }
+                },
+                {
+                    name: '回撤 (%)', type: 'line', data: drawdowns, xAxisIndex: 1, yAxisIndex: 1,
+                    itemStyle: { color: '#4facfe' }, showSymbol: false, lineStyle: { width: 1.5 },
+                    areaStyle: { color: 'rgba(79, 172, 254, 0.1)' },
+                    markLine: {
+                        data: [
+                            { yAxis: -10, label: { formatter: '-10%', color: '#8b9bb4' } },
+                            { yAxis: -20, label: { formatter: '-20%', color: '#8b9bb4' } },
+                            { yAxis: -30, label: { formatter: '-30%', color: '#8b9bb4' } },
+                            { yAxis: -40, label: { formatter: '-40%', color: '#8b9bb4' } }
+                        ],
+                        lineStyle: { color: 'rgba(255,255,255,0.15)', type: 'dashed', width: 1 }, symbol: ['none', 'none']
+                    }
+                }
+            ];
 
-    if (cachedDetailsData) {
-        cachedDetailsData.forEach(item => {
-            if (item.date >= currentStartDate && item.date <= dates[endIdx]) {
-                validSignalsCount++;
-                if (item.threshold === "-10%") count10++;
-                else if (item.threshold === "-20%") count20++;
-                else if (item.threshold === "-30%") count30++;
-                else if (item.threshold === "-40%") count40++;
+            const colorMap = { '-10%': '#f0932b', '-20%': '#6ab04c', '-30%': '#eb4d4b', '-40%': '#be2edd' };
+            const legendData = ['收盤價', '回撤 (%)'];
 
-                if (typeof item.return_pct === 'number') {
-                    totalEvaluated++;
-                    if (item.return_pct > 0) winCount++;
+            for (let thr in chartData.signals) {
+                let signalDates = chartData.signals[thr];
+                let priceScatter = []; let ddScatter = [];
+
+                signalDates.forEach(d => {
+                    let idx = dates.indexOf(d);
+                    if (idx !== -1) { priceScatter.push([d, prices[idx]]); ddScatter.push([d, drawdowns[idx]]); }
+                });
+
+                if (priceScatter.length > 0) {
+                    let seriesName = `觸發 ${thr}`; legendData.push(seriesName);
+                    seriesArray.push({ name: seriesName, type: 'scatter', xAxisIndex: 0, yAxisIndex: 0, data: priceScatter, itemStyle: { color: colorMap[thr] || '#ffffff' }, symbolSize: 8, z: 10 });
+                    seriesArray.push({ name: seriesName, type: 'scatter', xAxisIndex: 1, yAxisIndex: 1, data: ddScatter, itemStyle: { color: colorMap[thr] || '#ffffff' }, symbol: 'diamond', symbolSize: 6, z: 10 });
                 }
             }
-        });
-    }
 
-    let currentWinrate = totalEvaluated > 0 ? ((winCount / totalEvaluated) * 100).toFixed(1) : 0.0;
-    
-    document.getElementById('kpiStartPrice').innerText = `${currentStartPriceReal}\n(${currentStartDate})`;
-    document.getElementById('kpiStartPriceAdj').innerText = `${currentStartPriceAdj}\n(${currentStartDate})`;
-    document.getElementById('kpiEndPrice').innerText = currentEndPrice;
-    
-    let kpiReturnElem = document.getElementById('kpiTotalReturn');
-    kpiReturnElem.innerText = returnDisplayStr;
-    kpiReturnElem.className = `fw-bold mb-0 kpi-value ${returnColorClass}`;
-
-    document.getElementById('kpiMdd').innerText = currentMdd.toFixed(2) + " %";
-    document.getElementById('kpiWinrate').innerText = currentWinrate + " %";
-
-    document.getElementById('kpiSignals').innerText = validSignalsCount + " 次";
-    document.getElementById('kpiCount10').innerText = count10 + " 次";
-    document.getElementById('kpiCount20').innerText = count20 + " 次";
-    document.getElementById('kpiCount30').innerText = count30 + " 次";
-    document.getElementById('kpiCount40').innerText = count40 + " 次";
-}
-
-/* 植入深色 ECharts 參數，消除白底突兀感 */
-function renderKLineChart(chartData, currentPrice) {
-    const dates = chartData.dates;
-    const prices = chartData.prices;
-    const drawdowns = chartData.drawdowns;
-
-    let seriesArray = [
-        {
-            name: '收盤價', type: 'line', data: prices, xAxisIndex: 0, yAxisIndex: 0,
-            itemStyle: { color: '#ff5e62' }, showSymbol: false, lineStyle: { width: 2 },
-            markLine: {
-                data: [{ yAxis: currentPrice, label: { formatter: `現價: ${currentPrice}`, position: 'end', color: '#ff5e62', fontWeight: 'bold' } }],
-                lineStyle: { color: '#ff5e62', type: 'dashed', width: 1.2 }, symbol: ['none', 'none']
-            }
-        },
-        {
-            name: '回撤 (%)', type: 'line', data: drawdowns, xAxisIndex: 1, yAxisIndex: 1,
-            itemStyle: { color: '#4facfe' }, showSymbol: false, lineStyle: { width: 1.5 },
-            areaStyle: { color: 'rgba(79, 172, 254, 0.1)' },
-            markLine: {
-                data: [
-                    { yAxis: -10, label: { formatter: '-10%', color: '#8b9bb4' } },
-                    { yAxis: -20, label: { formatter: '-20%', color: '#8b9bb4' } },
-                    { yAxis: -30, label: { formatter: '-30%', color: '#8b9bb4' } },
-                    { yAxis: -40, label: { formatter: '-40%', color: '#8b9bb4' } }
+            const option = {
+                tooltip: { trigger: 'axis', axisPointer: { type: 'cross', label: { backgroundColor: '#131524' } }, backgroundColor: 'rgba(19, 21, 36, 0.9)', borderColor: '#4facfe', textStyle: { color: '#ffffff' } },
+                legend: { data: legendData, top: 0, textStyle: { color: '#8b9bb4' } },
+                grid: [
+                    { top: '12%', height: '48%', left: '10%', right: '10%' },
+                    { top: '68%', height: '22%', left: '10%', right: '10%' }
                 ],
-                lineStyle: { color: 'rgba(255,255,255,0.15)', type: 'dashed', width: 1 }, symbol: ['none', 'none']
-            }
+                axisPointer: { link: [{ xAxisIndex: 'all' }] },
+                dataZoom: [
+                    { type: 'slider', xAxisIndex: [0, 1], bottom: '0%', textStyle: { color: '#8b9bb4' }, borderColor: 'rgba(255,255,255,0.05)', fillerColor: 'rgba(79,172,254,0.2)' },
+                    { type: 'inside', xAxisIndex: [0, 1] }
+                ],
+                xAxis: [
+                    { type: 'category', data: dates, gridIndex: 0, axisLabel: { show: false }, axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } } },
+                    { type: 'category', data: dates, gridIndex: 1, axisLabel: { color: '#8b9bb4' }, axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } } }
+                ],
+                yAxis: [
+                    { type: 'value', name: '股價', gridIndex: 0, scale: true, nameTextStyle: { color: '#8b9bb4' }, axisLabel: { color: '#8b9bb4' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } } },
+                    { type: 'value', name: '回撤 (%)', gridIndex: 1, max: 0, nameTextStyle: { color: '#8b9bb4' }, axisLabel: { color: '#8b9bb4' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } } }
+                ],
+                series: seriesArray
+            };
+            myChart.setOption(option, true);
         }
-    ];
 
-    const colorMap = { '-10%': '#f0932b', '-20%': '#6ab04c', '-30%': '#eb4d4b', '-40%': '#be2edd' };
-    const legendData = ['收盤價', '回撤 (%)'];
+        function renderBarChart(summaryData) {
+            let thresholds = [...new Set(summaryData.map(item => item.threshold))];
+            let forwardYears = [...new Set(summaryData.map(item => item.forward_year))];
 
-    for (let thr in chartData.signals) {
-        let signalDates = chartData.signals[thr];
-        let priceScatter = []; let ddScatter = [];
+            let seriesArray = [];
+            forwardYears.forEach(ny => {
+                let dataPoints = [];
+                thresholds.forEach(thr => {
+                    let row = summaryData.find(item => item.threshold === thr && item.forward_year === ny);
+                    dataPoints.push(row && typeof row.mean_ret === 'number' ? row.mean_ret : 0);
+                });
+                seriesArray.push({
+                    name: `${ny}年後平均`, type: 'bar', data: dataPoints,
+                    label: { show: true, position: 'top', formatter: '{c}%', color: '#ffffff' },
+                    itemStyle: { borderRadius: [4, 4, 0, 0] }
+                });
+            });
 
-        signalDates.forEach(d => {
-            let idx = dates.indexOf(d);
-            if (idx !== -1) { priceScatter.push([d, prices[idx]]); ddScatter.push([d, drawdowns[idx]]); }
-        });
-
-        if (priceScatter.length > 0) {
-            let seriesName = `觸發 ${thr}`; legendData.push(seriesName);
-            seriesArray.push({ name: seriesName, type: 'scatter', xAxisIndex: 0, yAxisIndex: 0, data: priceScatter, itemStyle: { color: colorMap[thr] || '#ffffff' }, symbolSize: 8, z: 10 });
-            seriesArray.push({ name: seriesName, type: 'scatter', xAxisIndex: 1, yAxisIndex: 1, data: ddScatter, itemStyle: { color: colorMap[thr] || '#ffffff' }, symbol: 'diamond', symbolSize: 6, z: 10 });
+            const option = {
+                tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: 'rgba(19, 21, 36, 0.9)', borderColor: '#4facfe', textStyle: { color: '#ffffff' } },
+                legend: { data: seriesArray.map(s => s.name), top: 0, textStyle: { color: '#8b9bb4' } },
+                grid: { left: '12%', right: '5%', bottom: '12%', top: '15%' },
+                xAxis: { type: 'category', data: thresholds, name: '門檻', nameTextStyle: { color: '#8b9bb4' }, axisLabel: { color: '#8b9bb4' }, axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } } },
+                yAxis: { type: 'value', name: '平均報酬 (%)', nameTextStyle: { color: '#8b9bb4' }, axisLabel: { color: '#8b9bb4' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } } },
+                series: seriesArray
+            };
+            barChart.setOption(option, true);
         }
-    }
 
-    const option = {
-        tooltip: { trigger: 'axis', axisPointer: { type: 'cross', label: { backgroundColor: '#131524' } }, backgroundColor: 'rgba(19, 21, 36, 0.9)', borderColor: '#4facfe', textStyle: { color: '#ffffff' } },
-        legend: { data: legendData, top: 0, textStyle: { color: '#8b9bb4' } },
-        grid: [
-            { top: '12%', height: '48%', left: '10%', right: '10%' },
-            { top: '68%', height: '22%', left: '10%', right: '10%' }
-        ],
-        axisPointer: { link: [{ xAxisIndex: 'all' }] },
-        dataZoom: [
-            { type: 'slider', xAxisIndex: [0, 1], bottom: '0%', textStyle: { color: '#8b9bb4' }, borderColor: 'rgba(255,255,255,0.05)', fillerColor: 'rgba(79,172,254,0.2)' },
-            { type: 'inside', xAxisIndex: [0, 1] }
-        ],
-        xAxis: [
-            { type: 'category', data: dates, gridIndex: 0, axisLabel: { show: false }, axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } } },
-            { type: 'category', data: dates, gridIndex: 1, axisLabel: { color: '#8b9bb4' }, axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } } }
-        ],
-        yAxis: [
-            { type: 'value', name: '股價', gridIndex: 0, scale: true, nameTextStyle: { color: '#8b9bb4' }, axisLabel: { color: '#8b9bb4' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } } },
-            { type: 'value', name: '回撤 (%)', gridIndex: 1, max: 0, nameTextStyle: { color: '#8b9bb4' }, axisLabel: { color: '#8b9bb4' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } } }
-        ],
-        series: seriesArray
-    };
-    myChart.setOption(option, true);
-}
+        function renderSummaryTable(summaryData) {
+            const tbody = document.getElementById('summaryTableBody'); tbody.innerHTML = "";
+            summaryData.forEach(item => {
+                let tr = document.createElement('tr');
+                let retStr = typeof item.mean_ret === 'number' ? `${item.mean_ret}%` : '--';
+                let annStr = typeof item.mean_ann === 'number' ? `${item.mean_ann}%` : '--';
+                let winStr = typeof item.win_rate === 'number' ? `${item.win_rate}%` : '--';
+                tr.innerHTML = `<td class="fw-bold text-light">${item.threshold}</td><td>${item.forward_year}年</td><td>${item.samples}</td><td class="${typeof item.mean_ret === 'number' && item.mean_ret >= 0 ? 'text-danger fw-bold' : ''}">${retStr}</td><td style="color: #00f2c3;">${winStr}</td><td style="color: #4facfe;" class="fw-bold">${annStr}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
 
-function renderBarChart(summaryData) {
-    let thresholds = [...new Set(summaryData.map(item => item.threshold))];
-    let forwardYears = [...new Set(summaryData.map(item => item.forward_year))];
-    
-    let seriesArray = [];
-    forwardYears.forEach(ny => {
-        let dataPoints = [];
-        thresholds.forEach(thr => {
-            let row = summaryData.find(item => item.threshold === thr && item.forward_year === ny);
-            dataPoints.push(row && typeof row.mean_ret === 'number' ? row.mean_ret : 0);
-        });
-        seriesArray.push({ 
-            name: `${ny}年後平均`, type: 'bar', data: dataPoints, 
-            label: { show: true, position: 'top', formatter: '{c}%', color: '#ffffff' },
-            itemStyle: { borderRadius: [4, 4, 0, 0] }
-        });
-    });
-
-    const option = { 
-        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: 'rgba(19, 21, 36, 0.9)', borderColor: '#4facfe', textStyle: { color: '#ffffff' } }, 
-        legend: { data: seriesArray.map(s => s.name), top: 0, textStyle: { color: '#8b9bb4' } }, 
-        grid: { left: '12%', right: '5%', bottom: '12%', top: '15%' }, 
-        xAxis: { type: 'category', data: thresholds, name: '門檻', nameTextStyle: { color: '#8b9bb4' }, axisLabel: { color: '#8b9bb4' }, axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } } }, 
-        yAxis: { type: 'value', name: '平均報酬 (%)', nameTextStyle: { color: '#8b9bb4' }, axisLabel: { color: '#8b9bb4' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } } }, 
-        series: seriesArray 
-    };
-    barChart.setOption(option, true);
-}
-
-function renderSummaryTable(summaryData) {
-    const tbody = document.getElementById('summaryTableBody'); tbody.innerHTML = "";
-    summaryData.forEach(item => {
-        let tr = document.createElement('tr');
-        let retStr = typeof item.mean_ret === 'number' ? `${item.mean_ret}%` : '--';
-        let annStr = typeof item.mean_ann === 'number' ? `${item.mean_ann}%` : '--';
-        let winStr = typeof item.win_rate === 'number' ? `${item.win_rate}%` : '--';
-        tr.innerHTML = `<td class="fw-bold text-light">${item.threshold}</td><td>${item.forward_year}年</td><td>${item.samples}</td><td class="${typeof item.mean_ret === 'number' && item.mean_ret >= 0 ? 'text-danger fw-bold' : ''}">${retStr}</td><td style="color: #00f2c3;">${winStr}</td><td style="color: #4facfe;" class="fw-bold">${annStr}</td>`;
-        tbody.appendChild(tr);
-    });
-}
-
-function renderDetailsTable(details) {
-    const tbody = document.getElementById('detailsTableBody'); tbody.innerHTML = "";
-    if (details.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="py-3 text-muted">無明細</td></tr>'; return; }
-    details.forEach(item => {
-        let tr = document.createElement('tr');
-        let returnDisplay = item.return_pct; let colorClass = 'text-muted';
-        if (typeof returnDisplay === 'number') { colorClass = returnDisplay >= 0 ? 'text-danger fw-bold' : 'text-success'; returnDisplay = returnDisplay + "%"; }
-        tr.innerHTML = `<td>${item.date}</td><td><span class="badge" style="background: rgba(255,255,255,0.1); color: #4facfe; border: 1px solid rgba(79,172,254,0.3);">${item.threshold}</span></td><td>${item.forward_year}年後</td><td class="${colorClass}">${returnDisplay}</td>`;
-        tbody.appendChild(tr);
-    });
-}
-</script>
-<script src="{{ url_for('static', filename='js/transitions.js') }}?v=1.0"></script>
+        function renderDetailsTable(details) {
+            const tbody = document.getElementById('detailsTableBody'); tbody.innerHTML = "";
+            if (details.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="py-3 text-muted">無明細</td></tr>'; return; }
+            details.forEach(item => {
+                let tr = document.createElement('tr');
+                let returnDisplay = item.return_pct; let colorClass = 'text-muted';
+                if (typeof returnDisplay === 'number') { colorClass = returnDisplay >= 0 ? 'text-danger fw-bold' : 'text-success'; returnDisplay = returnDisplay + "%"; }
+                tr.innerHTML = `<td>${item.date}</td><td><span class="badge" style="background: rgba(255,255,255,0.1); color: #4facfe; border: 1px solid rgba(79,172,254,0.3);">${item.threshold}</span></td><td>${item.forward_year}年後</td><td class="${colorClass}">${returnDisplay}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+    </script>
+    <script src="{{ url_for('static', filename='js/transitions.js') }}?v=1.0"></script>
 </body>
+
 </html>

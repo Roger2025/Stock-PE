@@ -10,7 +10,24 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
+            <!-- 導航連結 -->
             <ul class="navbar-nav mx-auto align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="/"><i class="fa-solid fa-house me-1"></i>首頁</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/analyze"><i class="fa-solid fa-satellite-dish me-1"></i>總經戰情室</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/backtest"><i class="fa-solid fa-chart-line me-1"></i>量化回測</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/watchlist"><i class="fa-solid fa-eye me-1"></i>自選股</a>
+                </li>
+            </ul>
+
+            <!-- 用戶選單 -->
+            <ul class="navbar-nav ms-auto align-items-center gap-2">
                 {% if current_user.is_authenticated %}
                 {% if current_user.email|string|lower|trim == admin_email|string|lower|trim %}
                 <li class="nav-item my-1">

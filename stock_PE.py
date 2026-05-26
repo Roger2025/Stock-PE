@@ -15,6 +15,7 @@ import numpy as np
 from sqlalchemy import create_engine
 from dotenv import load_dotenv
 import platform
+from datetime import datetime
 
 # ==========================================
 # 0. 全域環境與視覺設定
@@ -137,49 +138,150 @@ def close_db():
 # 透過API抓取所有股票代號跟名稱
 def get_pe_data(stock_id):
     """
-    取得股票最新 PE 數據與等級
+    取得股票最新 PE 數據與等級（基於過去 5 年歷史百分位）
     
     Args:
         stock_id: 股票代碼
     
     Returns:
-        dict: 包含 pe_ratio, grade, insight 等資訊，失敗回傳 None
+        dict: 包含 pe_ratio, valuation, percentile, insight 等資訊，失敗回傳 None
     """
     try:
+        # 從資料庫取得歷史 PE 資料
         df = get_stock_data(stock_id)
+        
         if df is None or df.empty:
+            print(f"⚠️ 資料庫無 {stock_id} 資料，改從 API 抓取...")
+            # 如果資料庫沒有資料，直接從證交所 API 抓取最新 PE
+            try:
+                today = datetime.now().strftime('%Y%m%d')
+                json_data = get_stock_history_data(stock_id, today)
+                if json_data and json_data.get('stat') == 'OK':
+                    fields = json_data.get('fields', [])
+                    pe_index = fields.index('本益比') if '本益比' in fields else 3
+                    raw_data = json_data['data']
+                    
+                    if raw_data and len(raw_data) > 0:
+                        pe_str = raw_data[0][pe_index]
+                        if pe_str and pe_str != '-':
+                            pe_ratio = float(pe_str)
+                            if pe_ratio > 0:
+                                # 沒有歷史資料時，返回 PE 值但不給等級
+                                return {
+                                    'pe_ratio': pe_ratio,
+                                    'valuation': '未知',
+                                    'percentile': None,
+                                    'insight': f'{stock_id} 當前 PE={pe_ratio:.2f}，暫無歷史資料比較。',
+                                    'has_history': False,
+                                }
+            except Exception as e:
+                print(f"❌ API 抓取 {stock_id} 失敗: {e}")
+            
             return None
         
-        # 取得最新 PE
+        # 過濾掉錯誤的日期（只保留今年以內的資料）
+        current_year = datetime.now().year
+        df['date'] = pd.to_datetime(df['date'], errors='coerce')
+        df = df.dropna(subset=['date'])
+        df = df[df['date'].dt.year <= current_year]
+        
+        if df.empty:
+            return None
+        
+        # 取得最新 PE 與歷史資料
         df['pe_ratio'] = pd.to_numeric(df['pe_ratio'], errors='coerce')
-        latest = df.dropna(subset=['pe_ratio']).iloc[-1] if len(df.dropna(subset=['pe_ratio'])) > 0 else None
+        df = df.dropna(subset=['pe_ratio'])
         
-        if latest is None:
+        if len(df) < 10:
             return None
         
-        pe_ratio = float(latest['pe_ratio'])
+        latest_pe = float(df['pe_ratio'].iloc[-1])
+        latest_date = str(df['date'].iloc[-1].date())
         
-        # 計算等級（調整為台灣股市標準，台積電正常 PE 約 20-25）
-        if pe_ratio < 15:
-            grade = 'A'
-            insight = f'{stock_id} PE={pe_ratio:.2f}，處於極度低估區間，具備長期佈局價值。'
-        elif pe_ratio < 20:
-            grade = 'B'
-            insight = f'{stock_id} PE={pe_ratio:.2f}，低估區間，適度關注。'
-        elif pe_ratio < 25:
-            grade = 'C'
-            insight = f'{stock_id} PE={pe_ratio:.2f}，估值合理，維持觀察。'
-        elif pe_ratio < 35:
-            grade = 'D'
-            insight = f'{stock_id} PE={pe_ratio:.2f}，偏高估，注意風險。'
-        else:
+        # 計算過去 5 年的歷史統計區間（像河流圖那樣）
+        # 取最近 5 年（或所有可用資料）
+        five_years_ago = datetime.now() - pd.DateOffset(years=5)
+        recent_df = df[df['date'] >= five_years_ago]
+        
+        if len(recent_df) < 5:
+            # 如果 5 年資料不足，使用所有可用資料
+            recent_df = df
+        
+        historical_pe_list = recent_df['pe_ratio'].tolist()
+        latest_pe = float(df['pe_ratio'].iloc[-1])
+        
+        # 計算統計數據
+        pe_min = min(historical_pe_list)
+        pe_max = max(historical_pe_list)
+        pe_avg = sum(historical_pe_list) / len(historical_pe_list)
+        
+        # 計算標準差來劃分五個區域
+        pe_std = (sum((pe - pe_avg) ** 2 for pe in historical_pe_list) / len(historical_pe_list)) ** 0.5
+        
+        # 五個區域界線（類似河流圖）
+        # 危險區 > avg + 2*std
+        # 昂貴區 > avg + std
+        # 合理區 > avg - std
+        # 便宜區 > avg - 2*std
+        # 超跌區 <= avg - 2*std
+        danger_zone = pe_avg + 2 * pe_std  # 危險區
+        expensive_zone = pe_avg + pe_std   # 昂貴區
+        fair_zone = pe_avg - pe_std        # 合理區
+        cheap_zone = pe_avg - 2 * pe_std   # 便宜區
+        
+        # 根據當前 PE 落在哪個區間來評判
+        if latest_pe > danger_zone:
             grade = 'E'
-            insight = f'{stock_id} PE={pe_ratio:.2f}，極度高估，建議謹慎操作。'
+            valuation = '危險'
+            insight = f'{stock_id} 當前 PE={latest_pe:.2f}，處於危險區（> {danger_zone:.2f}），極高估值，建議獲利了結。'
+        elif latest_pe > expensive_zone:
+            grade = 'D'
+            valuation = '昂貴'
+            insight = f'{stock_id} 當前 PE={latest_pe:.2f}，處於昂貴區（> {expensive_zone:.2f}），估值偏高，停止追高。'
+        elif latest_pe > fair_zone:
+            grade = 'C'
+            valuation = '合理'
+            insight = f'{stock_id} 當前 PE={latest_pe:.2f}，處於合理區（> {fair_zone:.2f}），合理估值，持股續抱。'
+        elif latest_pe > cheap_zone:
+            grade = 'B'
+            valuation = '便宜'
+            insight = f'{stock_id} 當前 PE={latest_pe:.2f}，處於便宜區（> {cheap_zone:.2f}），估值偏低，分批佈局。'
+        else:
+            grade = 'A'
+            valuation = '超跌'
+            insight = f'{stock_id} 當前 PE={latest_pe:.2f}，處於超跌區（< {cheap_zone:.2f}），極低估值，價值浮現。'
+        
+        # 計算各區間佔比（用於河流圖顯示）
+        zones = {
+            'danger': sum(1 for pe in historical_pe_list if pe > danger_zone),
+            'expensive': sum(1 for pe in historical_pe_list if expensive_zone < pe <= danger_zone),
+            'fair': sum(1 for pe in historical_pe_list if fair_zone < pe <= expensive_zone),
+            'cheap': sum(1 for pe in historical_pe_list if cheap_zone < pe <= fair_zone),
+            'super_deal': sum(1 for pe in historical_pe_list if pe <= cheap_zone),
+        }
+        total = len(historical_pe_list)
+        zones_pct = {k: round(v / total * 100) for k, v in zones.items()}
         
         return {
-            'pe_ratio': pe_ratio,
+            'pe_ratio': latest_pe,
+            'date': latest_date,
             'grade': grade,
+            'valuation': valuation,
             'insight': insight,
+            'has_history': True,
+            'historical_min': pe_min,
+            'historical_max': pe_max,
+            'historical_avg': round(pe_avg, 2),
+            'historical_std': round(pe_std, 2),
+            # 五個區域界線（給前端河流圖用）
+            'zones': {
+                'danger': round(danger_zone, 2),
+                'expensive': round(expensive_zone, 2),
+                'fair': round(fair_zone, 2),
+                'cheap': round(cheap_zone, 2),
+            },
+            # 各區間佔比
+            'zone_distribution': zones_pct,
         }
     except Exception as e:
         print(f"❌ 取得 {stock_id} PE 數據失敗: {e}")
