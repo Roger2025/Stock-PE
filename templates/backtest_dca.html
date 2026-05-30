@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>定額投資回測 | Roger 投資分析終端</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/transitions.css') }}?v=1.0">
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+            background-color: #0a0b14;
+            color: #e4e7eb;
+            margin: 0;
+            padding-bottom: 60px;
+            overflow-x: hidden;
+            padding-top: 80px; /* 為 navbar 預留空間 */
+        }
+
+        .navbar {
+            background: rgba(10, 11, 20, 0.9) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .navbar-brand {
+            letter-spacing: 1px;
+            font-weight: 800;
+        }
+
+        .card-custom {
+            background: #131524;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .control-panel {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control-custom {
+            background-color: rgba(10, 11, 20, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+
+        .form-control-custom::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .form-control-custom:focus {
+            border-color: #4facfe;
+            background-color: #0a0b14;
+            outline: none;
+            box-shadow: 0 0 15px rgba(79, 172, 254, 0.3);
+            color: #ffffff;
+        }
+
+        /* 策略選擇樣式 */
+        .strategy-radio {
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(10, 11, 20, 0.5);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .strategy-radio:hover {
+            border-color: rgba(79, 172, 254, 0.5);
+            background: rgba(79, 172, 254, 0.05);
+        }
+
+        .strategy-radio.active {
+            border-color: #4facfe;
+            background: rgba(79, 172, 254, 0.1);
+        }
+
+        .strategy-radio input[type="radio"] {
+            margin-right: 8px;
+        }
+
+        .strategy-radio input[type="radio"]:checked+label {
+            color: #4facfe;
+        }
+
+        .form-check {
+            cursor: pointer;
+        }
+
+        .form-check-input {
+            cursor: pointer;
+        }
+
+        .kpi-card {
+            background: #131524;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(79, 172, 254, 0.15) !important;
+            border-color: rgba(79, 172, 254, 0.3);
+        }
+
+        .kpi-title {
+            font-size: 0.85rem;
+            color: #8b9bb4 !important;
+        }
+
+        .kpi-value {
+            font-size: 1.25rem;
+            font-weight: 800;
+        }
+
+        .btn-upgrade-portal {
+            background: linear-gradient(135deg, #f0932b 0%, #ff5e62 100%);
+            color: #ffffff !important;
+            font-weight: 800;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 50px;
+            box-shadow: 0 0 15px rgba(255, 94, 98, 0.4);
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-upgrade-portal:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(255, 94, 98, 0.7);
+            color: #ffffff;
+        }
+
+        @media (max-width: 768px) {
+            .kpi-card {
+                margin-bottom: 15px;
+            }
+
+            .kpi-value {
+                font-size: 1.1rem !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid" id="mainContainer">
+        <!-- 頁面標題 -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="text-white fw-bold mb-2">
+                    <i class="fas fa-chart-line me-2"></i>定額投資回測系統
+                </h2>
+                <p style="color: rgba(255, 255, 255, 0.6);">模擬每月定額投資股票，計算長期報酬表現</p>
+            </div>
+        </div>
+
+        <!-- 回測參數表單 -->
+        <div class="row mb-4">
+            <div class="col-lg-8">
+                <div class="card card-custom">
+                    <div class="card-body p-4">
+                        <h5 class="card-title text-white mb-4">
+                            <i class="fas fa-sliders-h me-2"></i>投資參數設定
+                        </h5>
+
+                        <form id="dcaForm">
+                            <!-- 策略選擇 -->
+                            <div class="mb-4">
+                                <label class="form-label text-white mb-3">
+                                    <i class="fas fa-code-branch me-2"></i>投資策略
+                                </label>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <div class="form-check strategy-radio active" style="cursor: pointer;">
+                                            <input class="form-check-input" type="radio" name="investStrategy"
+                                                id="strategyDCA" value="dca" checked style="cursor: pointer;">
+                                            <label class="form-check-label text-white" for="strategyDCA" style="cursor: pointer;">
+                                                <strong>每月定額投資</strong>
+                                                <div class="small" style="color: rgba(255, 255, 255, 0.6);">每月固定日期投入固定金額</div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check strategy-radio" style="cursor: pointer;">
+                                            <input class="form-check-input" type="radio" name="investStrategy"
+                                                id="strategyPE" value="pe" style="cursor: pointer;">
+                                            <label class="form-check-label text-white" for="strategyPE" style="cursor: pointer;">
+                                                <strong>PE 擇時投資</strong>
+                                                <div class="small" style="color: rgba(255, 255, 255, 0.6);">PE 低於門檻時才投資</div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check strategy-radio" style="cursor: pointer;">
+                                            <input class="form-check-input" type="radio" name="investStrategy"
+                                                id="strategyAccumulate" value="accumulate" style="cursor: pointer;">
+                                            <label class="form-check-label text-white" for="strategyAccumulate" style="cursor: pointer;">
+                                                <strong>PE 擇時累積</strong>
+                                                <div class="small" style="color: rgba(255, 255, 255, 0.6);">每月累積，PE低時一次性投入</div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                <!-- 股票名稱（主要） -->
+                                <div class="col-md-6">
+                                    <label class="form-label text-white">股票名稱 <span
+                                            class="fw-normal small" style="color: rgba(255, 255, 255, 0.7);">（主要搜尋依據）</span></label>
+                                    <input type="text" class="form-control form-control-custom" id="stockName"
+                                        placeholder="例如：台積電" value="">
+                                </div>
+
+                                <!-- 股票代號 -->
+                                <div class="col-md-6">
+                                    <label class="form-label text-white">股票代號 <span
+                                            class="fw-normal small" style="color: rgba(255, 255, 255, 0.7);">（可選）</span></label>
+                                    <input type="text" class="form-control form-control-custom" id="ticker"
+                                        placeholder="例如：2330" value="2330">
+                                </div>
+
+                                <!-- 初始投資金額 -->
+                                <div class="col-md-6">
+                                    <label class="form-label text-white">初始投資金額（元）</label>
+                                    <input type="number" class="form-control form-control-custom" id="initialAmount"
+                                        value="10000" min="0" step="1000">
+                                </div>
+
+                                <!-- 每月定額（僅 DCA 策略顯示） -->
+                                <div class="col-md-6 dca-only">
+                                    <label class="form-label text-white">每月定額投入（元）</label>
+                                    <input type="number" class="form-control form-control-custom" id="monthlyAmount"
+                                        value="5000" min="0" step="1000">
+                                </div>
+
+                                <!-- PE 門檻（僅 PE 策略顯示） -->
+                                <div class="col-md-6 pe-only" style="display: none;">
+                                    <label class="form-label text-white">
+                                        PE 門檻（低於此值才投資）
+                                        <i class="fas fa-info-circle ms-1" style="color: rgba(255, 255, 255, 0.5);" data-bs-toggle="tooltip"
+                                            title="從資料庫取得最新 PE 數據，低於此值才會投資"></i>
+                                    </label>
+                                    <input type="number" class="form-control form-control-custom" id="peThreshold"
+                                        placeholder="例如：15" step="0.1">
+                                </div>
+
+                                <!-- 開始日期 -->
+                                <div class="col-md-6">
+                                    <label class="form-label text-white">開始日期</label>
+                                    <input type="date" class="form-control form-control-custom" id="startDate"
+                                        value="2020-01-01">
+                                </div>
+
+                                <!-- 結束日期 -->
+                                <div class="col-md-6">
+                                    <label class="form-label text-white">結束日期</label>
+                                    <input type="date" class="form-control form-control-custom" id="endDate">
+                                    <script>
+                                        // 立即執行，不等待 DOMContentLoaded
+                                        (function() {
+                                            const today = new Date();
+                                            const yyyy = today.getFullYear();
+                                            const mm = String(today.getMonth() + 1).padStart(2, '0');
+                                            const dd = String(today.getDate()).padStart(2, '0');
+                                            document.getElementById('endDate').value = yyyy + '-' + mm + '-' + dd;
+                                        })();
+                                    </script>
+                                </div>
+                            </div>
+
+                            <!-- 提交按鈕 -->
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary w-100 py-3"
+                                        style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border: none; font-weight: 700; font-size: 1.1rem;">
+                                        <i class="fas fa-play me-2"></i>開始回測
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 快速設定 -->
+            <div class="col-lg-4">
+                <div class="card card-custom mb-3">
+                    <div class="card-body">
+                        <h6 class="card-title text-white mb-3">
+                            <i class="fas fa-bolt me-2"></i>快速設定
+                        </h6>
+
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-info"
+                                onclick="setQuickParams('2330', 10000, 5000, '2015-01-01', '台積電')">
+                                台積電（5 年）
+                            </button>
+                            <button class="btn btn-outline-info"
+                                onclick="setQuickParams('2330', 10000, 10000, '2010-01-01', '台積電')">
+                                台積電（10 年）
+                            </button>
+                            <button class="btn btn-outline-info"
+                                onclick="setQuickParams('2412', 5000, 3000, '2018-01-01', '創見')">
+                                創見（3 年）
+                            </button>
+                            <button class="btn btn-outline-info"
+                                onclick="setQuickParams('2303', 5000, 3000, '2018-01-01', '宏碁')">
+                                宏碁（3 年）
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card card-custom">
+                    <div class="card-body">
+                        <h6 class="card-title text-white mb-3">
+                            <i class="fas fa-lightbulb me-2"></i>策略說明
+                        </h6>
+                        <ul class="list-unstyled small">
+                            <li class="mb-2 text-white-50">
+                                <i class="fas fa-check text-success me-2"></i>
+                                <strong class="text-white-75">每月定額投資</strong>：固定日期投入固定金額
+                            </li>
+                            <li class="mb-2 text-white-50">
+                                <i class="fas fa-check text-success me-2"></i>
+                                <strong class="text-white-75">PE 擇時投資</strong>：PE 低於門檻才投資
+                            </li>
+                            <li class="mb-2 text-white-50">
+                                <i class="fas fa-check text-success me-2"></i>
+                                <strong class="text-white-75">PE 擇時累積</strong>：每月累積資金，PE低時一次性投入
+                            </li>
+                            <li class="mb-2 text-white-50">
+                                <i class="fas fa-check text-success me-2"></i>
+                                PE 數據來自<strong class="text-white-75">資料庫</strong>（stock_PE.py）
+                            </li>
+                            <li class="mb-2 text-white-50">
+                                <i class="fas fa-check text-success me-2"></i>
+                                計算<strong class="text-white-75">總報酬率、年化報酬率</strong>
+                            </li>
+                            <li class="mb-2 text-white-50">
+                                <i class="fas fa-check text-success me-2"></i>
+                                顯示<strong class="text-white-75">最大回撤、波動率、夏普比率</strong>
+                            </li>
+                            <li class="text-white-50">
+                                <i class="fas fa-info-circle text-info me-2"></i>
+                                適合<strong class="text-white-75">長期定時定額</strong>或<strong
+                                    class="text-white-75">價值投資</strong>者
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 載入中 -->
+        <div id="loadingSection" class="row mb-4" style="display: none;">
+            <div class="col-12 text-center py-5">
+                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">載入中...</span>
+                </div>
+                <p class="mt-3" style="color: rgba(255, 255, 255, 0.7);">正在執行回測分析...</p>
+            </div>
+        </div>
+
+        <!-- 結果顯示 -->
+        <div id="resultSection" style="display: none;">
+            <!-- KPI 卡片 -->
+            <div class="row g-3 mb-4" id="kpiCards">
+                <!-- 由 JavaScript 動態生成 -->
+            </div>
+
+            <!-- 圖表 -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card card-custom">
+                        <div class="card-body">
+                            <h5 class="card-title text-white mb-3">
+                                <i class="fas fa-chart-area me-2"></i>資金曲線
+                            </h5>
+                            <div id="dcaChart" style="width: 100%; height: 400px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PE 走勢圖 -->
+            <div class="row mb-4" id="peChartContainer" style="display: none;">
+                <div class="col-12">
+                    <div class="card card-custom">
+                        <div class="card-body">
+                            <h5 class="card-title text-white mb-3">
+                                <i class="fas fa-chart-line me-2"></i>本益比 (PE) 走勢
+                            </h5>
+                            <div id="peChart" style="width: 100%; height: 350px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 投資明細 -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card card-custom">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="card-title text-white mb-0">
+                                    <i class="fas fa-list me-2"></i>投資記錄
+                                </h5>
+                                <div>
+                                    <button class="btn btn-sm btn-outline-success me-2" onclick="saveBacktestResult()">
+                                        <i class="fas fa-save me-1"></i>保存結果
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-info me-2" onclick="showCompareModal()">
+                                        <i class="fas fa-balance-scale me-1"></i>比較模式
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-warning" onclick="viewSavedResults()">
+                                        <i class="fas fa-database me-1"></i>查看儲存位置
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+                                <table class="table table-dark table-hover"
+                                    style="background: transparent; min-width: 600px; font-size: 1rem; line-height: 1.8;">
+                                    <thead style="position: sticky; top: 0; z-index: 10; background: #1a1b2e;">
+                                        <tr>
+                                            <th style="min-width: 120px; font-size: 1.05rem; padding: 12px 8px; color: #ffffff; font-weight: 600;">日期</th>
+                                            <th style="min-width: 120px; font-size: 1.05rem; padding: 12px 8px; color: #ffffff; font-weight: 600;">股價</th>
+                                            <th style="min-width: 140px; font-size: 1.05rem; padding: 12px 8px; color: #ffffff; font-weight: 600;">当月投資金額</th>
+                                            <th style="min-width: 110px; font-size: 1.05rem; padding: 12px 8px; color: #ffffff; font-weight: 600;">買入股數</th>
+                                            <th style="min-width: 110px; font-size: 1.05rem; padding: 12px 8px; color: #ffffff; font-weight: 600;">累計股數</th>
+                                            <th style="min-width: 140px; font-size: 1.05rem; padding: 12px 8px; color: #ffffff; font-weight: 600;">累計投入金額</th>
+                                            <th style="min-width: 150px; font-size: 1.05rem; padding: 12px 8px; color: #ffffff; font-weight: 600;">當日未實現盈虧</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="investmentLog" style="font-size: 1.05rem; color: #e4e7eb;">
+                                        <!-- 由 JavaScript 動態生成 -->
+                                    </tbody>
+                                    <tfoot style="position: sticky; bottom: 0; z-index: 10; background: #1a1b2e; font-weight: bold; border-top: 2px solid rgba(79, 172, 254, 0.3); font-size: 1.05rem;">
+                                        <tr id="investmentSummaryRow" style="height: 50px;">
+                                            <td colspan="2" style="color: rgba(255, 255, 255, 0.7);">總計</td>
+                                            <td class="text-info" id="totalInvested">-</td>
+                                            <td class="text-info" id="totalSharesBought">-</td>
+                                            <td class="text-info" id="finalShares">-</td>
+                                            <td class="text-info" id="totalInvestedFoot">-</td>
+                                            <td class="text-info" id="totalPnL">-</td>
+                                        </tr>
+                                    </tfoot>
+                                    <div class="mt-3 text-white-50 small">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        <strong style="color: #4facfe;">📌 欄位說明：</strong>
+                                        <ul class="mb-0 mt-1 ps-3">
+                                            <li><strong>当月投資金額</strong>：這個月實際投入的金額（如果 PE 太高會顯示 $0）</li>
+                                            <li><strong>買入股數</strong>：這個月買到的股票數量（取整數股）</li>
+                                            <li><strong>累計股數</strong>：從開始到現在總共持有的股數</li>
+                                            <li><strong>累計投入金額</strong>：從開始到現在總共投入的本金</li>
+                                            <li><strong>當日未實現盈虧</strong>：(當日股價 × 累計股數) - 累計投入金額 = 帳面損益</li>
+                                        </ul>
+                                    </div>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 統計摘要 -->
+            <div class="row mb-4" id="statsSummarySection" style="display: none;">
+                <div class="col-12">
+                    <div class="card card-custom">
+                        <div class="card-body">
+                            <h5 class="card-title text-white mb-3">
+                                <i class="fas fa-chart-bar me-2"></i>統計摘要
+                            </h5>
+                            <div class="row g-3" id="statsSummaryCards">
+                                <!-- 由 JavaScript 動態生成 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">🚀 ROGER 投資分析終端</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center gap-2">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/"><i class="fa-solid fa-house ms-1 me-1"></i> 系統首頁</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/analyze"><i class="fa-solid fa-satellite-dish ms-1 me-1"></i>
+                            總經戰情室</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/backtest"><i class="fa-solid fa-chart-line ms-1 me-1"></i> 量化動態回測</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active fw-bold" href="/backtest_dca" style="color: #4facfe;"><i
+                                class="fa-solid fa-coins ms-1 me-1"></i> 定額投資回測</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/watchlist"><i class="fa-solid fa-eye ms-1 me-1"></i> 自選股</a>
+                    </li>
+
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item ms-lg-3">
+                        <span class="nav-link text-success fw-bold"><i class="fa-solid fa-circle-check me-1"></i>
+                            尊榮會員已驗證</span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-outline-danger btn-sm fw-bold px-3 py-1" href="/logout"
+                            style="border-radius: 6px;">登出系統</a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item ms-lg-3"><a class="nav-link" href="/login">會員登入</a></li>
+                    <li class="nav-item">
+                        <a class="btn btn-danger btn-sm fw-bold px-3 py-1" href="/register"
+                            style="border-radius: 6px; background: #e63946;">免費開通 VIP</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid py-4">
+
+        <script>
+            // 設置主容器 margin-top 以避開 fixed 導航列（延遲執行確保元素存在）
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function () {
+                    var navbar = document.querySelector('.navbar');
+                    var mainContainer = document.getElementById('mainContainer');
+                    if (navbar && mainContainer) {
+                        var navbarHeight = navbar.offsetHeight;
+                        mainContainer.style.marginTop = (navbarHeight + 10) + 'px';
+                    }
+                });
+            } else {
+                // DOM 已經載入完成
+                var navbar = document.querySelector('.navbar');
+                var mainContainer = document.getElementById('mainContainer');
+                if (navbar && mainContainer) {
+                    var navbarHeight = navbar.offsetHeight;
+                    mainContainer.style.marginTop = (navbarHeight + 10) + 'px';
+                }
+            }
+
+            // 快速設定（全域函式，需要在 DOMContentLoaded 之前定義）
+            window.setQuickParams = function (ticker, initial, monthly, start, name) {
+                document.getElementById('ticker').value = ticker;
+                document.getElementById('stockName').value = name || '';
+                document.getElementById('initialAmount').value = initial;
+                document.getElementById('monthlyAmount').value = monthly;
+                document.getElementById('startDate').value = start;
+            };
+
+            // 等待 DOM 載入完成
+            document.addEventListener('DOMContentLoaded', function () {
+                // 設定結束日期預設值為今天
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const day = String(today.getDate()).padStart(2, '0');
+                document.getElementById('endDate').value = `${year}-${month}-${day}`;
+
+                // 初始化 tooltip（如果 bootstrap 已載入）
+                if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+                    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                    tooltipTriggerList.forEach(function (el) {
+                        new bootstrap.Tooltip(el);
+                    });
+                }
+
+                // 策略切換邏輯
+                const strategyRadios = document.querySelectorAll('input[name="investStrategy"]');
+                const dcaOnlyFields = document.querySelectorAll('.dca-only');
+                const peOnlyFields = document.querySelectorAll('.pe-only');
+
+                function updateStrategyFields() {
+                    const selectedStrategy = document.querySelector('input[name="investStrategy"]:checked').value;
+
+                    // 更新 radio 樣式
+                    strategyRadios.forEach(radio => {
+                        const parent = radio.closest('.strategy-radio');
+                        if (radio.checked) {
+                            parent.classList.add('active');
+                        } else {
+                            parent.classList.remove('active');
+                        }
+                    });
+
+                    // 顯示/隱藏對應欄位
+                    if (selectedStrategy === 'dca') {
+                        // 每月定額投資：顯示每月定額，隱藏 PE 門檻
+                        dcaOnlyFields.forEach(el => {
+                            el.style.display = '';
+                            const label = el.querySelector('label');
+                            if (label) label.innerHTML = '每月定額投入（元）';
+                        });
+                        peOnlyFields.forEach(el => {
+                            el.style.display = 'none';
+                            el.style.gridColumn = '';
+                        });
+                        // 【修復】切換到 dca 時清空 PE 門檻值，避免被傳遞到後端
+                        document.getElementById('peThreshold').value = '';
+                    } else if (selectedStrategy === 'pe') {
+                        // PE 擇時投資：隱藏每月定額，顯示 PE 門檻
+                        dcaOnlyFields.forEach(el => el.style.display = 'none');
+                        peOnlyFields.forEach(el => {
+                            el.style.display = '';
+                            el.style.gridColumn = '';
+                        });
+                    } else if (selectedStrategy === 'accumulate') {
+                        // PE 擇時累積：顯示每月定額（作為累積金額），顯示 PE 門檻
+                        dcaOnlyFields.forEach(el => {
+                            el.style.display = '';
+                            const label = el.querySelector('label');
+                            if (label) label.innerHTML = '每月累積金額（元）';
+                        });
+                        peOnlyFields.forEach(el => {
+                            el.style.display = '';
+                            el.style.gridColumn = 'span 2'; // 佔滿寬度
+                        });
+                    }
+                }
+
+                // 監聽 radio 變化
+                strategyRadios.forEach(radio => {
+                    radio.addEventListener('change', updateStrategyFields);
+                });
+
+                // 初始化
+                updateStrategyFields();
+                console.log('✅ Strategy fields initialized');
+
+                // 提交表單
+                const dcaForm = document.getElementById('dcaForm');
+                console.log('📝 Form element:', dcaForm);
+                if (dcaForm) {
+                    dcaForm.addEventListener('submit', async function (e) {
+                        console.log('🚀 Form submitted!');
+                        e.preventDefault();
+
+                    // 取得表單資料
+                    const formData = {
+                        ticker: document.getElementById('ticker').value,
+                        stock_name: document.getElementById('stockName').value,
+                        strategy: document.querySelector('input[name="investStrategy"]:checked').value,
+                        start_date: document.getElementById('startDate').value,
+                        end_date: document.getElementById('endDate').value,
+                        initial_amount: parseFloat(document.getElementById('initialAmount').value) || 0,
+                        monthly_amount: parseFloat(document.getElementById('monthlyAmount').value) || 0,
+                        invest_on_pe_threshold: document.getElementById('peThreshold').value || null
+                    };
+
+                    // 驗證
+                    if (!formData.ticker && !formData.stock_name) {
+                        alert('請填寫股票名稱或股票代號');
+                        return;
+                    }
+                    if (formData.initial_amount <= 0 || formData.monthly_amount < 0) {
+                        alert('請填寫有效的投資金額');
+                        return;
+                    }
+
+                    // 根據策略顯示不同提示
+                    if ((formData.strategy === 'pe' || formData.strategy === 'accumulate') && !formData.invest_on_pe_threshold) {
+                        alert('請設定 PE 門檻值');
+                        return;
+                    }
+
+                    // 顯示載入中
+                    document.getElementById('loadingSection').style.display = 'block';
+                    document.getElementById('resultSection').style.display = 'none';
+
+                    try {
+                        // 發送請求
+                        const response = await fetch('/api/run_dca_backtest', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(formData)
+                        });
+
+                        const result = await response.json();
+
+                        // 隱藏載入中
+                        document.getElementById('loadingSection').style.display = 'none';
+
+                        if (result.status === 'success') {
+                            displayResults(result);
+                        } else {
+                            alert('回測失敗：' + result.message);
+                        }
+                    } catch (error) {
+                        document.getElementById('loadingSection').style.display = 'none';
+                        alert('請求錯誤：' + error.message);
+                    }
+                });
+                    // 關閉 if (dcaForm)
+                }
+
+                // 顯示結果
+                function displayResults(data) {
+                    // 顯示結果區塊
+                    document.getElementById('resultSection').style.display = 'block';
+
+                    // 渲染 KPI 卡片
+                    renderKPICards(data.kpi_cards);
+
+                    // 渲染圖表
+                    renderChart(data.chart_data);
+
+                    // 渲染 PE 走勢圖（如果有 PE 閾值）
+                    renderPEChart(data.chart_data);
+
+                    // 渲染投資記錄（增加 kpi 參數）
+                    renderInvestmentLog(data.investment_log, data.kpi_cards);
+
+                    // 渲染統計摘要
+                    renderStatsSummary(data.kpi_cards, data.strategy || 'dca');
+
+                    // 滾動到結果
+                    document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+                }
+
+                // 渲染 KPI 卡片
+                function renderKPICards(kpis) {
+                    const cards = [
+                        { title: '總投入金額', value: formatMoney(kpis.total_invested), icon: 'fa-wallet', color: '#4facfe' },
+                        { title: '目前總價值', value: formatMoney(kpis.final_value), icon: 'fa-coins', color: '#00f2fe' },
+                        { title: '總報酬金額', value: formatMoney(kpis.total_profit), icon: 'fa-money-bill-wave', color: kpis.total_profit >= 0 ? '#00e676' : '#ff5252' },
+                        { title: '總報酬率', value: kpis.total_return_pct.toFixed(2) + '%', icon: 'fa-percentage', color: kpis.total_return_pct >= 0 ? '#00e676' : '#ff5252' },
+                        { title: '年化報酬率 (CAGR)', value: kpis.cagr.toFixed(2) + '%', icon: 'fa-chart-line', color: '#ffd700' },
+                        { title: '最大回撤', value: kpis.max_drawdown.toFixed(2) + '%', icon: 'fa-arrow-down', color: '#ff5252' },
+                        { title: '年化波動率', value: kpis.volatility.toFixed(2) + '%', icon: 'fa-exclamation-triangle', color: '#ff9800' },
+                        { title: '夏普比率', value: kpis.sharpe_ratio.toFixed(2), icon: 'fa-star', color: '#e040fb' },
+                        { title: '投資月數', value: kpis.invest_months + ' 個月', icon: 'fa-calendar', color: '#4caf50' },
+                        { title: '勝率', value: kpis.win_rate.toFixed(1) + '%', icon: 'fa-trophy', color: '#ffd700' }
+                    ];
+
+                    const container = document.getElementById('kpiCards');
+                    container.innerHTML = cards.map(card => `
+            <div class="col-xl-3 col-md-6">
+                <div class="card card-custom h-100">
+                    <div class="card-body text-center p-3">
+                        <i class="${card.icon} fa-2x mb-2" style="color: ${card.color}"></i>
+                        <div class="kpi-title" style="color: rgba(255, 255, 255, 0.7) !important; font-size: 0.85rem;">${card.title}</div>
+                        <div class="kpi-value" style="color: ${card.color}">${card.value}</div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+                }
+
+                // 渲染圖表
+                function renderChart(chartData) {
+                    const chartDom = document.getElementById('dcaChart');
+                    const myChart = echarts.init(chartDom);
+
+                    const option = {
+                        backgroundColor: 'transparent',
+                        tooltip: {
+                            trigger: 'axis',
+                            backgroundColor: 'rgba(19, 21, 36, 0.95)',
+                            borderColor: '#4facfe',
+                            textStyle: { color: '#ffffff' },
+                            formatter: function (params) {
+                                if (!params || params.length === 0) return '';
+                                let html = '<div style="font-weight:bold;margin-bottom:5px">' + params[0].axisValue + '</div>';
+                                params.forEach(function (item) {
+                                    html += '<div>' + item.marker + item.seriesName + ': ' + item.value.toLocaleString('zh-TW', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</div>';
+                                });
+                                return html;
+                            }
+                        },
+                        legend: {
+                            data: ['組合價值', '累計投入'],
+                            textStyle: { color: '#8b9bb4' },
+                            top: 0
+                        },
+                        grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '3%',
+                            containLabel: true
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: chartData.dates,
+                            axisLine: { lineStyle: { color: '#8b9bb4' } },
+                            axisLabel: { color: '#8b9bb4' }
+                        },
+                        yAxis: {
+                            type: 'value',
+                            axisLine: { lineStyle: { color: '#8b9bb4' } },
+                            axisLabel: {
+                                color: '#8b9bb4',
+                                formatter: '{value}'
+                            },
+                            splitLine: { lineStyle: { color: 'rgba(139, 155, 180, 0.1)' } }
+                        },
+                        series: [
+                            {
+                                name: '組合價值',
+                                type: 'line',
+                                data: chartData.portfolio_values,
+                                smooth: true,
+                                lineStyle: { color: '#4facfe', width: 3 },
+                                areaStyle: {
+                                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                        { offset: 0, color: 'rgba(79, 172, 254, 0.3)' },
+                                        { offset: 1, color: 'rgba(79, 172, 254, 0.05)' }
+                                    ])
+                                },
+                                itemStyle: { color: '#4facfe' }
+                            },
+                            {
+                                name: '累計投入',
+                                type: 'line',
+                                data: chartData.cumulative_invested,
+                                smooth: true,
+                                lineStyle: { color: '#ff9800', width: 2, type: 'dashed' },
+                                areaStyle: {
+                                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                        { offset: 0, color: 'rgba(255, 152, 0, 0.2)' },
+                                        { offset: 1, color: 'rgba(255, 152, 0, 0.02)' }
+                                    ])
+                                },
+                                itemStyle: { color: '#ff9800' }
+                            }
+                        ]
+                    };
+
+                    myChart.setOption(option);
+
+                    // 響應視窗大小變化
+                    window.addEventListener('resize', function () {
+                        myChart.resize();
+                    });
+                }
+
+                // 渲染 PE 走勢圖
+                function renderPEChart(chartData) {
+                    // 如果沒有 PE 數據或沒有設置 PE 閾值，隱藏圖表
+                    if (!chartData.pe_ratios || !chartData.pe_threshold || chartData.pe_ratios.every(pe => pe === null)) {
+                        document.getElementById('peChartContainer').style.display = 'none';
+                        return;
+                    }
+
+                    // 顯示 PE 圖表容器
+                    document.getElementById('peChartContainer').style.display = 'block';
+
+                    const chartDom = document.getElementById('peChart');
+                    const myChart = echarts.init(chartDom);
+
+                    // 生成投資點和跳過點的數據
+                    const investmentPoints = chartData.investment_dates.map(invDate => {
+                        const dateIndex = chartData.dates.indexOf(invDate);
+                        if (dateIndex === -1) return null;
+                        const pe = chartData.pe_ratios[dateIndex];
+                        return {
+                            name: pe && pe >= chartData.pe_threshold ? '跳過' : '買入',
+                            value: [invDate, pe],
+                            symbolSize: pe && pe >= chartData.pe_threshold ? 8 : 10,
+                            itemStyle: {
+                                color: pe && pe >= chartData.pe_threshold ? '#ff6b6b' : '#51cf66'
+                            }
+                        };
+                    }).filter(p => p !== null);
+
+                    const option = {
+                        backgroundColor: 'transparent',
+                        tooltip: {
+                            trigger: 'axis',
+                            backgroundColor: 'rgba(19, 21, 36, 0.95)',
+                            borderColor: '#4facfe',
+                            textStyle: { color: '#ffffff' },
+                            formatter: function (params) {
+                                if (!params || params.length === 0) return '';
+                                let html = '<div style="font-weight:bold;margin-bottom:5px">' + params[0].axisValue + '</div>';
+                                params.forEach(function (item) {
+                                    if (item.value !== null && item.value !== undefined) {
+                                        html += '<div>' + item.marker + item.seriesName + ': ' + item.value.toLocaleString('zh-TW', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '</div>';
+                                    }
+                                });
+                                return html;
+                            }
+                        },
+                        legend: {
+                            data: ['PE 走勢', 'PE 閾值'],
+                            textStyle: { color: '#8b9bb4' },
+                            top: 0
+                        },
+                        grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '3%',
+                            containLabel: true
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: chartData.dates,
+                            axisLine: { lineStyle: { color: '#8b9bb4' } },
+                            axisLabel: { color: '#8b9bb4' }
+                        },
+                        yAxis: {
+                            type: 'value',
+                            axisLine: { lineStyle: { color: '#8b9bb4' } },
+                            axisLabel: {
+                                color: '#8b9bb4',
+                                formatter: '{value}'
+                            },
+                            splitLine: { lineStyle: { color: 'rgba(139, 155, 180, 0.1)' } }
+                        },
+                        series: [
+                            {
+                                name: 'PE 走勢',
+                                type: 'line',
+                                data: chartData.pe_ratios,
+                                smooth: true,
+                                lineStyle: { color: '#ffd700', width: 2 },
+                                areaStyle: {
+                                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                        { offset: 0, color: 'rgba(255, 215, 0, 0.2)' },
+                                        { offset: 1, color: 'rgba(255, 215, 0, 0.05)' }
+                                    ])
+                                },
+                                itemStyle: { color: '#ffd700' },
+                                connectNulls: true
+                            },
+                            {
+                                name: 'PE 閾值',
+                                type: 'line',
+                                data: Array(chartData.dates.length).fill(chartData.pe_threshold),
+                                lineStyle: { color: '#ff6b6b', width: 2, type: 'dashed' },
+                                itemStyle: { color: '#ff6b6b' },
+                                tooltip: { show: false }
+                            },
+                            {
+                                name: '投資點',
+                                type: 'scatter',
+                                data: investmentPoints.map(p => p.value),
+                                symbolSize: investmentPoints.map(p => p.symbolSize),
+                                itemStyle: {
+                                    color: function (params) {
+                                        const pe = params.value[1];
+                                        return pe >= chartData.pe_threshold ? '#ff6b6b' : '#51cf66';
+                                    }
+                                },
+                                label: {
+                                    show: false
+                                }
+                            }
+                        ]
+                    };
+
+                    myChart.setOption(option);
+
+                    // 響應視窗大小變化
+                    window.addEventListener('resize', function () {
+                        myChart.resize();
+                    });
+                }
+
+                // 渲染投資記錄
+                function renderInvestmentLog(log, kpi) {
+                    const tbody = document.getElementById('investmentLog');
+                    if (!log || log.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="color: rgba(255, 255, 255, 0.6);">暫無投資記錄</td></tr>';
+                        // 清空統計
+                        document.getElementById('totalInvested').textContent = '-';
+                        document.getElementById('totalSharesBought').textContent = '-';
+                        document.getElementById('finalShares').textContent = '-';
+                        document.getElementById('totalInvestedFoot').textContent = '-';
+                        document.getElementById('totalPnL').textContent = '-';
+                        return;
+                    }
+
+                    let totalInvested = 0;
+                    let totalSharesBought = 0;
+                    let finalPnL = 0;
+
+                    tbody.innerHTML = log.map(item => {
+                        totalInvested += Number(item.amount);
+                        totalSharesBought += Number(item.shares);
+                        
+                        // 計算當日盈虧：(股價 - 平均成本) * 累計股數 - 累計投入
+                        // 簡化版：當日總價值 - 累計投入
+                        const dailyValue = Number(item.price) * Number(item.total_shares);
+                        const pnl = dailyValue - Number(item.total_invested);
+                        if (item.date === log[log.length - 1].date) {
+                            finalPnL = pnl;
+                        }
+                        
+                        return `<tr>
+                            <td>${item.date}</td>
+                            <td>$${Number(item.price).toLocaleString('zh-TW', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                            <td>$${Number(item.amount).toLocaleString('zh-TW', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                            <td>${item.shares} 股</td>
+                            <td>${item.total_shares} 股</td>
+                            <td>$${Number(item.total_invested).toLocaleString('zh-TW', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                            <td style="color: ${pnl >= 0 ? '#00e676' : '#ff5252'}">$${pnl.toLocaleString('zh-TW', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        </tr>`;
+                    }).join('');
+
+                    // 更新統計列
+                    document.getElementById('totalInvested').textContent = '$' + totalInvested.toLocaleString('zh-TW', { minimumFractionDigits: 2 });
+                    document.getElementById('totalSharesBought').textContent = totalSharesBought + ' 股';
+                    document.getElementById('finalShares').textContent = log[log.length - 1].total_shares + ' 股';
+                    document.getElementById('totalInvestedFoot').textContent = '$' + Number(log[log.length - 1].total_invested).toLocaleString('zh-TW', { minimumFractionDigits: 2 });
+                    document.getElementById('totalPnL').textContent = '$' + finalPnL.toLocaleString('zh-TW', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    document.getElementById('totalPnL').style.color = finalPnL >= 0 ? '#00e676' : '#ff5252';
+                }
+
+                // 渲染統計摘要
+                function renderStatsSummary(kpi, strategy) {
+                    const section = document.getElementById('statsSummarySection');
+                    const cards = document.getElementById('statsSummaryCards');
+                    
+                    // 根據策略調整標籤
+                    const investCount = kpi.invest_count !== undefined ? kpi.invest_count : (kpi.total_signals || 'N/A');
+                    const investMonths = kpi.invest_months || 'N/A';
+                    
+                    const strategyNames = {
+                        'dca': '每月定額投資',
+                        'pe': 'PE 擇時投資',
+                        'accumulate': 'PE 擇時累積'
+                    };
+
+                    const stats = [
+                        { label: '策略類型', value: strategyNames[strategy] || strategy, icon: 'fa-robot', color: '#4facfe' },
+                        { label: '總投入金額', value: '$' + kpi.total_invested.toLocaleString('zh-TW', { minimumFractionDigits: 2 }), icon: 'fa-wallet', color: '#4facfe' },
+                        { label: '最終價值', value: '$' + kpi.final_value.toLocaleString('zh-TW', { minimumFractionDigits: 2 }), icon: 'fa-coins', color: '#00f2fe' },
+                        { label: '總盈虧', value: (kpi.total_profit >= 0 ? '+' : '') + '$' + kpi.total_profit.toLocaleString('zh-TW', { minimumFractionDigits: 2 }), icon: 'fa-money-bill-wave', color: kpi.total_profit >= 0 ? '#00e676' : '#ff5252' },
+                        { label: '總報酬率', value: kpi.total_return_pct.toFixed(2) + '%', icon: 'fa-percentage', color: kpi.total_return_pct >= 0 ? '#00e676' : '#ff5252' },
+                        { label: '年化報酬率', value: kpi.cagr.toFixed(2) + '%', icon: 'fa-chart-line', color: '#ffd700' },
+                        { label: '最大回撤', value: kpi.max_drawdown.toFixed(2) + '%', icon: 'fa-arrow-down', color: '#ff5252' },
+                        { label: '波動率', value: kpi.volatility.toFixed(2) + '%', icon: 'fa-exclamation-triangle', color: '#ff9800' },
+                        { label: '夏普比率', value: kpi.sharpe_ratio.toFixed(2), icon: 'fa-star', color: '#e040fb' },
+                        { label: '投資月數', value: investMonths + ' 個月', icon: 'fa-calendar', color: '#4caf50' },
+                        { label: '勝率', value: kpi.win_rate.toFixed(1) + '%', icon: 'fa-trophy', color: '#ffd700' },
+                        { label: '投資次數', value: investCount, icon: 'fa-shopping-cart', color: '#00bcd4' }
+                    ];
+
+                    cards.innerHTML = stats.map(s => `
+                        <div class="col-md-6 col-lg-4">
+                            <div class="d-flex align-items-center p-3 rounded" style="background: linear-gradient(135deg, rgba(79, 172, 254, 0.15) 0%, rgba(19, 21, 36, 0.8) 100%); border: 1px solid rgba(79, 172, 254, 0.3);">
+                                <i class="${s.icon} me-3" style="color: ${s.color}; width: 24px; text-align: center; font-size: 1.3rem;"></i>
+                                <div>
+                                    <div class="fw-bold mb-1" style="color: rgba(255, 255, 255, 0.9); font-size: 0.85rem;">${s.label}</div>
+                                    <div class="fw-bold" style="color: #ffffff; font-size: 1.15rem;">${s.value}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    section.style.display = 'block';
+                }
+
+                // 清空所有回測結果
+                function clearAllBacktestResults() {
+                    if (!confirm('確定要清空所有保存的回測結果嗎？此操作無法復原。')) return;
+                    
+                    localStorage.removeItem('backtest_results');
+                    alert('✅ 已清空所有結果');
+                    showCompareModal(); // 重新載入
+                }
+
+                // 格式化金額
+                function formatMoney(amount) {
+                    return '$' + amount.toLocaleString('zh-TW', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                }
+            });  // 閉合 DOMContentLoaded
+
+            // ========== 全域函數：保存回測結果 ==========
+            window.saveBacktestResult = function() {
+                const stockName = document.getElementById('stockName').value || document.getElementById('ticker').value;
+                const strategy = document.querySelector('input[name="investStrategy"]:checked').value;
+                
+                // 從統計列提取數據
+                const totalInvested = parseFloat(document.getElementById('totalInvested').textContent.replace(/[$,]/g, '')) || 0;
+                const totalInvestedFoot = parseFloat(document.getElementById('totalInvestedFoot').textContent.replace(/[$,]/g, '')) || 0;
+                
+                const result = {
+                    id: Date.now(),
+                    timestamp: new Date().toISOString(),
+                    stock_name: stockName,
+                    ticker: document.getElementById('ticker').value,
+                    strategy: strategy,
+                    start_date: document.getElementById('startDate').value,
+                    end_date: document.getElementById('endDate').value,
+                    initial_amount: parseFloat(document.getElementById('initialAmount').value),
+                    monthly_amount: parseFloat(document.getElementById('monthlyAmount').value),
+                    pe_threshold: document.getElementById('peThreshold').value,
+                    kpi: {
+                        total_invested: totalInvested,
+                        final_value: 0,
+                        total_profit: 0,
+                        total_return_pct: 0,
+                        cagr: 0,
+                        max_drawdown: 0,
+                        volatility: 0,
+                        sharpe_ratio: 0,
+                        invest_months: 0,
+                        win_rate: 0,
+                        invest_count: 0
+                    },
+                    investment_log: Array.from(document.getElementById('investmentLog').querySelectorAll('tr')).map(tr => {
+                        const tds = tr.querySelectorAll('td');
+                        return {
+                            date: tds[0]?.textContent || '',
+                            price: tds[1]?.textContent || '',
+                            amount: tds[2]?.textContent || '',
+                            shares: tds[3]?.textContent || '',
+                            total_shares: tds[4]?.textContent || '',
+                            total_invested: tds[5]?.textContent || '',
+                            pnl: tds[6]?.textContent || ''
+                        };
+                    })
+                };
+
+                // 從 KPI 卡片提取數據
+                const kpiCards = document.querySelectorAll('#kpiCards .kpi-value');
+                if (kpiCards.length >= 10) {
+                    result.kpi.final_value = parseFloat(kpiCards[1].textContent.replace(/[$,]/g, '')) || 0;
+                    result.kpi.total_profit = parseFloat(kpiCards[2].textContent.replace(/[$]/g, '').replace('-', '')) || 0;
+                    result.kpi.total_return_pct = parseFloat(kpiCards[3].textContent.replace('%', '')) || 0;
+                    result.kpi.cagr = parseFloat(kpiCards[4].textContent.replace('%', '')) || 0;
+                    result.kpi.max_drawdown = parseFloat(kpiCards[5].textContent.replace('%', '')) || 0;
+                    result.kpi.volatility = parseFloat(kpiCards[6].textContent.replace('%', '')) || 0;
+                    result.kpi.sharpe_ratio = parseFloat(kpiCards[7].textContent) || 0;
+                    result.kpi.win_rate = parseFloat(kpiCards[9].textContent.replace('%', '')) || 0;
+                }
+
+                // 存到 localStorage
+                let savedResults = JSON.parse(localStorage.getItem('backtest_results') || '[]');
+                savedResults.push(result);
+                localStorage.setItem('backtest_results', JSON.stringify(savedResults));
+
+                alert(`✅ 結果已保存！\n\n股票：${result.stock_name}\n策略：${result.strategy}\n期間：${result.start_date} ~ ${result.end_date}\n時間：${new Date().toLocaleString('zh-TW')}`);
+            };
+
+            // ========== 全域函數：顯示比較模式 ==========
+            window.showCompareModal = function() {
+                const savedResults = JSON.parse(localStorage.getItem('backtest_results') || '[]');
+                
+                if (savedResults.length === 0) {
+                    alert('💡 目前沒有保存的回測結果。\n\n請先執行回測並點擊「保存結果」按鈕。');
+                    return;
+                }
+
+                // 創建比較模態框
+                const modalHtml = `
+                    <div class="modal fade" id="compareModal" tabindex="-1" style="background: rgba(0,0,0,0.8);">
+                        <div class="modal-dialog modal-xl modal-dialog-centered">
+                            <div class="modal-content" style="background: #131524; border: 1px solid rgba(255,255,255,0.1);">
+                                <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                    <h5 class="modal-title text-white">
+                                        <i class="fas fa-balance-scale me-2"></i>回測結果比較
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-dark table-hover" style="background: transparent;">
+                                            <thead>
+                                                <tr>
+                                                    <th style="color: rgba(255, 255, 255, 0.8);">名稱</th>
+                                                    <th style="color: rgba(255, 255, 255, 0.8);">策略</th>
+                                                    <th style="color: rgba(255, 255, 255, 0.8);">總投入</th>
+                                                    <th style="color: rgba(255, 255, 255, 0.8);">總報酬率</th>
+                                                    <th style="color: rgba(255, 255, 255, 0.8);">年化報酬</th>
+                                                    <th style="color: rgba(255, 255, 255, 0.8);">最大回撤</th>
+                                                    <th style="color: rgba(255, 255, 255, 0.8);">夏普比率</th>
+                                                    <th style="color: rgba(255, 255, 255, 0.8);">勝率</th>
+                                                    <th style="color: rgba(255, 255, 255, 0.8);">操作</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                ${savedResults.map(r => `
+                                                    <tr>
+                                                        <td>${r.stock_name} <br><small style="color: rgba(255, 255, 255, 0.6);">${r.start_date} ~ ${r.end_date}</small></td>
+                                                        <td>${r.strategy === 'accumulate' ? 'PE 累積' : r.strategy === 'pe' ? 'PE 擇時' : '定額投資'}</td>
+                                                        <td>$${r.kpi.total_invested?.toLocaleString() || '-'}</td>
+                                                        <td style="color: ${(r.kpi.total_return_pct || 0) >= 0 ? '#00e676' : '#ff5252'}">${(r.kpi.total_return_pct || 0).toFixed(2)}%</td>
+                                                        <td>${(r.kpi.cagr || 0).toFixed(2)}%</td>
+                                                        <td>${(r.kpi.max_drawdown || 0).toFixed(2)}%</td>
+                                                        <td>${(r.kpi.sharpe_ratio || 0).toFixed(2)}</td>
+                                                        <td>${(r.kpi.win_rate || 0).toFixed(1)}%</td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteBacktestResult(${r.id})">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                `).join('')}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="mt-3">
+                                        <button class="btn btn-sm btn-outline-warning" onclick="clearAllBacktestResults()">
+                                            <i class="fas fa-trash-alt me-1"></i>清空所有結果
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // 移除舊的模態框（如果存在）
+                const oldModal = document.getElementById('compareModal');
+                if (oldModal) oldModal.remove();
+
+                // 添加新的模態框
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+                // 顯示模態框
+                const modal = new bootstrap.Modal(document.getElementById('compareModal'));
+                modal.show();
+            };
+
+            // ========== 全域函數：刪除單個回測結果 ==========
+            window.deleteBacktestResult = function(id) {
+                if (!confirm('確定要刪除此結果嗎？')) return;
+                
+                let savedResults = JSON.parse(localStorage.getItem('backtest_results') || '[]');
+                savedResults = savedResults.filter(r => r.id !== id);
+                localStorage.setItem('backtest_results', JSON.stringify(savedResults));
+                
+                alert('✅ 已刪除');
+                showCompareModal(); // 重新載入
+            };
+
+            // ========== 全域函數：清空所有回測結果 ==========
+            window.clearAllBacktestResults = function() {
+                if (!confirm('確定要清空所有保存的回測結果嗎？此操作無法復原。')) return;
+                
+                localStorage.removeItem('backtest_results');
+                alert('✅ 已清空所有結果');
+                showCompareModal(); // 重新載入
+            };
+
+            // ========== 全域函數：查看保存的結果 ==========
+            window.viewSavedResults = function() {
+                const savedResults = JSON.parse(localStorage.getItem('backtest_results') || '[]');
+                
+                if (savedResults.length === 0) {
+                    alert('💡 目前還沒有保存任何回測結果。\n\n使用方法：\n1. 執行回測\n2. 點擊「保存結果」按鈕\n3. 結果會存在瀏覽器中');
+                    return;
+                }
+
+                let msg = `📊 已保存 ${savedResults.length} 筆回測結果：\n\n`;
+                savedResults.forEach((r, i) => {
+                    msg += `${i + 1}. ${r.stock_name} (${r.ticker})\n`;
+                    msg += `   策略：${r.strategy === 'accumulate' ? 'PE 累積' : r.strategy === 'pe' ? 'PE 擇時' : '定額投資'}\n`;
+                    msg += `   期間：${r.start_date} ~ ${r.end_date}\n`;
+                    msg += `   總報酬：${(r.kpi.total_return_pct || 0).toFixed(2)}%\n\n`;
+                });
+                
+                msg += `\n\n💾 資料存在瀏覽器的 localStorage\n📁 位置：比較模式 → 查看所有保存的結果\n⚠️ 清除瀏覽器資料會刪除這些記錄`;                
+                alert(msg);
+            };
+        </script>
+
+</body>
+
+</html>

@@ -59,3 +59,76 @@ def api_run_backtest():
         end_date=end_date
     )
     return jsonify(result), 200
+
+
+@analysis_bp.route('/backtest_dca')
+@login_required
+def backtest_dca_page():
+    """定額投資回測頁面（VIP 功能）"""
+    return render_template('backtest_dca.html')
+
+
+@analysis_bp.route('/api/run_dca_backtest', methods=['POST'])
+@vip_required
+def api_run_dca_backtest():
+    """執行定額投資回測 API (支援三種策略)"""
+    from datetime import datetime
+    data = request.get_json() or {}
+    ticker = data.get('ticker', '').strip()
+    stock_name = data.get('stock_name', '').strip()
+    strategy = data.get('strategy', 'dca')  # 'dca', 'pe', or 'accumulate'
+    start_date = data.get('start_date', '2020-01-01')
+    end_date = data.get('end_date', datetime.now().strftime('%Y-%m-%d'))
+    initial_amount = float(data.get('initial_amount', 10000))
+    monthly_amount = float(data.get('monthly_amount', 5000))
+    invest_on_pe = data.get('invest_on_pe_threshold')
+    
+    # 如果沒有股票代號但有名稱，嘗試從名稱推斷（預設使用 2330 台積電）
+    if not ticker and stock_name:
+        # 簡單映射常見股票名稱
+        name_to_code = {
+            '台積電': '2330',
+            '聯詠': '9871',
+            '創見': '2412',
+            '宏碁': '2303',
+            '華碩': '2338',
+            '鴻海': '2317',
+        }
+        ticker = name_to_code.get(stock_name, stock_name)
+    
+    if not ticker:
+        return jsonify({'status': 'error', 'message': '請填寫股票名稱或股票代號'}), 400
+    
+    # 轉換為 yfinance 格式
+    ticker_yf = f"{ticker}.TW" if not ticker.endswith('.TW') else ticker
+    
+    # 根據策略類型執行不同的回測
+    if strategy == 'accumulate':
+        # PE 择時累積策略 - 必須輸入 PE 門檻值
+        if not invest_on_pe:
+            return jsonify({'status': 'error', 'message': 'PE 擇時累積策略必須設定 PE 門檻值'}), 400
+        result = backtest_engine.run_pe_accumulate_backtest(
+            ticker=ticker_yf,
+            start_date=start_date,
+            end_date=end_date,
+            monthly_accumulate=monthly_amount,
+            invest_on_pe_threshold=float(invest_on_pe)
+        )
+    else:
+        # 一般 DCA 或 PE 策略
+        result = backtest_engine.run_dca_backtest(
+            ticker=ticker_yf,
+            start_date=start_date,
+            end_date=end_date,
+            initial_amount=initial_amount,
+            monthly_amount=monthly_amount,
+            invest_on_pe_threshold=float(invest_on_pe) if invest_on_pe else None
+        )
+    
+    # 加入策略資訊到結果中
+    result['strategy'] = strategy
+    if stock_name:
+        result['stock_name'] = stock_name
+    result['ticker'] = ticker
+    
+    return jsonify(result), 200

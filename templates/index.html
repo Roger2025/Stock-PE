@@ -434,6 +434,7 @@
         {% if current_user.is_authenticated and (current_user.is_vip or current_user.email|string|lower|trim ==
         admin_email|string|lower|trim) %}
         <a href="/backtest" class="btn-macro-portal danger-portal"><i class="fa-solid fa-chart-line"></i> 啟動量化動態回測</a>
+        <a href="/backtest_dca" class="btn-macro-portal success-portal"><i class="fa-solid fa-coins"></i> 定額投資回測</a>
         <a href="/watchlist" class="btn-macro-portal"
           style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"><i class="fa-solid fa-star"></i>
           開啟自選股戰情室</a>

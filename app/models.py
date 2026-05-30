@@ -117,7 +117,3 @@ class EmailSubscription(db.Model):
     def __repr__(self):
         return f'<EmailSubscription {self.subscription_type} for user {self.user_id}>'
 
-    
-    def __repr__(self):
-        return f'<EmailLog {self.email_type} -> {self.recipient}>'
-
