@@ -188,3 +188,74 @@ def get_subscription_name(subscription_type):
         'backtest_alert': '回測警示通知'
     }
     return names.get(subscription_type, subscription_type)
+
+
+@email_bp.route('/send-all-now', methods=['POST'])
+@login_required
+def send_all_now():
+    """手動觸發：立即發送日報給所有 VIP 使用者（管理員功能）"""
+    try:
+        from app.models import User
+        
+        # 取得所有 VIP 使用者
+        vip_users = User.query.filter_by(is_vip=True).all()
+        
+        if not vip_users:
+            return jsonify({'success': False, 'message': '沒有 VIP 使用者'}), 400
+        
+        sent_count = 0
+        failed_count = 0
+        
+        for user in vip_users:
+            # 取得使用者的自選股
+            watchlist = WatchlistItem.query.filter_by(user_id=user.id).all()
+            
+            if not watchlist:
+                continue
+            
+            # 為每隻股票取得 PE 數據
+            items = []
+            for item in watchlist:
+                try:
+                    pe_data = stock_PE.get_pe_data(item.stock_code)
+                    if pe_data:
+                        items.append({
+                            'stock_code': item.stock_code,
+                            'stock_name': item.stock_name or item.stock_code,
+                            'pe_ratio': pe_data.get('pe_ratio', None),
+                            'pe_grade': pe_data.get('grade', 'N/A'),
+                            'ai_insight': pe_data.get('insight', ''),
+                        })
+                except Exception as e:
+                    items.append({
+                        'stock_code': item.stock_code,
+                        'stock_name': item.stock_name or item.stock_code,
+                        'pe_ratio': None,
+                        'pe_grade': 'N/A',
+                        'ai_insight': '無法取得數據',
+                    })
+            
+            # 如果有 PE 數據，發送日報
+            if items:
+                try:
+                    success = send_watchlist_digest(user.id, user.email, items)
+                    if success:
+                        sent_count += 1
+                    else:
+                        failed_count += 1
+                except Exception as e:
+                    failed_count += 1
+        
+        message = f'✅ 已發送 {sent_count} 封'
+        if failed_count > 0:
+            message += f'，❌ 失敗 {failed_count} 封'
+        
+        return jsonify({
+            'success': True,
+            'message': message,
+            'sent': sent_count,
+            'failed': failed_count
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'錯誤：{str(e)}'}), 500

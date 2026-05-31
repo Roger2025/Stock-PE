@@ -2,6 +2,10 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 from datetime import datetime
+import os
+
+# 資料來源設定（可切換 yfinance 或 FinMind）
+DATA_SOURCE = os.getenv('DATA_SOURCE', 'yfinance').lower()  # 'yfinance' or 'finmind'
 
 def _scalar(x):
     try:
@@ -10,6 +14,24 @@ def _scalar(x):
         return float(x)
 
 def fetch_series(symbol: str, start_date: str, end_date: str) -> pd.DataFrame:
+    """
+    獲取股票數據（支援 yfinance 和 FinMind）
+    
+    Args:
+        symbol: 股票代號（如 "2330.TW" 或 "2330"）
+        start_date: 開始日期（格式：YYYY-MM-DD）
+        end_date: 結束日期（格式：YYYY-MM-DD）
+    
+    Returns:
+        DataFrame: 包含 Close 和 Adj Close 欄位的數據
+    """
+    if DATA_SOURCE == 'finmind':
+        return _fetch_from_finmind(symbol, start_date, end_date)
+    else:
+        return _fetch_from_yfinance(symbol, start_date, end_date)
+
+def _fetch_from_yfinance(symbol: str, start_date: str, end_date: str) -> pd.DataFrame:
+    """從 yfinance 獲取數據"""
     # 抓取原始數據：強制加入 auto_adjust=False，保證真實收盤價與還原價徹底分流
     df = yf.download(symbol, start=start_date, end=end_date, auto_adjust=False, progress=False)
     
@@ -41,6 +63,41 @@ def fetch_series(symbol: str, start_date: str, end_date: str) -> pd.DataFrame:
     res = res.dropna()
     res.index = res.index.tz_localize(None)
     return res
+
+def _fetch_from_finmind(symbol: str, start_date: str, end_date: str) -> pd.DataFrame:
+    """從 FinMind 獲取數據"""
+    try:
+        from finmind_data import get_stock_from_finmind
+        
+        # 移除 .TW 後綴
+        stock_id = symbol.replace('.TW', '')
+        
+        df = get_stock_from_finmind(stock_id, start_date, end_date)
+        
+        if df.empty:
+            raise ValueError(f"抓不到 {symbol} 在 {start_date} 至 {end_date} 的 FinMind 資料。")
+        
+        # 確保有必要的欄位
+        res = pd.DataFrame(index=df.index)
+        
+        if 'Close' in df.columns:
+            res['Close'] = df['Close']
+        else:
+            raise ValueError("FinMind 數據缺失 Close 欄位。")
+        
+        if 'Adj Close' in df.columns:
+            res['Adj Close'] = df['Adj Close']
+        else:
+            res['Adj Close'] = res['Close']
+        
+        res = res.dropna()
+        return res
+    except ImportError:
+        print("⚠️ finmind_data.py 模組不存在，自動切換回 yfinance")
+        return _fetch_from_yfinance(symbol, start_date, end_date)
+    except Exception as e:
+        print(f"⚠️ FinMind 獲取數據失敗: {e}，自動切換回 yfinance")
+        return _fetch_from_yfinance(symbol, start_date, end_date)
 
 def find_signals(drawdown: pd.Series, thr: float, min_gap: int = 60):
     sigs, last_i = [], -10**9

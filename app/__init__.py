@@ -23,6 +23,18 @@ def create_app():
                 static_folder='../static')
     app.config.from_object(Config)
     
+    # 強制關閉模板快取（開發環境）
+    app.config['TEMPLATES_AUTO_RELOAD'] = True
+    app.jinja_env.auto_reload = True
+    
+    # 強制禁用瀏覽器快取（開發環境）
+    @app.after_request
+    def disable_cache(response):
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        return response
+    
     # 初始化擴展
     db.init_app(app)
     login_manager.init_app(app)

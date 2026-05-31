@@ -83,18 +83,18 @@ def _send_daily_digest_job():
 def start_scheduler():
     """啟動排程器"""
     if not scheduler.running:
-        # 每天上午 8:00 執行
+        # 每天中午 12:50 執行（測試用）
         scheduler.add_job(
             func=_send_daily_digest_job,
             trigger='cron',
-            hour=8,
-            minute=0,
+            hour=12,
+            minute=50,
             id='daily_digest',
             name='每日自選股日報',
             replace_existing=True
         )
         scheduler.start()
-        logger.info("📧 每日日報排程器已啟動 (每天 08:00)")
+        logger.info("📧 每日日報排程器已啟動（測試時間：每天 12:50）")
 
 
 def shutdown_scheduler():

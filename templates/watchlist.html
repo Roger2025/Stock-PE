@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes" />
     <title>自選股戰情室 | Roger 投資分析終端</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -428,6 +428,26 @@
 
             .watchlist-grid {
                 grid-template-columns: 1fr;
+            }
+
+            /* 手機版導航列優化 */
+            .navbar-collapse {
+                background: rgba(10, 11, 20, 0.98);
+                padding: 15px;
+                margin-top: 10px;
+                border-radius: 10px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                max-height: calc(100vh - 70px);
+                overflow-y: auto;
+            }
+
+            .navbar-nav .nav-link {
+                padding: 10px 15px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            .navbar-nav .nav-item {
+                width: 100%;
             }
         }
     </style>
@@ -992,6 +1012,9 @@
             document.head.appendChild(style);
         });
     </script>
+
+    <!-- Bootstrap JS (用於 Modal) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
