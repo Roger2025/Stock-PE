@@ -660,20 +660,16 @@
                         </h6>
 
                         <div class="d-grid gap-2">
-                            <button class="quick-set-btn"
-                                onclick="setQuickParams('2330', 10000, 5000, 5, '台積電')">
+                            <button class="quick-set-btn" onclick="setQuickParams('2330', 10000, 5000, 5, '台積電')">
                                 台積電（5 年）
                             </button>
-                            <button class="quick-set-btn"
-                                onclick="setQuickParams('2330', 10000, 10000, 10, '台積電')">
+                            <button class="quick-set-btn" onclick="setQuickParams('2330', 10000, 10000, 10, '台積電')">
                                 台積電（10 年）
                             </button>
-                            <button class="quick-set-btn"
-                                onclick="setQuickParams('1215', 5000, 3000, 5, '卜蜂（綠）')">
+                            <button class="quick-set-btn" onclick="setQuickParams('1215', 5000, 3000, 5, '卜蜂（綠）')">
                                 卜蜂（綠）（5 年）
                             </button>
-                            <button class="quick-set-btn"
-                                onclick="setQuickParams('1215', 5000, 3000, 10, '卜蜂（綠）')">
+                            <button class="quick-set-btn" onclick="setQuickParams('1215', 5000, 3000, 10, '卜蜂（綠）')">
                                 卜蜂（綠）（10 年）
                             </button>
                         </div>
@@ -729,19 +725,23 @@
                                 </li>
                                 <li>
                                     <i class="fas fa-check text-success me-2"></i>
-                                    <span class="text-white-75">PE 數據來自<strong class="text-white-75">資料庫</strong>（stock_PE.py）</span>
+                                    <span class="text-white-75">PE 數據來自<strong
+                                            class="text-white-75">資料庫</strong>（stock_PE.py）</span>
                                 </li>
                                 <li>
                                     <i class="fas fa-check text-success me-2"></i>
-                                    <span class="text-white-75">計算<strong class="text-white-75">總報酬率、年化報酬率</strong></span>
+                                    <span class="text-white-75">計算<strong
+                                            class="text-white-75">總報酬率、年化報酬率</strong></span>
                                 </li>
                                 <li>
                                     <i class="fas fa-check text-success me-2"></i>
-                                    <span class="text-white-75">顯示<strong class="text-white-75">最大回撤、波動率、夏普比率</strong></span>
+                                    <span class="text-white-75">顯示<strong
+                                            class="text-white-75">最大回撤、波動率、夏普比率</strong></span>
                                 </li>
                                 <li>
                                     <i class="fas fa-info-circle text-info me-2"></i>
-                                    <span class="text-white-75">適合<strong class="text-white-75">長期定時定額</strong>或<strong class="text-white-75">價值投資</strong>者</span>
+                                    <span class="text-white-75">適合<strong class="text-white-75">長期定時定額</strong>或<strong
+                                            class="text-white-75">價值投資</strong>者</span>
                                 </li>
                             </ul>
                         </div>
@@ -962,38 +962,38 @@
             // 快速設定（全域函式，需要在 DOMContentLoaded 之前定義）
             window.setQuickParams = function (ticker, initial, monthly, years, name) {
                 console.log('快速設定:', { ticker, initial, monthly, years, name });
-                
+
                 // 確保 DOM 已載入
                 const tickerEl = document.getElementById('ticker');
                 const stockNameEl = document.getElementById('stockName');
                 const initialEl = document.getElementById('initialAmount');
                 const monthlyEl = document.getElementById('monthlyAmount');
                 const startEl = document.getElementById('startDate');
-                
+
                 if (!tickerEl || !initialEl || !startEl) {
                     console.error('表單元素尚未載入，請稍後再試');
                     alert('表單尚未載入完成，請稍候再試');
                     return;
                 }
-                
+
                 // 根據今天日期往前推算年數
                 const today = new Date();
                 const startDate = new Date(today);
                 startDate.setFullYear(startDate.getFullYear() - years);
                 const startStr = startDate.toISOString().split('T')[0]; // YYYY-MM-DD
-                
+
                 tickerEl.value = ticker;
                 stockNameEl.value = name || '';
                 initialEl.value = initial;
                 monthlyEl.value = monthly;
                 startEl.value = startStr;
-                
+
                 console.log('快速設定成功！開始日期:', startStr);
                 alert(`已設定：${name || ticker}\n初始金額：$${initial.toLocaleString()}\n每月金額：$${monthly.toLocaleString()}\n起始日期：${startStr}（今天往前${years}年）`);
             };
 
             // 儲存目前設定到 localStorage
-            window.saveCurrentSettings = function() {
+            window.saveCurrentSettings = function () {
                 const settings = {
                     ticker: document.getElementById('ticker').value,
                     stockName: document.getElementById('stockName').value,
@@ -1003,10 +1003,10 @@
                     endDate: document.getElementById('endDate').value,
                     timestamp: new Date().toISOString()
                 };
-                
+
                 // 取得已儲存的設定或建立新陣列
                 let savedSettings = JSON.parse(localStorage.getItem('dcaSettings') || '[]');
-                
+
                 // 檢查是否已存在相同股票設定
                 const existingIndex = savedSettings.findIndex(s => s.ticker === settings.ticker);
                 if (existingIndex >= 0) {
@@ -1016,23 +1016,23 @@
                     savedSettings.push(settings);
                     alert(`已儲存設定：${settings.stockName || settings.ticker}`);
                 }
-                
+
                 localStorage.setItem('dcaSettings', JSON.stringify(savedSettings));
                 loadSavedSettings(); // 重新載出列表
             };
 
             // 從 localStorage 載出已儲存的設定
-            window.loadSavedSettings = function() {
+            window.loadSavedSettings = function () {
                 const container = document.getElementById('savedSettingsContainer');
                 if (!container) return;
-                
+
                 const savedSettings = JSON.parse(localStorage.getItem('dcaSettings') || '[]');
-                
+
                 if (savedSettings.length === 0) {
                     container.innerHTML = '<p class="text-white-50 text-center py-3">尚無儲存的設定</p>';
                     return;
                 }
-                
+
                 container.innerHTML = savedSettings.map((settings, index) => `
                     <div class="mb-2 p-2" style="background: rgba(255,255,255,0.05); border-radius: 8px;">
                         <div class="d-flex justify-content-between align-items-center mb-1">
@@ -1057,24 +1057,24 @@
             };
 
             // 套用已儲存的設定
-            window.applySavedSettings = function(index) {
+            window.applySavedSettings = function (index) {
                 const savedSettings = JSON.parse(localStorage.getItem('dcaSettings') || '[]');
                 const settings = savedSettings[index];
-                
+
                 document.getElementById('ticker').value = settings.ticker;
                 document.getElementById('stockName').value = settings.stockName || '';
                 document.getElementById('initialAmount').value = settings.initialAmount;
                 document.getElementById('monthlyAmount').value = settings.monthlyAmount;
                 document.getElementById('startDate').value = settings.startDate;
                 document.getElementById('endDate').value = settings.endDate;
-                
+
                 alert(`已套用：${settings.stockName || settings.ticker}`);
             };
 
             // 刪除已儲存的設定
-            window.deleteSavedSettings = function(index) {
+            window.deleteSavedSettings = function (index) {
                 if (!confirm('確定要刪除此設定嗎？')) return;
-                
+
                 let savedSettings = JSON.parse(localStorage.getItem('dcaSettings') || '[]');
                 const deleted = savedSettings.splice(index, 1)[0];
                 localStorage.setItem('dcaSettings', JSON.stringify(savedSettings));
@@ -1093,6 +1093,69 @@
 
                 // 載出已儲存的設定
                 loadSavedSettings();
+
+                // 檢查是否有之前計算的結果（從 session 取得）
+                fetch('/api/get_dca_backtest_result')
+                    .then(response => {
+                        if (response.ok) {
+                            return response.json();
+                        } else {
+                            return null;
+                        }
+                    })
+                    .then(result => {
+                        if (result && result.kpis) {
+                            console.log('找到之前計算的結果，自動顯示');
+                            // 顯示載入中
+                            document.getElementById('loadingSection').style.display = 'block';
+
+                            // 模擬按鈕點擊，執行完整的渲染流程
+                            renderKPICards(result.kpis);
+                            renderChart(result.chart_data);
+                            renderInvestmentLog(result.investment_log);
+
+                            // 顯示結果區域
+                            setTimeout(() => {
+                                const resultSection = document.getElementById('resultSection');
+                                resultSection.style.display = 'block';
+                                resultSection.style.visibility = 'visible';
+                                resultSection.style.opacity = '1';
+
+                                // 顯示圖表區域
+                                const chartSection = document.getElementById('chartSection');
+                                if (chartSection) {
+                                    chartSection.style.visibility = 'visible';
+                                    chartSection.style.height = 'auto';
+                                    chartSection.style.overflow = 'visible';
+
+                                    // 重新調整圖表大小
+                                    setTimeout(() => {
+                                        const chartDom = document.getElementById('dcaChart');
+                                        if (chartDom && chartDom._echarts) {
+                                            chartDom._echarts.resize();
+                                        }
+                                    }, 100);
+                                }
+
+                                // 顯示投資記錄
+                                const tableContainer = document.getElementById('investmentTableContainer');
+                                if (tableContainer) {
+                                    tableContainer.style.visibility = 'visible';
+                                    tableContainer.style.height = 'auto';
+                                    tableContainer.style.overflow = 'visible';
+                                }
+
+                                // 隱藏載入中
+                                document.getElementById('loadingSection').style.display = 'none';
+
+                                // 顯示提示訊息
+                                alert('已載入之前計算的結果！');
+                            }, 100);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('檢查 session 結果失敗:', error);
+                    });
 
                 // 初始化 tooltip（如果 bootstrap 已載入）
                 if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
@@ -1283,7 +1346,7 @@
 
                     // 渲染投資記錄
                     renderInvestmentLog(data.investment_log, data.kpi_cards);
-                    
+
                     // 調試：檢查 investment_log
                     console.log('investment_log:', data.investment_log);
                     console.log('investment_log length:', data.investment_log ? data.investment_log.length : 'undefined');
@@ -1293,14 +1356,14 @@
                         resultSection.style.display = 'block';
                         resultSection.style.visibility = 'visible';
                         resultSection.style.opacity = '1';
-                        
+
                         // 顯示圖表區塊
                         const chartSection = document.getElementById('chartSection');
                         if (chartSection) {
                             chartSection.style.visibility = 'visible';
                             chartSection.style.height = 'auto';
                             chartSection.style.overflow = 'visible';
-                            
+
                             // 重新調整圖表大小
                             setTimeout(() => {
                                 const chartDom = document.getElementById('dcaChart');
@@ -1309,7 +1372,7 @@
                                 }
                             }, 100);
                         }
-                        
+
                         // 顯示投資記錄表格
                         const tableContainer = document.getElementById('investmentTableContainer');
                         if (tableContainer) {
@@ -1585,11 +1648,11 @@
                 function renderInvestmentLog(log, kpi) {
                     try {
                         console.log('renderInvestmentLog called with log length:', log ? log.length : 'null/undefined');
-                        
+
                         // 顯示投資記錄容器
                         const tableContainer = document.getElementById('investmentTableContainer');
                         const tbody = document.getElementById('investmentLog');
-                        
+
                         if (!tableContainer) {
                             console.error('investmentTableContainer not found!');
                             return;
@@ -1598,11 +1661,11 @@
                             console.error('investmentLog tbody not found!');
                             return;
                         }
-                        
+
                         tableContainer.style.display = 'block';
                         tableContainer.style.visibility = 'visible';
                         tableContainer.style.opacity = '1';
-                        
+
                         if (!log || log.length === 0) {
                             tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="color: rgba(255, 255, 255, 0.6);">暫無投資記錄</td></tr>';
                             // 清空統計
@@ -1619,7 +1682,7 @@
                         let finalPnL = 0;
 
                         console.log('Processing', log.length, 'investment records...');
-                        
+
                         tbody.innerHTML = log.map((item, index) => {
                             totalInvested += Number(item.amount);
                             totalSharesBought += Number(item.shares);
@@ -1651,7 +1714,7 @@
                         document.getElementById('totalInvestedFoot').textContent = '$' + Number(log[log.length - 1].total_invested).toLocaleString('zh-TW', { minimumFractionDigits: 2 });
                         document.getElementById('totalPnL').textContent = '$' + finalPnL.toLocaleString('zh-TW', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                         document.getElementById('totalPnL').style.color = finalPnL >= 0 ? '#00e676' : '#ff5252';
-                        
+
                         // 強制滾動到表格
                         setTimeout(() => {
                             tableContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });

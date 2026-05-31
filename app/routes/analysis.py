@@ -1,7 +1,7 @@
 # ==========================================
 # 分析路由（PE 分析/回測）
 # ==========================================
-from flask import Blueprint, render_template, request, redirect, url_for, jsonify, flash
+from flask import Blueprint, render_template, request, redirect, url_for, jsonify, flash, session
 from flask_login import login_required, current_user
 
 from app.services.ai_report import generate_ai_report
@@ -65,7 +65,9 @@ def api_run_backtest():
 @login_required
 def backtest_dca_page():
     """定額投資回測頁面（VIP 功能）"""
-    return render_template('backtest_dca.html')
+    # 從 session 中取得之前計算的結果
+    backtest_result = session.get('dca_backtest_result')
+    return render_template('backtest_dca.html', backtest_result=backtest_result)
 
 
 @analysis_bp.route('/api/run_dca_backtest', methods=['POST'])
@@ -73,6 +75,7 @@ def backtest_dca_page():
 def api_run_dca_backtest():
     """執行定額投資回測 API (支援三種策略)"""
     from datetime import datetime
+    from flask import session
     data = request.get_json() or {}
     ticker = data.get('ticker', '').strip()
     stock_name = data.get('stock_name', '').strip()
@@ -93,6 +96,7 @@ def api_run_dca_backtest():
             '宏碁': '2303',
             '華碩': '2338',
             '鴻海': '2317',
+            '卜蜂': '1215',
         }
         ticker = name_to_code.get(stock_name, stock_name)
     
@@ -131,4 +135,19 @@ def api_run_dca_backtest():
         result['stock_name'] = stock_name
     result['ticker'] = ticker
     
+    # 儲存結果到 session，這樣切換頁面就不會失去
+    session['dca_backtest_result'] = result
+    
     return jsonify(result), 200
+
+
+@analysis_bp.route('/api/get_dca_backtest_result')
+@vip_required
+def api_get_dca_backtest_result():
+    """從 session 取得之前計算的回測結果"""
+    from flask import session
+    result = session.get('dca_backtest_result')
+    if result:
+        return jsonify(result), 200
+    else:
+        return jsonify({'status': 'error', 'message': '尚無回測結果'}), 404
